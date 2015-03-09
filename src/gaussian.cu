@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>
 
 #include <iostream>
 #include <cuda_runtime.h>
@@ -61,22 +62,52 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     }
 }
 
-// Simple 8-bit bit reversal Compute test
-
-#define N 256
-
-__global__ void bitreverse(unsigned int *data)
+#ifdef CUBLAS_API_H_
+// cuBLAS API errors
+static const char *_cudaGetErrorEnum(cublasStatus_t error)
 {
-    unsigned int *idata = data;
+    switch (error)
+    {
+        case CUBLAS_STATUS_SUCCESS:
+            return "CUBLAS_STATUS_SUCCESS";
 
-    unsigned int x = idata[threadIdx.x];
+        case CUBLAS_STATUS_NOT_INITIALIZED:
+            return "CUBLAS_STATUS_NOT_INITIALIZED";
 
-    x = ((0xf0f0f0f0 & x) >> 4) | ((0x0f0f0f0f & x) << 4);
-    x = ((0xcccccccc & x) >> 2) | ((0x33333333 & x) << 2);
-    x = ((0xaaaaaaaa & x) >> 1) | ((0x55555555 & x) << 1);
+        case CUBLAS_STATUS_ALLOC_FAILED:
+            return "CUBLAS_STATUS_ALLOC_FAILED";
 
-    idata[threadIdx.x] = x;
+        case CUBLAS_STATUS_INVALID_VALUE:
+            return "CUBLAS_STATUS_INVALID_VALUE";
+
+        case CUBLAS_STATUS_ARCH_MISMATCH:
+            return "CUBLAS_STATUS_ARCH_MISMATCH";
+
+        case CUBLAS_STATUS_MAPPING_ERROR:
+            return "CUBLAS_STATUS_MAPPING_ERROR";
+
+        case CUBLAS_STATUS_EXECUTION_FAILED:
+            return "CUBLAS_STATUS_EXECUTION_FAILED";
+
+        case CUBLAS_STATUS_INTERNAL_ERROR:
+            return "CUBLAS_STATUS_INTERNAL_ERROR";
+    }
+
+    return "<unknown>";
 }
+
+#define cublasErrchk(ans) { cublasAssert((ans), __FILE__, __LINE__); }
+inline void cublasAssert(cublasStatus_t code, const char *file, int line, bool abort=true)
+{
+    if (code != CUBLAS_STATUS_SUCCESS)
+    {
+        fprintf(stderr,"cuBLASassert: %s %s:%d\n", _cudaGetErrorEnum(code), file, line);
+        cudaDeviceReset();
+        if (abort) { exit(code); }
+    }
+}
+
+#endif
 
 // Allocates one continous array of memory of size arraySize*batchSize and writes the
 // pointers of all subarrays into the array of pointers located at devArrayPtr.
@@ -353,7 +384,7 @@ static void calcluateVariance(
 
 void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array *matrices) {
     int ret;
-    int _numMatrics, _m, _n;
+    int _numMatrices, _m, _n;
 
     FILE* fp = fopen(path, "r");
     ensure(fp, "could not open matrix file %s", path);
@@ -369,7 +400,7 @@ void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array 
     ensure(arraySize <= MAX_MATRIX_BYTE_READ, "cannot read file %s because "
         "the allocated array would be bigger than 0x%X bytes", path, arraySize);
 
-    *matrices = malloc(arraySize);
+    *matrices = (Array)malloc(arraySize);
     ensure(*matrices, "could not allocate 0x%X bytes of memory for file %s", arraySize, path);
 
     Array currentElement = *matrices;
@@ -377,7 +408,7 @@ void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array 
     for (int k = 0; k < _numMatrices; ++k) {
         for (int i = 0; i < _m; ++i) {
             for (int j = 0; j < _n; ++j, ++currentElement) {
-                ret = fscanf(fp, "%d", currentElement);
+                ret = fscanf(fp, "%f", currentElement);
                 ensure(ret, "could not read matrix from file %s, stuck at matrix %d element %d, %d", path, k, i, j);
             }
         }
@@ -393,19 +424,25 @@ void readMeanTest(const char *directory, int *numMatrices, int *n,
     int numMatricesA, numMatricesB, numMatricesC, numMatricesD;
     int mA, mB, mC, mD;
     int nA, nB, nC, nD;
-    Array a, b, c, d;
 
     snprintf(filePath, 1024, "%s/a.mats", directory);
-    readMatricesFile(filePath, &numMatricesA, &mA, &nA, &a);
+    readMatricesFile(filePath, &numMatricesA, &mA, &nA, a);
 
     snprintf(filePath, 1024, "%s/b.mats", directory);
-    readMatricesFile(filePath, &numMatricesB, &mB, &nB, &b);
+    readMatricesFile(filePath, &numMatricesB, &mB, &nB, b);
 
     snprintf(filePath, 1024, "%s/c.mats", directory);
-    readMatricesFile(filePath, &numMatricesC, &mC, &nC, &c);
+    readMatricesFile(filePath, &numMatricesC, &mC, &nC, c);
 
     snprintf(filePath, 1024, "%s/d.mats", directory);
-    readMatricesFile(filePath, &numMatricesD, &mD, &nD, &d);
+    readMatricesFile(filePath, &numMatricesD, &mD, &nD, d);
+
+    ensure(
+        numMatricesA == numMatricesB && numMatricesB == numMatricesC && numMatricesC == numMatricesD,
+        "test in directory %s invalid, number of matrices in files not matching\r\n"
+        "numMatricesA(%d) numMatricesB(%d) numMatricesC(%d) numMatricesD(%d)\r\n",
+        numMatricesA, numMatricesB, numMatricesC, numMatricesD
+    );
 
     ensure(
         mA == mB && mB == mC && mC == mD &&
@@ -415,6 +452,9 @@ void readMeanTest(const char *directory, int *numMatrices, int *n,
         "nA(%d) nB(%d) nC(%d) nD(%d)\r\n",
         mA, mB, mC, mD, nA, nB, nC, nD
     );
+
+    *numMatrices = numMatricesA;
+    *n = mA;
 }
 
 int main(void)
@@ -425,11 +465,10 @@ int main(void)
     Array a, b, c, d;
     Array means;
 
-    readMeanTest("tests/simpleMean", &numMatrices, &n, &a, &b, &c, *d);
+    readMeanTest("tests/simpleMean", &numMatrices, &n, &a, &b, &c, &d);
 
-    gpuErrchk( cublasCreate(&handle) );
+    cublasErrchk( cublasCreate(&handle) );
     gpuErrchk( cudaMalloc((void**)&means, sizeof(ELEMENT_TYPE)*numMatrices)) ;
-
 
     calcluateMean(handle, n, a, b, c, d, means, numMatrices);
 
@@ -441,7 +480,7 @@ int main(void)
     }
 
     gpuErrchk( cudaFree((void*)means) );
-    gpuErrchk( cublasDestroy(&handle) );
+    cublasErrchk( cublasDestroy(handle) );
 
     return 0;
 }

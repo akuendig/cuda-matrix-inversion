@@ -54,7 +54,7 @@ NVCC := $(CUDA_PATH)/bin/nvcc -ccbin $(GCC)
 # internal flags
 NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS}
 CCFLAGS     :=
-LDFLAGS     :=
+LDFLAGS     := -lcublas
 
 # Extra user flags
 EXTRA_NVCCFLAGS   ?=
