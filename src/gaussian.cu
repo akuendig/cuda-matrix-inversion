@@ -6,6 +6,8 @@
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
 
+#define MAX_MATRIX_BYTE_READ 67108864
+
 #define ELEMENT_TYPE float
 
 static const ELEMENT_TYPE ELEMENT_ZERO = ELEMENT_TYPE(0);
@@ -28,6 +30,23 @@ typedef ELEMENT_TYPE *Array;
 // - Some memory access in the kernels will be missaligned which can hamper performance (needs profiling)
 //      > Seems like this can be avoided with cudaMallocPitch and cudaMemcpy2D
 
+#define fail(...) \
+  fprintf(stderr, "%s:%d\t", __FILE__, __LINE__); \
+  fprintf(stderr, __VA_ARGS__); \
+  fprintf(stderr, "\r\n"); \
+  exit(EXIT_FAILURE);
+
+#define ensure(condition, ...) \
+  do { \
+    if (! (condition)) { \
+      fprintf(stderr, "ENSURE FAILED %s:%d\r\n", __FILE__, __LINE__); \
+      fprintf(stderr, __VA_ARGS__); \
+      fprintf(stderr, "\r\n"); \
+      if (errno) { perror("possible reason for failure from ERRNO"); } \
+      exit(EXIT_FAILURE); \
+    } \
+  } while(0)
+
 /********************/
 /* CUDA ERROR CHECK */
 /********************/
@@ -37,6 +56,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     if (code != cudaSuccess)
     {
         fprintf(stderr,"GPUassert: %s %s:%d\n", cudaGetErrorString(code), file, line);
+        cudaDeviceReset();
         if (abort) { exit(code); }
     }
 }
@@ -68,7 +88,7 @@ static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t a
     if (cudaSuccess != result) {
         return result;
     }
-    
+
     for (int i = 0; i < batchSize; ++i) {
         devArrayPtr[i] = (Array)devPtr;
         devPtr += *pitch;
@@ -139,7 +159,7 @@ static void batchedMul(
 // Ds       batchSize x n x 1
 // Means    batchSize x n x 1
 // Means is assumed to be already allocated.
-static void calcluate_mean(
+static void calcluateMean(
     cublasHandle_t handle,
     int n,
     Array As,
@@ -238,7 +258,7 @@ static void calcluate_mean(
 // Ds       batchSize x n x 1
 // Means    batchSize x n x 1
 // Means is assumed to be already allocated.
-static void calcluate_variance(
+static void calcluateVariance(
     cublasHandle_t handle,
     int n,
     Array As,
@@ -331,28 +351,97 @@ static void calcluate_variance(
     gpuErrchk( cudaFreeHost((void*)devCs) );
 }
 
+void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array *matrices) {
+    int ret;
+    int _numMatrics, _m, _n;
+
+    FILE* fp = fopen(path, "r");
+    ensure(fp, "could not open matrix file %s", path);
+
+    ret = fscanf(fp, "%d %d %d", &_numMatrices, &_m, &_n);
+    ensure(3 == ret, "could not read number of matrices from file %s", path);
+
+    *numMatrices = _numMatrices;
+    *m = _m;
+    *n = _n;
+
+    size_t arraySize = sizeof(ELEMENT_TYPE) * (_numMatrices) * (_m) * (_n);
+    ensure(arraySize <= MAX_MATRIX_BYTE_READ, "cannot read file %s because "
+        "the allocated array would be bigger than 0x%X bytes", path, arraySize);
+
+    *matrices = malloc(arraySize);
+    ensure(*matrices, "could not allocate 0x%X bytes of memory for file %s", arraySize, path);
+
+    Array currentElement = *matrices;
+
+    for (int k = 0; k < _numMatrices; ++k) {
+        for (int i = 0; i < _m; ++i) {
+            for (int j = 0; j < _n; ++j, ++currentElement) {
+                ret = fscanf(fp, "%d", currentElement);
+                ensure(ret, "could not read matrix from file %s, stuck at matrix %d element %d, %d", path, k, i, j);
+            }
+        }
+    }
+
+    fclose(fp);
+}
+
+void readMeanTest(const char *directory, int *numMatrices, int *n,
+        Array *a, Array *b, Array *c, Array *d) {
+    char filePath[1024];
+
+    int numMatricesA, numMatricesB, numMatricesC, numMatricesD;
+    int mA, mB, mC, mD;
+    int nA, nB, nC, nD;
+    Array a, b, c, d;
+
+    snprintf(filePath, 1024, "%s/a.mats", directory);
+    readMatricesFile(filePath, &numMatricesA, &mA, &nA, &a);
+
+    snprintf(filePath, 1024, "%s/b.mats", directory);
+    readMatricesFile(filePath, &numMatricesB, &mB, &nB, &b);
+
+    snprintf(filePath, 1024, "%s/c.mats", directory);
+    readMatricesFile(filePath, &numMatricesC, &mC, &nC, &c);
+
+    snprintf(filePath, 1024, "%s/d.mats", directory);
+    readMatricesFile(filePath, &numMatricesD, &mD, &nD, &d);
+
+    ensure(
+        mA == mB && mB == mC && mC == mD &&
+        nA == 1 && nB == mB && nC == mC && nD == 1,
+        "test in directory %s invalid, dimensions not matching\r\n"
+        "mA(%d) mB(%d) mC(%d) mD(%d)\r\n",
+        "nA(%d) nB(%d) nC(%d) nD(%d)\r\n",
+        mA, mB, mC, mD, nA, nB, nC, nD
+    );
+}
+
 int main(void)
 {
-    unsigned int *d = NULL; int i;
-    unsigned int idata[N], odata[N];
+    cublasHandle_t handle;
 
-    for (i = 0; i < N; i++)
-         idata[i] = (unsigned int)i;
+    int numMatrices, n;
+    Array a, b, c, d;
+    Array means;
 
-    gpuErrchk( cudaMalloc((void**)&d, sizeof(int)*N)) ;
-    gpuErrchk( cudaMemcpy(d, idata, sizeof(int)*N,
-               cudaMemcpyHostToDevice) );
+    readMeanTest("tests/simpleMean", &numMatrices, &n, &a, &b, &c, *d);
 
-    bitreverse<<<1, N>>>(d);
+    gpuErrchk( cublasCreate(&handle) );
+    gpuErrchk( cudaMalloc((void**)&means, sizeof(ELEMENT_TYPE)*numMatrices)) ;
+
+
+    calcluateMean(handle, n, a, b, c, d, means, numMatrices);
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
 
-    gpuErrchk( cudaMemcpy(odata, d, sizeof(int)*N,
-               cudaMemcpyDeviceToHost) );
+    for (int i = 0; i < numMatrices; i++) {
+        printf("%f\r\n", means[i]);
+    }
 
-    for (i = 0; i < N; i++)
-        printf("%u -> %u\n", idata[i], odata[i]);
+    gpuErrchk( cudaFree((void*)means) );
+    gpuErrchk( cublasDestroy(&handle) );
 
-    gpuErrchk( cudaFree((void*)d) );
     return 0;
 }
