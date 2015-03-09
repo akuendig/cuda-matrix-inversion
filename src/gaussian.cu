@@ -217,10 +217,16 @@ static void calcluateMean(
     gpuErrchk( cudaHostAlloc((void**)&devCs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
     gpuErrchk( cudaHostAlloc((void**)&devDs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+
     // Allocate and copy Bs, Cs and Ds to the GPU
     gpuErrchk( batchedCudaMalloc(devBs, &pitchBs, sizeOfMatrixB, batchSize) );
     gpuErrchk( batchedCudaMalloc(devCs, &pitchCs, sizeOfMatrixC, batchSize) );
     gpuErrchk( batchedCudaMalloc(devDs, &pitchDs, sizeOfMatrixD, batchSize) );
+
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
 
     gpuErrchk( cudaMemcpy2D(devBs, pitchBs, Bs, sizeOfMatrixB, sizeOfMatrixB, batchSize,
                cudaMemcpyHostToDevice) );
