@@ -3,11 +3,13 @@
 #include <assert.h>
 
 #include <iostream>
+#include <cuda_runtime.h>
+#include "cublas_v2.h"
 
 #define ELEMENT_TYPE float
 
-static const ELEMENT_ZERO ELEMENT_TYPE(0);
-static const ELEMENT_ONE ELEMENT_TYPE(1);
+static const ELEMENT_TYPE ELEMENT_ZERO = ELEMENT_TYPE(0);
+static const ELEMENT_TYPE ELEMENT_ONE = ELEMENT_TYPE(1);
 
 typedef ELEMENT_TYPE *Array;
 
@@ -59,16 +61,17 @@ __global__ void bitreverse(unsigned int *data)
 // Allocates one continous array of memory of size arraySize*batchSize and writes the
 // pointers of all subarrays into the array of pointers located at devArrayPtr.
 static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
-    void *devPtr;
+    char *devPtr;
 
-    cudaError_t result = cudaMallocPitch(&devPtr, pitch, arraySize, batchSize);
+    cudaError_t result = cudaMallocPitch((void**)&devPtr, pitch, arraySize, batchSize);
 
     if (cudaSuccess != result) {
         return result;
     }
-
-    for (void *devPtrEnd = devPtr + (*pitch)*batchSize; devPtr < devPtrEnd; devPtr += *pitch) {
-        devArrayPtr[i] = devPtr;
+    
+    for (int i = 0; i < batchSize; ++i) {
+        devArrayPtr[i] = (Array)devPtr;
+        devPtr += *pitch;
     }
 
     return cudaSuccess;
@@ -77,6 +80,7 @@ static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t a
 // Adds all matrices in devLeft to their corresponding matrix in devRight.
 // The data inside devRight is modified, devLeft is left untouched.
 // Both devLeft and devRight are expected to be already allocated on the GPU.
+// defRight += devLeft
 static void batchedAdd(
     cublasHandle_t handle,
     int n,
@@ -94,6 +98,7 @@ static void batchedAdd(
 // devMatrices and devInvMatrices are already allocated on the GPU. However,
 // maybe one of the two methods for inversion does not need a workspace the size
 // of the input. In that case this function signature has to change!
+// defInvMatrices = devMatrices^{-1}
 static void batchedInverse(
     cublasHandle_t handle,
     int n,
@@ -108,6 +113,10 @@ static void batchedInverse(
 // Multiplies all matrices in devLeft to their corresponding matrix in devRight.
 // The data inside devLeft and devRight is untouched, devResult is modified.
 // devLeft, devRight and devResult are expected to be already allocated on the GPU.
+// m = number of rows of transa(devLeft) and devResult
+// n = number of columns of transb(devRight) and devResult
+// k = number of columns of transa(devLeft) and rows of transb(devRight)
+// devResult = alpha*transa(devLeft)*transb(devRight) + beta*devResult
 static void batchedMul(
     cublasHandle_t handle,
     cublasOperation_t transa, cublasOperation_t transb,
@@ -115,6 +124,7 @@ static void batchedMul(
     const ELEMENT_TYPE *alpha,
     const Array devLeft[],
     const Array devReight[],
+    const ELEMENT_TYPE *beta,
     Array devResult[],
     int batchSize) {
     // TODO: implement matrix multiplication.
@@ -168,7 +178,7 @@ static void calcluate_mean(
     gpuErrchk( cudaMemcpy2D(devDs, pitchDs, Ds, sizeOfMatrixD, sizeOfMatrixD, batchSize,
                cudaMemcpyHostToDevice) );
 
-    // Calculate Madd = B + C for every matrix, the result is stored in Cs
+    // Calculate Madd = B + C for every matrix, store result in Cs
     batchedAdd(handle, n, &ELEMENT_ONE, devBs, devCs, batchSize);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -176,7 +186,7 @@ static void calcluate_mean(
     // devCs: Madd
     // devDs: Ds
 
-    // Calculate Minv = Madd^-1, reuse Bs as workspace
+    // Calculate Minv = Madd^-1, store result in Bs
     batchedInverse(handle, n, devCs, devBs, batchSize);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -184,14 +194,8 @@ static void calcluate_mean(
     // devCs: Madd
     // devDs: Ds
 
-    // Set all first elements of devCs to zero because usually the
-    // array of values provided as third arcument to the BLAS
-    // multiplication function is added to the result of the computation.
-    // However, the result of the computation are vectors and not matrices
-    // anymore.
-    gpuErrchk( cudaMemset2D(devCs, pitchCs, 0, sizeOfMatrixD, batchSize) );
-    // Calculate Mmul = Minv * Ds, reuse Cs as workspace
-    batchedMul(handle, n, devBs, devDs, devCs, batchSize);
+    // Calculate Mmul = Minv * Ds, store result in Cs
+    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, 1, &ELEMENT_ONE, devBs, devDs, &ELEMENT_ZERO, devCs, batchSize);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     // devBs: Minv
@@ -199,20 +203,14 @@ static void calcluate_mean(
     // devDs: Ds
 
     // Load As into GPU memory overwriting devDs.
-    gpuErrchk( cudaMemcpy2D(devDs, pitchDs, As, sizeOfMatrixA, batchSize,
+    gpuErrchk( cudaMemcpy2D(devDs, pitchDs, As, sizeOfMatrixA, sizeOfMatrixA, batchSize,
                cudaMemcpyHostToDevice) );
     // devBs: Minv
     // devCs: Mmul
     // devDs: As
 
-    // Again, set all first elements of devBs to zero because usually the
-    // array of values provided as third arcument to the BLAS
-    // multiplication function is added to the result of the computation.
-    // However, the result of the computation are scalars and not matrices
-    // anymore.
-    gpuErrchk( cudaMemset2D(devBs, pitchBs, 0, sizeOfResult, batchSize) );
-    // Calculate Mmean = Mmul * A
-    batchedMul(handle, n, devCs, devDs, devBs, batchSize);
+    // Calculate Mmean = AT * Mmul + (whatever is in Bs), store result in Bs
+    batchedMul(handle, CUBLAS_OP_T, CUBLAS_OP_N, 1, n, n, &ELEMENT_ONE, devCs, devDs, &ELEMENT_ZERO, devBs, batchSize);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     // devBs: Mmean
@@ -220,7 +218,7 @@ static void calcluate_mean(
     // devDs: As
 
     // Fetch result from GPU and free used memory.
-    gpuErrchk( cudaMemcpy2D(devBs, pitchBs, Means, sizeOfResult, batchSize,
+    gpuErrchk( cudaMemcpy2D(devBs, pitchBs, Means, sizeOfResult, sizeOfResult, batchSize,
                cudaMemcpyHostToDevice) );
 
     gpuErrchk( cudaFree((void*)devBs[0]) );
@@ -295,28 +293,16 @@ static void calcluate_variance(
     // devBs: Minv
     // devCs: Madd
 
-    // Set all first elements of devCs to zero because usually the
-    // array of values provided as third arcument to the BLAS
-    // multiplication function is added to the result of the computation.
-    // However, the result of the computation are vectors and not matrices
-    // anymore.
-    gpuErrchk( cudaMemset2D(devCs, pitchCs, 0, sizeOfMatrixA, batchSize) );
     // Calculate Mmul = Minv * A + (whatever is in Cs), store result in Cs
-    batchedMul(handle, n, devBs, devDs, devCs, batchSize);
+    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, 1, &ELEMENT_ONE, devBs, devAs, &ELEMENT_ZERO, devCs, batchSize);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     // devAs: As
     // devBs: Minv
     // devCs: Mmul
 
-    // Again, set all first elements of devBs to zero because usually the
-    // array of values provided as third arcument to the BLAS
-    // multiplication function is added to the result of the computation.
-    // However, the result of the computation are scalars and not matrices
-    // anymore.
-    gpuErrchk( cudaMemset2D(devBs, pitchBs, 0, sizeOfMatrixE, batchSize) );
     // Calculate Mmul2 = AT * Mmul + (whatever is in Bs), store result in Bs
-    batchedMul(handle, n, devCs, devDs, devBs, batchSize);
+    batchedMul(handle, CUBLAS_OP_T, CUBLAS_OP_N, 1, n, n, &ELEMENT_ONE, devCs, devAs, &ELEMENT_ZERO, devBs, batchSize);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     // devAs: As
@@ -328,12 +314,12 @@ static void calcluate_variance(
                cudaMemcpyHostToDevice) );
 
     const ELEMENT_TYPE minusOne = ELEMENT_TYPE(-1);
-    batchedAdd(handle, n, &minusOne, Mmul2, devAs, batchSize)
+    batchedAdd(handle, n, &minusOne, devBs, devAs, batchSize);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
 
     // Fetch result from GPU and free used memory.
-    gpuErrchk( cudaMemcpy2D(devAs, pitchAs, Variances, sizeOfMatrixE, batchSize,
+    gpuErrchk( cudaMemcpy2D(devAs, pitchAs, Variances, sizeOfMatrixE, sizeOfMatrixE, batchSize,
                cudaMemcpyHostToDevice) );
 
     gpuErrchk( cudaFree((void*)devAs[0]) );
