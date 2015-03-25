@@ -142,7 +142,17 @@ run: build
 	$(EXEC) ./gaussian
 
 clean:
+	rm inverse
 	rm -f gaussian gaussian.o
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
+
+c-test: src/inverse.c
+	clang -g -o inverse $+
+	echo "\
+	11  8   12  13  9\n\
+	4   5   6   7   14\n\
+	15  10  2   16  17\n\
+	18  19  20  21  3\n\
+	22  23  24  25  26\n" | ./inverse
 
 clobber: clean
