@@ -70,7 +70,7 @@ void invert(cublasHandle_t &handle, DataType *a, DataType *a_inv) {
 		pivotRow(handle, a, a_inv, i);
 
 		// Make column entry to be one
-		normalizeRow(a, a_inv, i);
+		normalizeRow(handle, a, a_inv, i);
 
 		// Number of threads equals number of rows
 		transform_matrix<<<1, N>>>(a, a_inv, i);
