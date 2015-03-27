@@ -5,7 +5,7 @@
 ################################################################################
 
 # Location of the CUDA Toolkit
-CUDA_PATH       ?= /usr/local/cuda-6.0
+CUDA_PATH       ?= /usr/local/cuda
 
 OSUPPER = $(shell uname -s 2>/dev/null | tr "[:lower:]" "[:upper:]")
 OSLOWER = $(shell uname -s 2>/dev/null | tr "[:upper:]" "[:lower:]")
@@ -154,5 +154,15 @@ c-test: src/inverse.c
 	15  10  2   16  17\n\
 	18  19  20  21  3\n\
 	22  23  24  25  26\n" | ./inverse
+
+
+bench.o: src/bench.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+bench: bench.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+
+bench-all: bench
+	./bench
 
 clobber: clean
