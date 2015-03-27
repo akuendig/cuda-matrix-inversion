@@ -20,7 +20,7 @@ void fillRandom(char *s, const int len) {
         s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
     }
 
-    s[len] = 0;
+    s[len-1] = 0;
 }
 
 void benchmarkMalloc(const int numReplications, const int numElems) {
@@ -115,7 +115,7 @@ void benchmarkTransferPinned(const int numReplications, const int numElems) {
     ELEMENT_TYPE *data, *devData;
     cudaEvent_t start, stop;
 
-    printf("Benchmark TRANSFER PITCHED - Replications: %d Elements: %d\n", numReplications, numElems);
+    printf("Benchmark TRANSFER PINNED - Replications: %d Elements: %d\n", numReplications, numElems);
 
     gpuErrchk( cudaEventCreate(&start) );
     gpuErrchk( cudaEventCreate(&stop) );
@@ -142,14 +142,14 @@ void benchmarkTransferPinned(const int numReplications, const int numElems) {
         float timeFromDevice = 0;
         gpuErrchk( cudaEventElapsedTime(&timeFromDevice, start, stop) );
 
-        printf("Benchmark TRANSFER PITCHED - To: %fms From: %fms\n", timeToDevice, timeFromDevice);
+        printf("Benchmark TRANSFER PINNED - To: %fms From: %fms\n", timeToDevice, timeFromDevice);
 
         timeToDeviceSum += timeToDevice;
         timeFromDeviceSum += timeFromDevice;
     }
 
-    printf("Benchmark TRANSFER PITCHED - Bandwidth to Device (GB/s): %f\n", sizeOfData/(timeToDeviceSum/float(numReplications))/1e6);
-    printf("Benchmark TRANSFER PITCHED - Bandwidth from Device (GB/s): %f\n", sizeOfData/(timeFromDeviceSum/float(numReplications))/1e6);
+    printf("Benchmark TRANSFER PINNED - Bandwidth to Device (GB/s): %f\n", sizeOfData/(timeToDeviceSum/float(numReplications))/1e6);
+    printf("Benchmark TRANSFER PINNED - Bandwidth from Device (GB/s): %f\n", sizeOfData/(timeFromDeviceSum/float(numReplications))/1e6);
 
     gpuErrchk( cudaFree(devData) );
     gpuErrchk( cudaFree(data) );

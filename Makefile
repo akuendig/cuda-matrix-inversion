@@ -142,7 +142,8 @@ run: build
 	$(EXEC) ./gaussian
 
 clean:
-	rm inverse
+	rm -f inverse
+	rm -f bench bench.o
 	rm -f gaussian gaussian.o
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
 
@@ -163,6 +164,6 @@ bench: bench.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 bench-all: bench
-	./bench 10 536870912 10
+	./bench 10 134217728 10
 
 clobber: clean
