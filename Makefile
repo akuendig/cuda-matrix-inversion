@@ -163,6 +163,6 @@ bench: bench.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 bench-all: bench
-	./bench 10 536870912
+	./bench 10 536870912 10
 
 clobber: clean
