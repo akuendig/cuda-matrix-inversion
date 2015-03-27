@@ -152,7 +152,7 @@ void benchmarkTransferPinned(const int numReplications, const int numElems) {
     printf("Benchmark TRANSFER PINNED - Bandwidth from Device (GB/s): %f\n", sizeOfData/(timeFromDeviceSum/float(numReplications))/1e6);
 
     gpuErrchk( cudaFree(devData) );
-    gpuErrchk( cudaFree(data) );
+    gpuErrchk( cudaFreeHost(data) );
 };
 
 void benchmarkTransfer2D(const int numReplications, const int numElems, const int numArrays) {
@@ -201,7 +201,7 @@ void benchmarkTransfer2D(const int numReplications, const int numElems, const in
     printf("Benchmark TRANSFER 2D - Bandwidth from Device (GB/s): %f\n", sizeOfData/(timeFromDeviceSum/float(numReplications))/1e6);
 
     gpuErrchk( cudaFree(devData) );
-    gpuErrchk( cudaFree(data) );
+    gpuErrchk( cudaFreeHost(data) );
 };
 
 int main(int argc, char const *argv[])
