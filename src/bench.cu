@@ -16,7 +16,7 @@
 
 void benchmarkTransfer(const int numReplications, const int numElems) {
     const size_t sizeOfData = sizeof(ELEMENT_TYPE)*numElems;
-    const ELEMENT_TYPE *data = (ELEMENT_TYPE *)malloc(sizeOfData);
+    ELEMENT_TYPE *data = (ELEMENT_TYPE *)malloc(sizeOfData);
     float timeToDeviceSum, timeFromDeviceSum;
 
     printf("Benchmark TRANSFER - Replications: %d Elements: %d\n", numReplications, numElems);
@@ -56,7 +56,7 @@ void benchmarkTransfer(const int numReplications, const int numElems) {
     printf("Benchmark TRANSFER - Bandwidth from Device (GB/s): %f\n", sizeOfData/(timeFromDeviceSum/float(numReplications))/1e6);
 
     gpuErrchk( cudaFree(devData) );
-    free((void*)data);
+    free(data);
 };
 
 int main(int argc, char const *argv[])
