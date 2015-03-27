@@ -61,7 +61,13 @@ void benchmarkTransfer(const int numReplications, const int numElems) {
 
 int main(int argc, char const *argv[])
 {
-    benchmarkTransfer(3, 1024*1024*200);
+    ensure(argc >= 3, "Usage: %s NUM_REPLICATIONS NUM_ELEMENTS", argv[0]);
+
+    int numReplications = atoi(argv[1]);
+    int numElems = atoi(argv[2]);
+
+    benchmarkTransfer(numReplications, numElems);
+
     /* code */
     return 0;
 }
