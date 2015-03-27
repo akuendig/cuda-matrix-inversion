@@ -12,10 +12,11 @@ Lets first start with the basic sequence of operations to perform a *mean* compu
 In short ```add -> inv -> gemv -> dot```
 
 1. Allocate space for 
--- B       batchSize x n x n
--- C       batchSize x n x n
--- D       batchSize x n x 1
-C is diagonal so could also be only batchSize x n x 1.
+  - B       batchSize x n x n
+  - C       batchSize x n x n
+  - D       batchSize x n x 1
+  
+  C is diagonal so could also be only batchSize x n x 1.
 2. Copy the matrices B, C, and D
 3. Add B and C (this could be done on CPU to save transfer time of C)
 4. Invert result
