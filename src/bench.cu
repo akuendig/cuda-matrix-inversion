@@ -197,8 +197,8 @@ void benchmarkTransfer2D(const int numReplications, const int numElems, const in
         timeFromDeviceSum += timeFromDevice;
     }
 
-    printf("Benchmark TRANSFER 2D - Bandwidth to Device (GB/s): %f\n", sizeOfData/(timeToDeviceSum/float(numReplications))/1e6);
-    printf("Benchmark TRANSFER 2D - Bandwidth from Device (GB/s): %f\n", sizeOfData/(timeFromDeviceSum/float(numReplications))/1e6);
+    printf("Benchmark TRANSFER 2D - Bandwidth to Device (GB/s): %f\n", sizeOfData/(timeToDeviceSum/float(numReplications)/float(numArrays))/1e6);
+    printf("Benchmark TRANSFER 2D - Bandwidth from Device (GB/s): %f\n", sizeOfData/(timeFromDeviceSum/float(numReplications)/float(numArrays))/1e6);
 
     gpuErrchk( cudaFree(devData) );
     gpuErrchk( cudaFreeHost(data) );
