@@ -22,29 +22,29 @@ void benchmarkTransfer(const int numReplications, const int numElems) {
     printf("Benchmark TRANSFER - Replications: %d Elements: %d\n", numReplications, numElems);
 
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    gpuErrchk( cudaEventCreate(&start) );
+    gpuErrchk( cudaEventCreate(&stop) );
 
     float *devData;
 
     gpuErrchk( cudaMalloc((void**)&devData, sizeOfData) );
 
     for (int i = 0; i < numReplications; ++i) {
-        cudaEventRecord(start);
-        cudaMemcpy(devData, data, sizeOfData, cudaMemcpyHostToDevice);
-        cudaEventRecord(stop);
+        gpuErrchk( cudaEventRecord(start) );
+        gpuErrchk( cudaMemcpy(devData, data, sizeOfData, cudaMemcpyHostToDevice) );
+        gpuErrchk( cudaEventRecord(stop) );
 
-        cudaEventSynchronize(stop);
+        gpuErrchk( cudaEventSynchronize(stop) );
         float timeToDevice = 0;
-        cudaEventElapsedTime(&timeToDevice, start, stop);
+        gpuErrchk( cudaEventElapsedTime(&timeToDevice, start, stop) );
 
-        cudaEventRecord(start);
-        cudaMemcpy(devData, data, sizeOfData, cudaMemcpyDeviceToHost);
-        cudaEventRecord(stop);
+        gpuErrchk( cudaEventRecord(start) );
+        gpuErrchk( cudaMemcpy(data, devData, sizeOfData, cudaMemcpyDeviceToHost) );
+        gpuErrchk( cudaEventRecord(stop) );
 
-        cudaEventSynchronize(stop);
+        gpuErrchk( cudaEventSynchronize(stop) );
         float timeFromDevice = 0;
-        cudaEventElapsedTime(&timeFromDevice, start, stop);
+        gpuErrchk( cudaEventElapsedTime(&timeFromDevice, start, stop) );
 
         printf("Benchmark TRANSFER - To: %f From: %f\n", timeToDevice, timeFromDevice);
 
