@@ -5,7 +5,7 @@
 ################################################################################
 
 # Location of the CUDA Toolkit
-CUDA_PATH       ?= /usr/local/cuda-6.0
+CUDA_PATH       ?= /usr/local/cuda
 
 OSUPPER = $(shell uname -s 2>/dev/null | tr "[:lower:]" "[:upper:]")
 OSLOWER = $(shell uname -s 2>/dev/null | tr "[:upper:]" "[:lower:]")
@@ -142,7 +142,28 @@ run: build
 	$(EXEC) ./gaussian
 
 clean:
+	rm -f inverse
+	rm -f bench bench.o
 	rm -f gaussian gaussian.o
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
+
+c-test: src/inverse.c
+	clang -g -o inverse $+
+	echo "\
+	11  8   12  13  9\n\
+	4   5   6   7   14\n\
+	15  10  2   16  17\n\
+	18  19  20  21  3\n\
+	22  23  24  25  26\n" | ./inverse
+
+
+bench.o: src/bench.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+bench: bench.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+
+bench-all: bench
+	./bench 10 134217728 10
 
 clobber: clean
