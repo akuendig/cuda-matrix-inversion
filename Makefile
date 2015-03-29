@@ -166,4 +166,10 @@ bench: bench.o
 bench-all: bench
 	./bench 10 134217728 10
 
+sample_max.o: src/sample_max.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+sample_max: sample_max.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+
 clobber: clean
