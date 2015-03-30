@@ -6,9 +6,9 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
-#include "../include/helper.h"
 
-#define ELEMENT_TYPE float
+#include "../include/types.h"
+#include "../include/helper.h"
 
 void fillRandom(char *s, const int len) {
     static const char alphanum[] =
@@ -24,9 +24,9 @@ void fillRandom(char *s, const int len) {
 }
 
 void benchmarkMalloc(const int numReplications, const int numElems) {
-    const size_t sizeOfData = sizeof(ELEMENT_TYPE)*numElems;
+    const size_t sizeOfData = sizeof(DataType)*numElems;
     float timeOfMallocSum, timeOfFreeSum;
-    ELEMENT_TYPE *devData;
+    DataType *devData;
     cudaEvent_t start, stop;
 
     printf("Benchmark MALLOC - Replications: %d Elements: %d\n", numReplications, numElems);
@@ -62,14 +62,14 @@ void benchmarkMalloc(const int numReplications, const int numElems) {
 }
 
 void benchmarkTransfer(const int numReplications, const int numElems) {
-    const size_t sizeOfData = sizeof(ELEMENT_TYPE)*numElems;
+    const size_t sizeOfData = sizeof(DataType)*numElems;
     float timeToDeviceSum, timeFromDeviceSum;
-    ELEMENT_TYPE *data, *devData;
+    DataType *data, *devData;
     cudaEvent_t start, stop;
 
     printf("Benchmark TRANSFER - Replications: %d Elements: %d\n", numReplications, numElems);
 
-    data = (ELEMENT_TYPE *)malloc(sizeOfData);
+    data = (DataType *)malloc(sizeOfData);
     ensure(data, "Could not allocate host memory");
 
     gpuErrchk( cudaEventCreate(&start) );
@@ -110,9 +110,9 @@ void benchmarkTransfer(const int numReplications, const int numElems) {
 };
 
 void benchmarkTransferPinned(const int numReplications, const int numElems) {
-    const size_t sizeOfData = sizeof(ELEMENT_TYPE)*numElems;
+    const size_t sizeOfData = sizeof(DataType)*numElems;
     float timeToDeviceSum, timeFromDeviceSum;
-    ELEMENT_TYPE *data, *devData;
+    DataType *data, *devData;
     cudaEvent_t start, stop;
 
     printf("Benchmark TRANSFER PINNED - Replications: %d Elements: %d\n", numReplications, numElems);
@@ -156,9 +156,9 @@ void benchmarkTransferPinned(const int numReplications, const int numElems) {
 };
 
 void benchmarkTransfer2D(const int numReplications, const int numElems, const int numArrays) {
-    const size_t sizeOfData = sizeof(ELEMENT_TYPE)*numElems;
+    const size_t sizeOfData = sizeof(DataType)*numElems;
     float timeToDeviceSum, timeFromDeviceSum;
-    ELEMENT_TYPE *data, *devData;
+    DataType *data, *devData;
     size_t pitch;
     cudaEvent_t start, stop;
 

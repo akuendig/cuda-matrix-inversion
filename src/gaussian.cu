@@ -6,16 +6,12 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
+
+#include "../include/types.h"
 #include "../include/helper.h"
 
-#define MAX_MATRIX_BYTE_READ 67108864
-
-#define ELEMENT_TYPE float
-
-static const ELEMENT_TYPE ELEMENT_ZERO = ELEMENT_TYPE(0);
-static const ELEMENT_TYPE ELEMENT_ONE = ELEMENT_TYPE(1);
-
-typedef ELEMENT_TYPE *Array;
+static const DataType ELEMENT_ZERO = DataType(0);
+static const DataType ELEMENT_ONE = DataType(1);
 
 // Memory model
 // ************
@@ -58,7 +54,7 @@ static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t a
 static void batchedAdd(
     cublasHandle_t handle,
     int n,
-    const ELEMENT_TYPE *alpha,
+    const DataType *alpha,
     const Array devLeft[],
     Array devRight[],
     int batchSize) {
@@ -95,10 +91,10 @@ static void batchedMul(
     cublasHandle_t handle,
     cublasOperation_t transa, cublasOperation_t transb,
     int m, int n, int k,
-    const ELEMENT_TYPE *alpha,
+    const DataType *alpha,
     const Array devLeft[],
     const Array devReight[],
-    const ELEMENT_TYPE *beta,
+    const DataType *beta,
     Array devResult[],
     int batchSize) {
     // TODO: implement matrix multiplication.
@@ -130,11 +126,11 @@ static void calcluateMean(
     Array *devDs;
     size_t pitchDs;
 
-    const size_t sizeOfMatrixA = sizeof(ELEMENT_TYPE)*n;
-    const size_t sizeOfMatrixB = sizeof(ELEMENT_TYPE)*n*n;
-    const size_t sizeOfMatrixC = sizeof(ELEMENT_TYPE)*n*n;
-    const size_t sizeOfMatrixD = sizeof(ELEMENT_TYPE)*n;
-    const size_t sizeOfResult = sizeof(ELEMENT_TYPE);
+    const size_t sizeOfMatrixA = sizeof(DataType)*n;
+    const size_t sizeOfMatrixB = sizeof(DataType)*n*n;
+    const size_t sizeOfMatrixC = sizeof(DataType)*n*n;
+    const size_t sizeOfMatrixD = sizeof(DataType)*n;
+    const size_t sizeOfResult = sizeof(DataType);
 
     gpuErrchk( cudaHostAlloc(&devBs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
     gpuErrchk( cudaHostAlloc(&devCs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
@@ -222,10 +218,10 @@ static void calcluateVariance(
     Array *devCs;
     size_t pitchCs;
 
-    const size_t sizeOfMatrixA = sizeof(ELEMENT_TYPE)*n;
-    const size_t sizeOfMatrixB = sizeof(ELEMENT_TYPE)*n*n;
-    const size_t sizeOfMatrixC = sizeof(ELEMENT_TYPE)*n*n;
-    const size_t sizeOfMatrixE = sizeof(ELEMENT_TYPE);
+    const size_t sizeOfMatrixA = sizeof(DataType)*n;
+    const size_t sizeOfMatrixB = sizeof(DataType)*n*n;
+    const size_t sizeOfMatrixC = sizeof(DataType)*n*n;
+    const size_t sizeOfMatrixE = sizeof(DataType);
 
     gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
     gpuErrchk( cudaHostAlloc((void**)&devBs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
@@ -271,7 +267,7 @@ static void calcluateVariance(
     gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, Es, sizeOfMatrixE, sizeOfMatrixE, batchSize,
                cudaMemcpyHostToDevice) );
 
-    const ELEMENT_TYPE minusOne = ELEMENT_TYPE(-1);
+    const DataType minusOne = DataType(-1);
     batchedAdd(handle, n, &minusOne, devBs, devAs, batchSize);
 
     // Fetch result from GPU and free used memory.
@@ -285,41 +281,6 @@ static void calcluateVariance(
     gpuErrchk( cudaFreeHost((void*)devAs) );
     gpuErrchk( cudaFreeHost((void*)devBs) );
     gpuErrchk( cudaFreeHost((void*)devCs) );
-}
-
-void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array *matrices) {
-    int ret;
-    int _numMatrices, _m, _n;
-
-    FILE* fp = fopen(path, "r");
-    ensure(fp, "could not open matrix file %s", path);
-
-    ret = fscanf(fp, "%d %d %d", &_numMatrices, &_m, &_n);
-    ensure(3 == ret, "could not read number of matrices from file %s", path);
-
-    *numMatrices = _numMatrices;
-    *m = _m;
-    *n = _n;
-
-    size_t arraySize = sizeof(ELEMENT_TYPE) * (_numMatrices) * (_m) * (_n);
-    ensure(arraySize <= MAX_MATRIX_BYTE_READ, "cannot read file %s because "
-        "the allocated array would be bigger than 0x%X bytes", path, arraySize);
-
-    *matrices = (Array)malloc(arraySize);
-    ensure(*matrices, "could not allocate 0x%X bytes of memory for file %s", arraySize, path);
-
-    Array currentElement = *matrices;
-
-    for (int k = 0; k < _numMatrices; ++k) {
-        for (int i = 0; i < _m; ++i) {
-            for (int j = 0; j < _n; ++j, ++currentElement) {
-                ret = fscanf(fp, "%f", currentElement);
-                ensure(ret, "could not read matrix from file %s, stuck at matrix %d element %d, %d", path, k, i, j);
-            }
-        }
-    }
-
-    fclose(fp);
 }
 
 void readMeanTest(const char *directory, int *numMatrices, int *n,
@@ -346,6 +307,7 @@ void readMeanTest(const char *directory, int *numMatrices, int *n,
         numMatricesA == numMatricesB && numMatricesB == numMatricesC && numMatricesC == numMatricesD,
         "test in directory %s invalid, number of matrices in files not matching\r\n"
         "numMatricesA(%d) numMatricesB(%d) numMatricesC(%d) numMatricesD(%d)\r\n",
+        directory,
         numMatricesA, numMatricesB, numMatricesC, numMatricesD
     );
 
@@ -353,8 +315,9 @@ void readMeanTest(const char *directory, int *numMatrices, int *n,
         mA == mB && mB == mC && mC == mD &&
         nA == 1 && nB == mB && nC == mC && nD == 1,
         "test in directory %s invalid, dimensions not matching\r\n"
-        "mA(%d) mB(%d) mC(%d) mD(%d)\r\n",
+        "mA(%d) mB(%d) mC(%d) mD(%d)\r\n"
         "nA(%d) nB(%d) nC(%d) nD(%d)\r\n",
+        directory,
         mA, mB, mC, mD, nA, nB, nC, nD
     );
 
@@ -373,7 +336,7 @@ int main(void)
     readMeanTest("tests/simpleMean", &numMatrices, &n, &a, &b, &c, &d);
 
     cublasErrchk( cublasCreate(&handle) );
-    gpuErrchk( cudaHostAlloc(&means, sizeof(ELEMENT_TYPE)*numMatrices, cudaHostAllocDefault) );
+    gpuErrchk( cudaHostAlloc(&means, sizeof(DataType)*numMatrices, cudaHostAllocDefault) );
 
     calcluateMean(handle, n, a, b, c, d, means, numMatrices);
 

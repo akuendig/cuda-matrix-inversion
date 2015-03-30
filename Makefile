@@ -63,9 +63,10 @@ EXTRA_CCFLAGS     ?=
 
 # OS-specific build flags
 ifneq ($(DARWIN),)
-  LDFLAGS += -rpath $(CUDA_PATH)/lib
+  LDFLAGS += -rpath $(CUDA_PATH)/lib -framework Accelerate
   CCFLAGS += -arch $(OS_ARCH)
 else
+  LDFLAGS += -llapack -lblas
   ifeq ($(OS_ARCH),armv7l)
     ifeq ($(abi),androideabi)
       NVCCFLAGS += -target-os-variant Android
@@ -142,7 +143,7 @@ run: build
 	$(EXEC) ./gaussian
 
 clean:
-	rm -f inverse
+	rm -rf inverse inverse_bench inverse_bench.o inverse_blas.o inverse.dSYM
 	rm -f bench bench.o
 	rm -f gaussian gaussian.o
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
@@ -161,6 +162,15 @@ bench.o: src/bench.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 bench: bench.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+
+inverse_blas.o: src/inverse_blas.c
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+inverse_bench.o: src/inverse_bench.cpp
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+inverse_bench: inverse_bench.o inverse_blas.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 bench-all: bench
