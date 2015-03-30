@@ -9,8 +9,14 @@
 #ifdef __APPLE__
     #include <Accelerate/Accelerate.h>
 #else
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
     #include <cblas.h>
     #include <clapack.h>
+    #ifdef __cplusplus
+    }
+    #endif
 #endif
 
 #include "../include/types.h"
@@ -20,15 +26,19 @@
 #define MAX_MATRIX_BYTE_READ 67108864
 
 void mean(Array a, Array mean, const int m, const int n) {
-    for (int i = 0; i < n; ++i) {
+    int i;
+
+    for (i = 0; i < n; ++i) {
         mean[i] = cblas_sasum(m, &a[i*m], 1);
     }
 
-    cblas_sscal(n, 1.0f/float(m), mean, 1);
+    cblas_sscal(n, 1.0f/((float)m), mean, 1);
 }
 
 void sub_each(Array a, Array vec, const int m, const int n) {
-    for (int i = 0; i < m; ++i) {
+    int i;
+
+    for (i = 0; i < m; ++i) {
         cblas_saxpy(n, -1.f, vec, 1, &a[i], m);
     }
 }
@@ -70,7 +80,9 @@ int main(int argc, char const *argv[]) {
     Array mu = (Array)malloc(m*sizeof(ELEMENT_TYPE));
     Array cov = (Array)malloc(n*n*sizeof(ELEMENT_TYPE));
 
-    for (int i = 0; i < numMatrices; ++i) {
+    int i;
+
+    for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * m * n);
 
         covariance(current_a, cov, mu, m, n);

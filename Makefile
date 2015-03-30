@@ -170,7 +170,7 @@ bench: bench.o
 inverse_blas.o: src/inverse_blas.c
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-inverse_bench.o: src/inverse_bench.cpp
+inverse_bench.o: src/inverse_bench.c
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 inverse_bench: inverse_bench.o inverse_blas.o

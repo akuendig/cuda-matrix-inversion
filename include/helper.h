@@ -22,7 +22,7 @@
 
 // Reads `numMatrices` matrices from file at `path` where each matrix has dimension `m` x `n`.
 // Memory is allocated in one big block, so `matrices` points to the beginning of all matrices.
-void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array *matrices) {
+inline static void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array *matrices) {
     int ret;
     int _numMatrices, _m, _n;
 
@@ -62,7 +62,7 @@ void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array 
 }
 
 // Prints matrix a stored in column major format
-void printMatrix(Array a, int M, int N) {
+inline static void printMatrix(Array a, int M, int N) {
     int i, j;
 
     for(i = 0; i < M; i++) {
@@ -78,7 +78,7 @@ void printMatrix(Array a, int M, int N) {
 /* CUDA ERROR CHECK */
 /********************/
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+inline static void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
 {
     if (code != cudaSuccess)
     {
@@ -130,13 +130,13 @@ static const char *_cudaGetErrorEnum(cublasStatus_t error)
 }
 
 #define cublasErrchk(ans) { cublasAssert((ans), __FILE__, __LINE__); }
-inline void cublasAssert(cublasStatus_t code, const char *file, int line, bool abort=true)
+inline static void cublasAssert(cublasStatus_t code, const char *file, int line)
 {
     if (code != CUBLAS_STATUS_SUCCESS)
     {
         fprintf(stderr,"cuBLASassert: %s %s:%d\n", _cudaGetErrorEnum(code), file, line);
         cudaDeviceReset();
-        if (abort) { exit(code); }
+        exit(code);
     }
 }
 
