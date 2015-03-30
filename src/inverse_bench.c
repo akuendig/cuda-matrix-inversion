@@ -44,23 +44,23 @@ void sub_each(Array a, Array vec, const int m, const int n) {
 }
 
 void covariance(Array a, Array cov, Array mu, int m, int n) {
-    printf("m(%d) n(%d)\n", m, n);
+    // printf("m(%d) n(%d)\n", m, n);
 
-    printf("Matrix\n");
-    printMatrix(a, m, n);
+    // printf("Matrix\n");
+    // printMatrix(a, m, n);
 
     mean(a, mu, m, n);
-    printf("Mean\n");
-    printMatrix(mu, 1, n);
+    // printf("Mean\n");
+    // printMatrix(mu, 1, n);
 
     sub_each(a, mu, m, n);
 
     cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, n, m, 1, a, m, 0, cov, n);
 
-    printf("A matrix\n");
-    printMatrix(a, m, n);
+    // printf("A matrix\n");
+    // printMatrix(a, m, n);
 
-    printf("Covariance matrix\n");
+    // printf("Covariance matrix\n");
     printMatrix(cov, n, n);
 }
 
@@ -74,7 +74,7 @@ int main(int argc, char const *argv[]) {
 
     Array a;
 
-    snprintf(filePath, 1024, "%s/mean.mats", directory);
+    snprintf(filePath, 1024, "%s/large_5_256_256.mats", directory);
     readMatricesFile(filePath, &numMatrices, &m, &n, &a);
 
     Array mu = (Array)malloc(m*sizeof(ELEMENT_TYPE));
