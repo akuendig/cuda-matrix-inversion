@@ -66,7 +66,6 @@ ifneq ($(DARWIN),)
   LDFLAGS += -rpath $(CUDA_PATH)/lib -framework Accelerate
   CCFLAGS += -arch $(OS_ARCH)
 else
-  LDFLAGS += -llapack -lblas
   ifeq ($(OS_ARCH),armv7l)
     ifeq ($(abi),androideabi)
       NVCCFLAGS += -target-os-variant Android
@@ -117,6 +116,10 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 INCLUDES  :=
 LIBRARIES :=
+
+ifeq ($(DARWIN),)
+  LIBRARIES += -llapack -lblas
+endif
 
 ################################################################################
 
