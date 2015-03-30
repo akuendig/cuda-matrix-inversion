@@ -118,7 +118,7 @@ INCLUDES  :=
 LIBRARIES :=
 
 ifeq ($(DARWIN),)
-  LIBRARIES += -llapack -lblas
+  LIBRARIES += -L/usr/lib64/atlas -llapack -lblas
 endif
 
 ################################################################################
