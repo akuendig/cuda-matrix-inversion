@@ -43,13 +43,15 @@ void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array 
     *matrices = (Array)malloc(arraySize);
     ensure(*matrices, "could not allocate 0x%lX bytes of memory for file %s", arraySize, path);
 
-    for (int k = 0; k < _numMatrices; ++k) {
+    int k, i, j;
+
+    for (k = 0; k < _numMatrices; ++k) {
         Array firstElement = *matrices;
         Array currentMatrix = firstElement + k*_m*_n;
 
         // Read row by row
-        for (int i = 0; i < _m; ++i) {
-            for (int j = 0; j < _n; ++j) {
+        for (i = 0; i < _m; ++i) {
+            for (j = 0; j < _n; ++j) {
                 ret = fscanf(fp, "%f", &currentMatrix[j*_m + i]);
                 ensure(ret, "could not read matrix from file %s, stuck at matrix %d element %d, %d", path, k, i, j);
             }
