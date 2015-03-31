@@ -207,7 +207,7 @@ int main(int argc, char const *argv[]) {
 #ifdef __APPLE__
     printf("Execution time on average:\t%lu cycles\n", cycle_sum/numMatrices/rep);
 #else
-    time_div(ts_sum, numMatrices/rep);
+    time_div(&ts_sum, numMatrices*rep);
     printf("Execution time on average:\t%lu seconds and %lu nanoseconds\n", ts_sum.tv_sec, ts_sum.tv_nsec);
 #endif
 
