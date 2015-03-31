@@ -223,8 +223,10 @@ int main(int argc, char const *argv[]) {
 #else
     time_div(&ts_sum_chol_cpu, numMatrices*rep);
     time_div(&ts_sum_chol_gpu, numMatrices*rep);
-    printf("Execution time for BLAS cholesky on average:\t%lu seconds and %lu nanoseconds\n", ts_sum_chol_cpu.tv_sec, ts_sum_chol_cpu.tv_nsec);
-    printf("Execution time for GPU cholesky on average:\t%lu seconds and %lu nanoseconds\n", ts_sum_chol_gpu.tv_sec, ts_sum_chol_gpu.tv_nsec);
+    printf("Execution time for BLAS cholesky on average:\t%lu seconds and %lu nanoseconds (%lu ms)\n",
+        ts_sum_chol_cpu.tv_sec, ts_sum_chol_cpu.tv_nsec, ts_sum_chol_cpu.tv_nsec*1000000);
+    printf("Execution time for GPU cholesky on average:\t%lu seconds and %lu nanoseconds (%lu ms)\n",
+        ts_sum_chol_gpu.tv_sec, ts_sum_chol_gpu.tv_nsec, ts_sum_chol_gpu.tv_nsec*1000000);
 #endif
 
     return 0;
