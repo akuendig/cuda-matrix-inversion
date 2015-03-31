@@ -176,4 +176,19 @@ inverse_bench: inverse_bench.o
 bench-all: bench
 	./bench 10 134217728 10
 
+cholesky_gpu.o: src/inverse_cholesky_gpu.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+cholesky_gpu: cholesky_gpu.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+	./cholesky_gpu
+
+cholesky_cpu: src/inverse_cholesky_cpu.c
+	clang -g -o cholesky_cpu $+
+	echo "\
+	18 22 54 42\n\
+	22 70 86 62\n\
+	54 86 174 134\n\
+	42 62 134 106\n" | ./cholesky_cpu
+
 clobber: clean
