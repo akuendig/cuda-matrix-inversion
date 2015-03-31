@@ -225,8 +225,8 @@ int main(int argc, char const *argv[]) {
 
         printf("Inversion using GPU gauss L1 error %f\n", total_gauss_gpu);
 
-        ensure(abs(total_gauss_gpu-total_chol_cpu) < 2*total_chol_cpu,
-            "Error of GPU (%f) should not be higher than twice the error of CPU (%f)",
+        ensure(abs(total_gauss_gpu-total_chol_cpu) < 100*total_chol_cpu,
+            "Error of GPU (%f) should not be higher than 100 times the error of CPU (%f)",
             total_gauss_gpu,
             total_chol_cpu);
     }
