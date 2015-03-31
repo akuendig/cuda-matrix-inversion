@@ -166,12 +166,24 @@ extern "C" void inverse_chol_gpu(Array a, int n) {
     gpuErrchk( cudaMemcpy(a_dev, a, matrixSize, cudaMemcpyHostToDevice) );
 
     printDevMatrix(a_dev, n, n);
+
     decomposeCholeskyGPU(a_dev, n);
     printDevMatrix(a_dev, n, n);
+
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+
     inverseLowerGPU(a_dev, n);
     printDevMatrix(a_dev, n, n);
+
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+
     multiplyLowerGPU(a_dev, n);
     printDevMatrix(a_dev, n, n);
+
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
 
     gpuErrchk( cudaMemcpy(a, a_dev, matrixSize, cudaMemcpyDeviceToHost) );
     gpuErrchk( cudaFree(a_dev) );
