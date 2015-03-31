@@ -160,7 +160,7 @@ int main(int argc, char const *argv[]) {
 
         // CPU Benchmark
         ////////////////
-        for (rep = 0; rep < 10; ++rep) {
+        for (rep = 0; rep < 1; ++rep) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
 #ifdef __APPLE__
