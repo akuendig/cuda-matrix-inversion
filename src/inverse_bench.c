@@ -127,7 +127,7 @@ void time_div(struct timespec *t1, double div) {
 }
 
 int main(int argc, char const *argv[]) {
-    ensure(argc >= 2, "Usage: inverse_bench TEST_FILE")
+    ensure(argc >= 2, "Usage: inverse_bench TEST_FILE");
 
     int numMatrices;
     int M;
