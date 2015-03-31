@@ -74,6 +74,29 @@ inline static void printMatrix(Array a, int M, int N) {
 }
 
 #ifdef __CUDACC__
+
+// Prints matrix a stored in column major format by transferring it to the host first.
+inline static void printDevMatrix(Array devA, int M, int N) {
+    int i, j;
+    Array a;
+
+    size_t matrixSize = M*N * sizeof(DataType);
+    a = (Array)malloc(matrixSize);
+    ensure(a, "Could not allocate memory to print matrix");
+
+    gpuErrchk( cudaMemcpy(a, a_dev, matrixSize, cudaMemcpyDeviceToHost) );
+
+    for(i = 0; i < M; i++) {
+        for(j = 0; j < N; j++)
+            printf("%f\t", a[j * M + i]);
+        printf("\n");
+    }
+
+    printf("\n");
+
+    free(a);
+}
+
 /********************/
 /* CUDA ERROR CHECK */
 /********************/

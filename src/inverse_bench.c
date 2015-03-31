@@ -174,19 +174,19 @@ int main(int argc, char const *argv[]) {
 #ifdef __APPLE__
             diff = clock() - start;
             cycle_sum_chol_cpu += diff;
-            printf("Inversion using BLAS cholesky took %lu cycles\n", diff);
+            // printf("Inversion using BLAS cholesky took %lu cycles\n", diff);
 #else
             clock_gettime(CLOCK_MONOTONIC, &ts_end);
             time_sub(&ts_end, &ts_start);
             time_add(&ts_sum_chol_cpu, &ts_end);
-            printf("Inversion using BLAS cholesky took %lu seconds and %lu nanoseconds\n", ts_end.tv_sec, ts_end.tv_nsec);
+            // printf("Inversion using BLAS cholesky took %lu seconds and %lu nanoseconds\n", ts_end.tv_sec, ts_end.tv_nsec);
 #endif
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
         mat_sum(reconstr, M, N, &total);
 
-        printf("Inversion using BLAS cholesky L1 error %f\n", total);
+        // printf("Inversion using BLAS cholesky L1 error %f\n", total);
 
         // GPU Benchmark
         ////////////////
@@ -204,29 +204,29 @@ int main(int argc, char const *argv[]) {
 #ifdef __APPLE__
             diff = clock() - start;
             cycle_sum_chol_gpu += diff;
-            printf("Inversion using GPU cholesky took %lu cycles\n", diff);
+            // printf("Inversion using GPU cholesky took %lu cycles\n", diff);
 #else
             clock_gettime(CLOCK_MONOTONIC, &ts_end);
             time_sub(&ts_end, &ts_start);
             time_add(&ts_sum_chol_gpu, &ts_end);
-            printf("Inversion using GPU cholesky took %lu seconds and %lu nanoseconds\n", ts_end.tv_sec, ts_end.tv_nsec);
+            // printf("Inversion using GPU cholesky took %lu seconds and %lu nanoseconds\n", ts_end.tv_sec, ts_end.tv_nsec);
 #endif
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
         mat_sum(reconstr, M, N, &total);
 
-        printf("Inversion using GPU cholesky L1 error %f\n", total);
+        // printf("Inversion using GPU cholesky L1 error %f\n", total);
     }
 
 #ifdef __APPLE__
-    printf("Execution time for BLAS cholesky on average:\t%lu cycles\n", cycle_sum_chol_cpu/numMatrices/rep);
-    printf("Execution time for GPU cholesky on average:\t%lu cycles\n", cycle_sum_chol_gpu/numMatrices/rep);
+    // printf("Execution time for BLAS cholesky on average:\t%lu cycles\n", cycle_sum_chol_cpu/numMatrices/rep);
+    // printf("Execution time for GPU cholesky on average:\t%lu cycles\n", cycle_sum_chol_gpu/numMatrices/rep);
 #else
     time_div(&ts_sum_chol_cpu, numMatrices*rep);
     time_div(&ts_sum_chol_gpu, numMatrices*rep);
-    printf("Execution time for BLAS cholesky on average:\t%lu seconds and %lu nanoseconds\n", ts_sum_chol_cpu.tv_sec, ts_sum_chol_cpu.tv_nsec);
-    printf("Execution time for GPU cholesky on average:\t%lu seconds and %lu nanoseconds\n", ts_sum_chol_gpu.tv_sec, ts_sum_chol_gpu.tv_nsec);
+    // printf("Execution time for BLAS cholesky on average:\t%lu seconds and %lu nanoseconds\n", ts_sum_chol_cpu.tv_sec, ts_sum_chol_cpu.tv_nsec);
+    // printf("Execution time for GPU cholesky on average:\t%lu seconds and %lu nanoseconds\n", ts_sum_chol_gpu.tv_sec, ts_sum_chol_gpu.tv_nsec);
 #endif
 
     return 0;
