@@ -45,24 +45,9 @@ void sub_each(Array a, Array vec, const int M, const int N) {
 }
 
 void covariance(Array a, Array cov, Array mu, int M, int N) {
-    // printf("m(%d) n(%d)\n", M, N);
-
-    // printf("Matrix\n");
-    // printMatrix(a, M, N);
-
     mean(a, mu, M, N);
-    // printf("Mean\n");
-    // printMatrix(mu, 1, N);
-
     sub_each(a, mu, M, N);
-
     cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, N, M, 1, a, M, 0, cov, N);
-
-    // printf("A matrix\n");
-    // printMatrix(a, M, N);
-
-    // printf("Covariance matrix\n");
-    // printMatrix(cov, N, N);
 }
 
 /*
@@ -159,20 +144,23 @@ int main(int argc, char const *argv[]) {
     Array inv = (Array)malloc(N*N*sizeof(DataType));
     Array reconstr = (Array)malloc(N*N*sizeof(DataType));
 
+    DataType total;
     int i, rep;
 #ifdef __APPLE__
-    clock_t start, diff, cycle_sum = 0;
+    clock_t start, diff, cycle_sum_chol_cpu, cycle_sum_chol_gpu = 0;
 #else
-    struct timespec ts_start, ts_end, ts_sum = { 0 };
+    struct timespec ts_start, ts_end, ts_sum_chol_cpu = { 0 }, ts_sum_chol_gpu = { 0 };
 #endif
 
     for (i = 0; i < numMatrices; ++i) {
+        Array current_a = a + (i * M * N);
+
+        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, N, M, 1, current_a, M, 0, atra, N);
+        fill_sym(atra, N, N);
+
+        // CPU Benchmark
+        ////////////////
         for (rep = 0; rep < 10; ++rep) {
-            Array current_a = a + (i * M * N);
-
-            cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, N, M, 1, current_a, M, 0, atra, N);
-            fill_sym(atra, N, N);
-
             cblas_scopy(N*N, atra, 1, inv, 1);
 
 #ifdef __APPLE__
@@ -182,33 +170,63 @@ int main(int argc, char const *argv[]) {
 #endif
 
             inverse_chol_blas(inv, N);
+
 #ifdef __APPLE__
             diff = clock() - start;
-            cycle_sum += diff;
+            cycle_sum_chol_cpu += diff;
+            printf("Inversion using BLAS cholesky took %lu cycles\n", diff);
 #else
             clock_gettime(CLOCK_MONOTONIC, &ts_end);
             time_sub(&ts_end, &ts_start);
-            time_add(&ts_sum, &ts_end);
-#endif
-
-            cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
-
-            DataType total;
-            mat_sum(reconstr, M, N, &total);
-
-#ifdef __APPLE__
-            printf("Inversion using BLAS took %lu cycles, L1 error %f\n", diff, total-N);
-#else
-            printf("Inversion using BLAS took %lu seconds and %lu nanoseconds, L1 error %f\n", ts_end.tv_sec, ts_end.tv_nsec, total-N);
+            time_add(&ts_sum_chol_cpu, &ts_end);
+            printf("Inversion using BLAS cholesky took %lu seconds and %lu nanoseconds\n", ts_end.tv_sec, ts_end.tv_nsec);
 #endif
         }
+
+        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
+        mat_sum(reconstr, M, N, &total);
+
+        printf("Inversion using BLAS cholesky L1 error %f\n", total);
+
+        // GPU Benchmark
+        ////////////////
+        for (rep = 0; rep < 10; ++rep) {
+            cblas_scopy(N*N, atra, 1, inv, 1);
+
+#ifdef __APPLE__
+            start = clock();
+#else
+            clock_gettime(CLOCK_MONOTONIC, &ts_start);
+#endif
+
+            inverse_chol_gpu(inv, N);
+
+#ifdef __APPLE__
+            diff = clock() - start;
+            cycle_sum_chol_gpu += diff;
+            printf("Inversion using GPU cholesky took %lu cycles\n", diff);
+#else
+            clock_gettime(CLOCK_MONOTONIC, &ts_end);
+            time_sub(&ts_end, &ts_start);
+            time_add(&ts_sum_chol_gpu, &ts_end);
+            printf("Inversion using GPU cholesky took %lu seconds and %lu nanoseconds\n", ts_end.tv_sec, ts_end.tv_nsec);
+#endif
+        }
+
+        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
+        mat_sum(reconstr, M, N, &total);
+
+        printf("Inversion using GPU cholesky L1 error %f\n", total);
     }
 
 #ifdef __APPLE__
-    printf("Execution time on average:\t%lu cycles\n", cycle_sum/numMatrices/rep);
+    printf("Execution time for BLAS cholesky on average:\t%lu cycles\n", cycle_sum_chol_cpu/numMatrices/rep);
+    printf("Execution time for GPU cholesky on average:\t%lu cycles\n", cycle_sum_chol_gpu/numMatrices/rep);
 #else
-    time_div(&ts_sum, numMatrices*rep);
-    printf("Execution time on average:\t%lu seconds and %lu nanoseconds\n", ts_sum.tv_sec, ts_sum.tv_nsec);
+    time_div(&ts_sum_chol_cpu, numMatrices*rep);
+    time_div(&ts_sum_chol_gpu, numMatrices*rep);
+    printf("Execution time for BLAS cholesky on average:\t%lu seconds and %lu nanoseconds\n", ts_sum_chol_cpu.tv_sec, ts_sum_chol_cpu.tv_nsec);
+    printf("Execution time for GPU cholesky on average:\t%lu seconds and %lu nanoseconds\n", ts_sum_chol_gpu.tv_sec, ts_sum_chol_gpu.tv_nsec);
 #endif
 
     return 0;
