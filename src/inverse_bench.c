@@ -109,6 +109,30 @@ void mat_sum(Array a, int M, int N, DataType *total) {
     *total = cblas_sasum(M*N, a, 1);
 }
 
+#define BILLION 1000000000
+void time_add(struct timespec *t1, const struct timespec *t2) {
+    t1->tv_sec += t2->tv_sec;
+    t1->tv_nsec += t2->tv_nsec;
+
+    if (t1->tv_nsec >= BILLION) {
+        t1->tv_nsec -= BILLION;
+        t1->tv_sec++;
+    }
+}
+
+void time_sub(struct timespec *t1, const struct timespec *t2) {
+    if (t1->tv_nsec < t2->tv_nsec) {
+        ensure(t1->tv_sec >= 1, "No negative time possible");
+
+        t1->tv_sec -= 1;
+        t1->tv_nsec += BILLION;
+    }
+
+    ensure(t1->tv_sec >= t2->tv_sec, "No negative time possible");
+    t1->tv_nsec -= t2->tv_nsec;
+    t1->tv_sec -= t2->tv_sec;
+}
+
 int main(int argc, char const *argv[]) {
     const char *directory = "tests/simpleMean";
     char filePath[1024];
@@ -128,7 +152,11 @@ int main(int argc, char const *argv[]) {
     Array reconstr = (Array)malloc(N*N*sizeof(DataType));
 
     int i, rep;
+#ifdef __APPLE__
     clock_t start, diff, cycle_sum = 0;
+#else
+    struct timespec ts_start, ts_end, ts_sum = { 0 };
+#endif
 
     for (i = 0; i < numMatrices; ++i) {
         for (rep = 0; rep < 10; ++rep) {
@@ -138,22 +166,41 @@ int main(int argc, char const *argv[]) {
             fill_sym(atra, N, N);
 
             cblas_scopy(N*N, atra, 1, inv, 1);
+
+#ifdef __APPLE__
             start = clock();
+#else
+            clock_gettime(CLOCK_MONOTONIC, &ts_start);
+#endif
+
             inverse_chol_blas(inv, N);
+#ifdef __APPLE__
             diff = clock() - start;
+            cycle_sum += diff;
+#else
+            clock_gettime(CLOCK_MONOTONIC, &ts_end);
+            time_sub(&ts_end, &ts_start);
+            time_add(&ts_sum, &ts_end);
+#endif
 
             cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
 
             DataType total;
             mat_sum(reconstr, M, N, &total);
 
+#ifdef __APPLE__
             printf("Inversion using BLAS took %lu cycles, L1 error %f\n", diff, total-N);
-
-            cycle_sum += diff;
+#else
+            printf("Inversion using BLAS took %lu seconds and %lu nanoseconds, L1 error %f\n", ts_sum.tv_sec, ts_sum.tv_nsec, total-N);
+#endif
         }
     }
 
-    printf("Execution time on average:\t%lu\n", cycle_sum/numMatrices/rep);
+#ifdef __APPLE__
+    printf("Execution time on average:\t%lu cycles\n", cycle_sum/numMatrices/rep);
+#else
+    printf("Execution time on average:\t%lu seconds and %lu nanoseconds\n", ts_sum.tv_sec/numMatrices/rep, ts_sum.tv_nsec/numMatrices/rep);
+#endif
 
     return 0;
 }
