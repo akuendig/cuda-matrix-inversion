@@ -216,14 +216,14 @@ int main(int argc, char const *argv[]) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
             TIMER_START()
-            inverse_chol_gpu(inv, N);
+            inverse_gauss_gpu(inv, N);
             TIMER_STOP(gauss_gpu)
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
         mat_sum(reconstr, M, N, &total_gauss_gpu);
 
-        printf("Inversion using GPU cholesky L1 error %f\n", total_gauss_gpu);
+        printf("Inversion using GPU gauss L1 error %f\n", total_gauss_gpu);
 
         ensure(abs(total_gauss_gpu-total_chol_cpu) < 2*total_chol_cpu,
             "Error of GPU (%f) should not be higher than twice the error of CPU (%f)",
@@ -234,6 +234,7 @@ int main(int argc, char const *argv[]) {
 #ifdef __APPLE__
     printf("Execution time for BLAS cholesky on average:\t%lu cycles\n", cycle_sum_chol_cpu/numMatrices/rep);
     printf("Execution time for GPU cholesky on average:\t%lu cycles\n", cycle_sum_chol_gpu/numMatrices/rep);
+    printf("Execution time for GPU gauss on average:\t%lu cycles\n", cycle_sum_gauss_gpu/numMatrices/rep);
 #else
     time_div(&ts_sum_chol_cpu, numMatrices*rep);
     time_div(&ts_sum_chol_gpu, numMatrices*rep);
@@ -241,6 +242,8 @@ int main(int argc, char const *argv[]) {
         ts_sum_chol_cpu.tv_sec, ts_sum_chol_cpu.tv_nsec, ts_sum_chol_cpu.tv_nsec/1000000.f);
     printf("Execution time for GPU cholesky on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
         ts_sum_chol_gpu.tv_sec, ts_sum_chol_gpu.tv_nsec, ts_sum_chol_gpu.tv_nsec/1000000.f);
+    printf("Execution time for GPU gauss on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
+        ts_sum_gauss_gpu.tv_sec, ts_sum_gauss_gpu.tv_nsec, ts_sum_gauss_gpu.tv_nsec/1000000.f);
 #endif
 
     return 0;
