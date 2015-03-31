@@ -191,7 +191,7 @@ int main(int argc, char const *argv[]) {
 #ifdef __APPLE__
             printf("Inversion using BLAS took %lu cycles, L1 error %f\n", diff, total-N);
 #else
-            printf("Inversion using BLAS took %lu seconds and %lu nanoseconds, L1 error %f\n", ts_sum.tv_sec, ts_sum.tv_nsec, total-N);
+            printf("Inversion using BLAS took %lu seconds and %lu nanoseconds, L1 error %f\n", ts_end.tv_sec, ts_end.tv_nsec, total-N);
 #endif
         }
     }
