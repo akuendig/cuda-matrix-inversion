@@ -127,8 +127,7 @@ void time_div(struct timespec *t1, double div) {
 }
 
 int main(int argc, char const *argv[]) {
-    const char *directory = "tests/simpleMean";
-    char filePath[1024];
+    ensure(argc >= 2, "Usage: inverse_bench TEST_FILE")
 
     int numMatrices;
     int M;
@@ -136,8 +135,7 @@ int main(int argc, char const *argv[]) {
 
     Array a;
 
-    snprintf(filePath, 1024, "%s/large_5_256_256.mats", directory);
-    readMatricesFile(filePath, &numMatrices, &M, &N, &a);
+    readMatricesFile(argv[1], &numMatrices, &M, &N, &a);
 
     Array mu = (Array)malloc(M*sizeof(DataType));
     Array atra = (Array)malloc(N*N*sizeof(DataType));
