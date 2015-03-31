@@ -1,0 +1,33 @@
+==25517== NVPROF is profiling process 25517, command: ./inverse_bench tests/simpleMean/large_5_64_64.mats
+==25517== Profiling application: ./inverse_bench tests/simpleMean/large_5_64_64.mats
+==25517== Profiling result:
+   Start  Duration            Grid Size      Block Size     Regs*    SSMem*    DSMem*      Size  Throughput           Device   Context    Stream  Name
+233.74ms  5.5040us                    -               -         -         -         -  16.384KB  2.9767GB/s  GeForce GTX TIT         1         7  [CUDA memcpy HtoD]
+233.98ms  15.330ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  decomposeCholeskyKernel(float*, int) [270]
+249.32ms  28.966ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  inverseLowerKernel(float*, int) [274]
+278.29ms  14.377ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  multiplyLowerKernel(float*, int) [278]
+292.67ms  6.6560us                    -               -         -         -         -  16.384KB  2.4615GB/s  GeForce GTX TIT         1         7  [CUDA memcpy DtoH]
+398.25ms  4.8640us                    -               -         -         -         -  16.384KB  3.3684GB/s  GeForce GTX TIT         1         7  [CUDA memcpy HtoD]
+456.85ms  15.299ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  decomposeCholeskyKernel(float*, int) [2343]
+472.15ms  28.725ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  inverseLowerKernel(float*, int) [2347]
+500.88ms  14.393ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  multiplyLowerKernel(float*, int) [2351]
+515.28ms  6.7200us                    -               -         -         -         -  16.384KB  2.4381GB/s  GeForce GTX TIT         1         7  [CUDA memcpy DtoH]
+553.82ms  4.8650us                    -               -         -         -         -  16.384KB  3.3677GB/s  GeForce GTX TIT         1         7  [CUDA memcpy HtoD]
+607.62ms  15.365ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  decomposeCholeskyKernel(float*, int) [4145]
+622.99ms  28.926ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  inverseLowerKernel(float*, int) [4149]
+651.92ms  14.388ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  multiplyLowerKernel(float*, int) [4153]
+666.31ms  6.6880us                    -               -         -         -         -  16.384KB  2.4498GB/s  GeForce GTX TIT         1         7  [CUDA memcpy DtoH]
+704.61ms  4.8000us                    -               -         -         -         -  16.384KB  3.4133GB/s  GeForce GTX TIT         1         7  [CUDA memcpy HtoD]
+760.05ms  15.350ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  decomposeCholeskyKernel(float*, int) [5947]
+775.41ms  28.870ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  inverseLowerKernel(float*, int) [5951]
+804.28ms  14.231ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  multiplyLowerKernel(float*, int) [5955]
+818.51ms  6.6880us                    -               -         -         -         -  16.384KB  2.4498GB/s  GeForce GTX TIT         1         7  [CUDA memcpy DtoH]
+854.92ms  4.8960us                    -               -         -         -         -  16.384KB  3.3464GB/s  GeForce GTX TIT         1         7  [CUDA memcpy HtoD]
+906.36ms  15.336ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  decomposeCholeskyKernel(float*, int) [7809]
+921.70ms  28.740ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  inverseLowerKernel(float*, int) [7813]
+950.44ms  14.433ms              (1 1 1)        (66 1 1)        25        0B        0B         -           -  GeForce GTX TIT         1         7  multiplyLowerKernel(float*, int) [7817]
+964.88ms  6.6880us                    -               -         -         -         -  16.384KB  2.4498GB/s  GeForce GTX TIT         1         7  [CUDA memcpy DtoH]
+
+Regs: Number of registers used per CUDA thread. This number includes registers used internally by the CUDA driver and/or tools and can be more than what the compiler shows.
+SSMem: Static shared memory allocated per CUDA block.
+DSMem: Dynamic shared memory allocated per CUDA block.
