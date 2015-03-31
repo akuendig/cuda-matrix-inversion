@@ -9,10 +9,8 @@
 
 #define SWAP(x, y, z)   ((z) = (x),(x) = (y),(y) = (z))
 
-#define N 64
-#define ArraySize   (N * N * sizeof(DataType))
 
-void pivotRow(cublasHandle_t &handle, Array a, Array a_inv, int col) {
+void pivotRow(cublasHandle_t &handle, Array a, Array a_inv, int col, int N) {
     int pivot = -1;
 
     cublasErrchk( cublasIsamax(handle,
@@ -35,19 +33,19 @@ void pivotRow(cublasHandle_t &handle, Array a, Array a_inv, int col) {
     cublasErrchk( cublasSswap(handle, N, a_inv + col, N, a_inv + row, N) );
 }
 
-void normalizeRow(cublasHandle_t &handle, Array a, Array a_inv, int row) {
+void normalizeRow(cublasHandle_t &handle, Array a, Array a_inv, int row, int N) {
     DataType scalar;
 
     gpuErrchk( cudaMemcpy(&scalar, &a[row * N + row], sizeof(DataType), cudaMemcpyDeviceToHost) );
     scalar = 1 / scalar;
-    cublasErrchk( cublasSscal(handle, N, &scalar, a + row, N) );
-    cublasErrchk( cublasSscal(handle, N, &scalar, a_inv + row, N) );
+    cublasErrchk( cublasSscal(handle, N, &a[row * N + row], a + row, N) );
+    cublasErrchk( cublasSscal(handle, N, &a[row * N + row], a_inv + row, N) );
 }
 
 __global__
-void transform_matrix(Array a, Array a_inv, int row) {
-    __shared__ DataType scalars[N];
-    __shared__ DataType currRowA[N], currRowI[N];
+void transform_matrix(Array a, Array a_inv, int row, int N) {
+    __shared__ DataType scalars[64];
+    __shared__ DataType currRowA[64], currRowI[64];
 
     // store the scalars corresponding to the column 'row'
     scalars[threadIdx.x] = a[row * N + threadIdx.x];
@@ -66,19 +64,62 @@ void transform_matrix(Array a, Array a_inv, int row) {
     }
 }
 
-void invert(cublasHandle_t &handle, Array devA, Array devAInv) {
+void invert(cublasHandle_t &handle, Array devA, Array devAInv, int N) {
     for(int i = 0; i < N; i++) {
         // Pivot the matrix
-        pivotRow(handle, devA, devAInv, i);
+        pivotRow(handle, devA, devAInv, i, N);
 
         // Make column entry to be one
-        normalizeRow(handle, devA, devAInv, i);
+        normalizeRow(handle, devA, devAInv, i, N);
 
         // Number of threads equals number of rows
-        transform_matrix<<<1, N>>>(devA, devAInv, i);
+        transform_matrix<<<1, N>>>(devA, devAInv, i, N);
 
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
+    }
+}
+
+__global__
+void inverse_gauss_kernel(cublasHandle_t handle, Array a, Array aInv, int N) {
+    int row, pivot = -1;
+
+    for (row = 0; row < N; ++row) {
+        /*cublasErrchk*/( cublasIsamax(handle,
+            N - row,            // Number of elements to be searched
+            a + (row * N) + row,        // Starting position
+            1,              // Increment in words (NOT BYTES)
+            &pivot) );            // Maximum element in the row
+        int pivotRow = pivot - 1 + row;          // Row number with maximum element (starts with 1)
+
+        // printf("Pivot: %d\nRow: %d\n", pivot, pivotRow);
+        if(pivotRow != row) {
+            /*cublasErrchk*/( cublasSswap(handle,
+                N,              // Nuber of elements to be swapped
+                a + row,            // Current pivotRow
+                N,              // Increment (becuase of column major)
+                a + pivotRow,            // Row with max pivot
+                N) );
+            /*cublasErrchk*/( cublasSswap(handle,
+                N,
+                aInv + row,
+                N,
+                aInv + pivotRow,
+                N) );
+        }
+
+        /*cublasErrchk*/( cublasSscal(handle,
+            N,
+            &a[row * N + row],
+            a + row,
+            N) );
+        /*cublasErrchk*/( cublasSscal(handle,
+            N,
+            &a[row * N + row],
+            aInv + row,
+            N) );
+
+        transform_matrix<<<1, N>>>(a, aInv, row, N);
     }
 }
 
@@ -87,6 +128,7 @@ extern "C" void inverse_gauss_gpu(Array a, int n) {
     Array aInv, devA, devAInv;
     cublasHandle_t handle;
 
+    const size_t ArraySize = n*n * sizeof(DataType);
     aInv = (Array)malloc(ArraySize);
     ensure(aInv, "could not allocate 0x%lX bytes of memory for matrix inverse", ArraySize);
 
@@ -102,7 +144,7 @@ extern "C" void inverse_gauss_gpu(Array a, int n) {
     gpuErrchk( cudaMemcpy(devAInv, aInv, ArraySize, cudaMemcpyHostToDevice) );
 
     /* Invert the matrix */
-    invert(handle, devA, devAInv);
+    inverse_gauss_kernel<<<1, n>>>(handle, devA, devAInv, n);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
