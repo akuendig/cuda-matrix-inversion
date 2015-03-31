@@ -1,26 +1,13 @@
-#include <stdio.h>	
+#include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <cuda.h>
 #include "cublas_v2.h"
-#include "../include/types.h"
-#include "../include/helper.h"
+
+#include "../../include/types.h"
+#include "../../include/helper.h"
 
 #define SWAP(x, y, z)	((z) = (x),(x) = (y),(y) = (z))
-
-void printMatrix(Array a, int n, int batchSize) {
-	int i, j, k;
-
-	for(k = 0; k < batchSize; k++) {
-		printf("=============== <%d> ===============\n", k + 1);
-		for(i = 0; i < n; i++) {
-			for(j = 0; j < n; j++)
-				printf("%f\t", a[k * n * n + j * n + i]);
-			printf("\n");
-		}
-	}
-	printf("\n");
-}
 
 void pivotRow(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int col, int batchSize) {
 	cudaStream_t *streams = (cudaStream_t *) malloc(sizeof(cudaStream_t) * batchSize);
@@ -185,7 +172,7 @@ int main(int argc, char *argv[]) {
 
 	readMatricesFile(argv[1], &numMatrices, &n, &n, &a);
 	a_inv = (Array) malloc(sizeof(DataType) * numMatrices * n * n);
-	printMatrix(a, n, numMatrices);
+	printMatrixList(a, n, numMatrices);
 	for(int i = 0; i < numMatrices; i++)
 		for(int j = 0; j < n; j++)
 			for(int k = 0; k < n; k++)
@@ -194,7 +181,7 @@ int main(int argc, char *argv[]) {
 				else
 					a_inv[i * n * n + j * n + k] = 0;
 	batchedInverse(handle, n, a, a_inv, numMatrices);
-	printMatrix(a_inv, n, numMatrices);
+	printMatrixList(a_inv, n, numMatrices);
 
 	gpuErrchk( cudaPeekAtLastError() );
 	gpuErrchk( cudaDeviceSynchronize() );

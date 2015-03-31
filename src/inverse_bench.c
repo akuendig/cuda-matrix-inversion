@@ -155,12 +155,20 @@ int main(int argc, char const *argv[]) {
     Array inv = (Array)malloc(N*N*sizeof(DataType));
     Array reconstr = (Array)malloc(N*N*sizeof(DataType));
 
-    DataType total_cpu, total_gpu;
+    DataType total_chol_cpu, total_chol_gpu, total_gauss_gpu;
     int i, rep;
 #ifdef __APPLE__
-    clock_t start, diff, cycle_sum_chol_cpu = 0, cycle_sum_chol_cpu_naive = 0, cycle_sum_chol_gpu = 0;
+    clock_t start, diff,
+        cycle_sum_chol_cpu = 0,
+        cycle_sum_chol_cpu_naive = 0,
+        cycle_sum_chol_gpu = 0,
+        cycle_sum_gauss_gpu = 0;
 #else
-    struct timespec ts_start, ts_end, ts_sum_chol_cpu = { 0 }, ts_sum_chol_cpu_naive = { 0 }, ts_sum_chol_gpu = { 0 };
+    struct timespec ts_start, ts_end,
+        ts_sum_chol_cpu = { 0 },
+        ts_sum_chol_cpu_naive = { 0 },
+        ts_sum_chol_gpu = { 0 },
+        ts_sum_gauss_gpu = { 0 };
 #endif
 
     for (i = 0; i < numMatrices; ++i) {
@@ -180,9 +188,9 @@ int main(int argc, char const *argv[]) {
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
-        mat_sum(reconstr, M, N, &total_cpu);
+        mat_sum(reconstr, M, N, &total_chol_cpu);
 
-        printf("Inversion using BLAS cholesky L1 error %f\n", total_cpu);
+        printf("Inversion using BLAS cholesky L1 error %f\n", total_chol_cpu);
 
         // GPU Benchmark
         ////////////////
@@ -195,14 +203,32 @@ int main(int argc, char const *argv[]) {
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
-        mat_sum(reconstr, M, N, &total_gpu);
+        mat_sum(reconstr, M, N, &total_chol_gpu);
 
-        printf("Inversion using GPU cholesky L1 error %f\n", total_gpu);
+        printf("Inversion using GPU cholesky L1 error %f\n", total_chol_gpu);
 
-        ensure(abs(total_gpu-total_cpu) < 2*total_cpu,
+        ensure(abs(total_chol_gpu-total_chol_cpu) < 2*total_chol_cpu,
             "Error of GPU (%f) should not be higher than twice the error of CPU (%f)",
-            total_gpu,
-            total_cpu);
+            total_chol_gpu,
+            total_chol_cpu);
+
+        for (rep = 0; rep < 10; ++rep) {
+            cblas_scopy(N*N, atra, 1, inv, 1);
+
+            TIMER_START()
+            inverse_chol_gpu(inv, N);
+            TIMER_STOP(gauss_gpu)
+        }
+
+        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
+        mat_sum(reconstr, M, N, &total_gauss_gpu);
+
+        printf("Inversion using GPU cholesky L1 error %f\n", total_gauss_gpu);
+
+        ensure(abs(total_gauss_gpu-total_chol_cpu) < 2*total_chol_cpu,
+            "Error of GPU (%f) should not be higher than twice the error of CPU (%f)",
+            total_gauss_gpu,
+            total_chol_cpu);
     }
 
 #ifdef __APPLE__

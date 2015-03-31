@@ -146,9 +146,9 @@ run: build
 	$(EXEC) ./gaussian
 
 clean:
-	rm -rf inverse inverse_bench inverse_bench.o inverse_blas.o inverse.dSYM
-	rm -f bench bench.o
-	rm -f gaussian gaussian.o
+	rm -f *.o
+	rm -f bench gaussian inverse inverse_bench
+	rm -rf inverse.dSYM
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
 
 c-test: src/inverse.c
@@ -167,10 +167,13 @@ bench.o: src/bench.cu
 bench: bench.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
+inverse_gauss.o: src/gauss/inverse_gpu.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
 inverse_bench.o: src/inverse_bench.c
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-inverse_bench: inverse_bench.o cholesky_gpu.o
+inverse_bench: inverse_bench.o cholesky_gpu.o inverse_gauss.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 bench-all: bench

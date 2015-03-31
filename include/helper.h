@@ -61,15 +61,27 @@ inline static void readMatricesFile(const char *path, int *numMatrices, int *m, 
     fclose(fp);
 }
 
+inline static void printMatrix(Array a, int M, int N) {
+    int i, j;
+
+    for(i = 0; i < M; i++) {
+        for(j = 0; j < N; j++)
+            printf("%f\t", a[j * M + i]);
+        printf("\n");
+    }
+
+    printf("\n");
+}
+
 // Prints matrix a stored in column major format
-inline static void printMatrix(Array a, int n, int batchSize) {
+inline static void printMatrixList(Array a, int N, int batchSize) {
 	int i, j, k;
 
 	for(k = 0; k < batchSize; k++) {
 		printf("=============== <%d> ===============\n", k + 1);
-		for(i = 0; i < n; i++) {
-			for(j = 0; j < n; j++)
-				printf("%f\t", a[k * n * n + j * n + i]);
+		for(i = 0; i < N; i++) {
+			for(j = 0; j < N; j++)
+				printf("%f\t", a[k * N * N + j * N + i]);
 			printf("\n");
 		}
 	}

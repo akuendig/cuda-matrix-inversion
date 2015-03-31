@@ -4,5 +4,6 @@
 void inverse_lu_blas(Array a, Array workspace, int n);
 void inverse_chol_blas(Array a, int n);
 void inverse_chol_gpu(Array a, int n);
+void inverse_gauss_gpu(Array a, int n);
 
 #endif
