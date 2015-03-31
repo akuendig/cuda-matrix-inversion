@@ -195,14 +195,12 @@ int main(int argc, char const *argv[]) {
 
         // GPU Benchmark
         ////////////////
-        for (rep = 0; rep < 10; ++rep) {
+        for (rep = 0; rep < 1; ++rep) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
-            cudaProfilerStart();
             TIMER_START()
             inverse_chol_gpu(inv, N);
             TIMER_STOP(chol_gpu)
-            cudaProfilerStop();
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
@@ -215,15 +213,15 @@ int main(int argc, char const *argv[]) {
             total_chol_gpu,
             total_chol_cpu);
 
-        for (rep = 0; rep < 10; ++rep) {
+            cudaProfilerStart();
+        for (rep = 0; rep < 1; ++rep) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
-            cudaProfilerStart();
             TIMER_START()
             inverse_gauss_gpu(inv, N);
             TIMER_STOP(gauss_gpu)
-            cudaProfilerStop();
         }
+            cudaProfilerStop();
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
         mat_sum(reconstr, M, N, &total_gauss_gpu);
