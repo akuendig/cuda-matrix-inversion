@@ -170,6 +170,7 @@ extern "C" void inverse_chol_gpu(Array a, int n) {
     multiplyLowerGPU(a_dev, n);
 
     gpuErrchk( cudaMemcpy(a, a_dev, matrixSize, cudaMemcpyDeviceToHost) );
+    gpuErrchk( cudaFree(a_dev) );
 }
 
 // int main(int argc, char *argv[]) {
