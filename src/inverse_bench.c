@@ -133,6 +133,14 @@ void time_sub(struct timespec *t1, const struct timespec *t2) {
     t1->tv_sec -= t2->tv_sec;
 }
 
+void time_div(struct timespec *t1, double div) {
+    double sec = t1->tv_sec / div;
+    double nsec = (sec - floor(sec))*BILLION + t1->tv_nsec / div;
+
+    t1->tv_sec = floor(sec);
+    t1->tv_nsec = floor(nsec);
+}
+
 int main(int argc, char const *argv[]) {
     const char *directory = "tests/simpleMean";
     char filePath[1024];
@@ -199,7 +207,8 @@ int main(int argc, char const *argv[]) {
 #ifdef __APPLE__
     printf("Execution time on average:\t%lu cycles\n", cycle_sum/numMatrices/rep);
 #else
-    printf("Execution time on average:\t%lu seconds and %lu nanoseconds\n", ts_sum.tv_sec/numMatrices/rep, ts_sum.tv_nsec/numMatrices/rep);
+    time_div(ts_sum, numMatrices/rep);
+    printf("Execution time on average:\t%lu seconds and %lu nanoseconds\n", ts_sum.tv_sec, ts_sum.tv_nsec);
 #endif
 
     return 0;
