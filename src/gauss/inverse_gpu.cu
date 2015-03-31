@@ -83,8 +83,15 @@ void invert(cublasHandle_t &handle, Array devA, Array devAInv) {
 }
 
 extern "C" void inverse_gauss_gpu(Array a, int n) {
-    Array devA, devAInv;
+    int i;
+    Array aInv, devA, devAInv;
     cublasHandle_t handle;
+
+    aInv = (Array)malloc(ArraySize);
+    ensure(aInv, "could not allocate 0x%lX bytes of memory for matrix inverse", ArraySize);
+
+    memset(aInv, 0, ArraySize);
+    for (i = 0; i < n; ++i) { aInv[i*n + i] = 1.f; }
 
     cublasErrchk( cublasCreate(&handle) );
 
@@ -92,6 +99,7 @@ extern "C" void inverse_gauss_gpu(Array a, int n) {
     gpuErrchk( cudaMalloc(&devAInv, ArraySize) );
 
     gpuErrchk( cudaMemcpy(devA, a, ArraySize, cudaMemcpyHostToDevice) );
+    gpuErrchk( cudaMemcpy(devAInv, aInv, ArraySize, cudaMemcpyHostToDevice) );
 
     /* Invert the matrix */
     invert(handle, devA, devAInv);
