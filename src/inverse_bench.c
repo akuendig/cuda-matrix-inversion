@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include <cuda_runtime.h>
+#include <cuda_profiler_api.h>
 #include "cublas_v2.h"
 
 #ifdef __APPLE__
@@ -197,9 +198,11 @@ int main(int argc, char const *argv[]) {
         for (rep = 0; rep < 10; ++rep) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
+            cudaProfilerStart();
             TIMER_START()
             inverse_chol_gpu(inv, N);
             TIMER_STOP(chol_gpu)
+            cudaProfilerStop();
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
@@ -215,9 +218,11 @@ int main(int argc, char const *argv[]) {
         for (rep = 0; rep < 10; ++rep) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
+            cudaProfilerStart();
             TIMER_START()
             inverse_gauss_gpu(inv, N);
             TIMER_STOP(gauss_gpu)
+            cudaProfilerStop();
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
