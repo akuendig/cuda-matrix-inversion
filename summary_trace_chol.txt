@@ -1,0 +1,18 @@
+==25837== NVPROF is profiling process 25837, command: ./inverse_bench tests/simpleMean/large_5_64_64.mats
+==25837== Profiling application: ./inverse_bench tests/simpleMean/large_5_64_64.mats
+==25837== Profiling result:
+Time(%)      Time     Calls       Avg       Min       Max  Name
+ 49.33%  144.99ms         5  28.998ms  28.878ms  29.078ms  inverseLowerKernel(float*, int)
+ 26.13%  76.810ms         5  15.362ms  15.341ms  15.382ms  decomposeCholeskyKernel(float*, int)
+ 24.51%  72.051ms         5  14.410ms  14.280ms  14.543ms  multiplyLowerKernel(float*, int)
+  0.01%  33.570us         5  6.7140us  6.6880us  6.7520us  [CUDA memcpy DtoH]
+  0.01%  25.184us         5  5.0360us  4.8960us  5.5040us  [CUDA memcpy HtoD]
+
+==25837== API calls:
+Time(%)      Time     Calls       Avg       Min       Max  Name
+ 58.12%  293.92ms        10  29.392ms  17.460us  58.873ms  cudaMemcpy
+ 41.57%  210.22ms        15  14.014ms  7.2630us  57.336ms  cudaLaunch
+  0.17%  854.86us         5  170.97us  154.35us  202.54us  cudaFree
+  0.13%  642.82us         5  128.56us  119.71us  134.79us  cudaMalloc
+  0.01%  28.846us        30     961ns     698ns  4.1210us  cudaSetupArgument
+  0.00%  18.856us        15  1.2570us     838ns  2.0250us  cudaConfigureCall
