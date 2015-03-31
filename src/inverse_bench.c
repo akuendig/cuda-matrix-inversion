@@ -126,6 +126,19 @@ void time_div(struct timespec *t1, double div) {
     t1->tv_nsec = floor(nsec);
 }
 
+#ifdef __APPLE__
+#define TIMER_START(name) start = clock();
+#define TIMER_STOP(name) \
+    diff = clock() - start; \
+    cycle_sum_##name += diff;
+#else
+#define TIMER_START(name) clock_gettime(CLOCK_MONOTONIC, &ts_start);
+#define TIMER_STOP(name) \
+    clock_gettime(CLOCK_MONOTONIC, &ts_end); \
+    time_sub(&ts_end, &ts_start); \
+    time_add(&ts_sum_##name, &ts_end);
+#endif
+
 int main(int argc, char const *argv[]) {
     ensure(argc >= 2, "Usage: inverse_bench TEST_FILE");
 
@@ -145,9 +158,9 @@ int main(int argc, char const *argv[]) {
     DataType total_cpu, total_gpu;
     int i, rep;
 #ifdef __APPLE__
-    clock_t start, diff, cycle_sum_chol_cpu, cycle_sum_chol_gpu = 0;
+    clock_t start, diff, cycle_sum_chol_cpu = 0, cycle_sum_chol_cpu_naive = 0, cycle_sum_chol_gpu = 0;
 #else
-    struct timespec ts_start, ts_end, ts_sum_chol_cpu = { 0 }, ts_sum_chol_gpu = { 0 };
+    struct timespec ts_start, ts_end, ts_sum_chol_cpu = { 0 }, ts_sum_chol_cpu_naive = { 0 }, ts_sum_chol_gpu = { 0 };
 #endif
 
     for (i = 0; i < numMatrices; ++i) {
@@ -161,24 +174,9 @@ int main(int argc, char const *argv[]) {
         for (rep = 0; rep < 10; ++rep) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
-#ifdef __APPLE__
-            start = clock();
-#else
-            clock_gettime(CLOCK_MONOTONIC, &ts_start);
-#endif
-
+            TIMER_START()
             inverse_chol_blas(inv, N);
-
-#ifdef __APPLE__
-            diff = clock() - start;
-            cycle_sum_chol_cpu += diff;
-            // printf("Inversion using BLAS cholesky took %lu cycles\n", diff);
-#else
-            clock_gettime(CLOCK_MONOTONIC, &ts_end);
-            time_sub(&ts_end, &ts_start);
-            time_add(&ts_sum_chol_cpu, &ts_end);
-            // printf("Inversion using BLAS cholesky took %lu seconds and %lu nanoseconds\n", ts_end.tv_sec, ts_end.tv_nsec);
-#endif
+            TIMER_STOP(chol_cpu)
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
@@ -191,24 +189,9 @@ int main(int argc, char const *argv[]) {
         for (rep = 0; rep < 10; ++rep) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
-#ifdef __APPLE__
-            start = clock();
-#else
-            clock_gettime(CLOCK_MONOTONIC, &ts_start);
-#endif
-
+            TIMER_START()
             inverse_chol_gpu(inv, N);
-
-#ifdef __APPLE__
-            diff = clock() - start;
-            cycle_sum_chol_gpu += diff;
-            // printf("Inversion using GPU cholesky took %lu cycles\n", diff);
-#else
-            clock_gettime(CLOCK_MONOTONIC, &ts_end);
-            time_sub(&ts_end, &ts_start);
-            time_add(&ts_sum_chol_gpu, &ts_end);
-            // printf("Inversion using GPU cholesky took %lu seconds and %lu nanoseconds\n", ts_end.tv_sec, ts_end.tv_nsec);
-#endif
+            TIMER_STOP(chol_gpu)
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
