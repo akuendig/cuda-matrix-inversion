@@ -8,6 +8,7 @@
 
 #include "../include/types.h"
 #include "../include/helper.h"
+#include "../include/inverse.h"
 
 #define OPS_PER_THREAD 62
 

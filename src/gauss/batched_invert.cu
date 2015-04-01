@@ -7,6 +7,7 @@
 
 #include "../../include/types.h"
 #include "../../include/helper.h"
+#include "../../include/inverse.h"
 
 #define SWAP(x, y, z)	((z) = (x),(x) = (y),(y) = (z))
 

@@ -6,6 +6,7 @@
 
 #include "../../include/types.h"
 #include "../../include/helper.h"
+#include "../../include/inverse.h"
 
 #define SWAP(x, y, z)   ((z) = (x),(x) = (y),(y) = (z))
 
@@ -130,7 +131,7 @@ void inverse_gauss_kernel(Array a, Array aInv, int N) {
     cublasDestroy(handle);
 }
 
-extern "C" void inverse_gauss_gpu(cublasHandle_t handle, Array a, int n) {
+extern "C" void inverse_gauss_gpu(Array a, int n) {
     int i;
     Array aInv, devA, devAInv;
 
