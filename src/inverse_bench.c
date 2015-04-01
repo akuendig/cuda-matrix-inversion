@@ -204,6 +204,9 @@ int main(int argc, char const *argv[]) {
             TIMER_START()
             inverse_chol_gpu(inv, N);
             TIMER_STOP(chol_gpu)
+
+            gpuErrchk( cudaPeekAtLastError() );
+            gpuErrchk( cudaDeviceSynchronize() );
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
@@ -223,6 +226,9 @@ int main(int argc, char const *argv[]) {
             TIMER_START()
             inverse_gauss_gpu(handle, inv, N);
             TIMER_STOP(gauss_gpu)
+
+            gpuErrchk( cudaPeekAtLastError() );
+            gpuErrchk( cudaDeviceSynchronize() );
         }
 //            cudaProfilerStop();
 

@@ -80,9 +80,10 @@ void invert(cublasHandle_t &handle, Array devA, Array devAInv, int N) {
     }
 }
 
+__device__ int pivot;
 __global__
 void inverse_gauss_kernel(cublasHandle_t handle, Array a, Array aInv, int N) {
-    int row, pivot = -1;
+    int row;
 
     for (row = 0; row < N; ++row) {
         /*cublasErrchk*/( cublasIsamax(handle,

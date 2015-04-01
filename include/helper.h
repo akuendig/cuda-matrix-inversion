@@ -88,21 +88,19 @@ inline static void printMatrixList(Array a, int N, int batchSize) {
 	printf("\n");
 }
 
-#ifdef __CUDACC__
 /********************/
 /* CUDA ERROR CHECK */
 /********************/
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline static void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+inline static void gpuAssert(cudaError_t code, const char *file, int line)
 {
     if (code != cudaSuccess)
     {
         fprintf(stderr,"GPUassert: %s %s:%d\n", cudaGetErrorString(code), file, line);
         cudaDeviceReset();
-        if (abort) { exit(code); }
+        exit(code);
     }
 }
-#endif
 
 #ifdef CUBLAS_API_H_
 // cuBLAS API errors
