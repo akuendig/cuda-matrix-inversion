@@ -111,14 +111,16 @@ void inverse_gauss_kernel(Array a, Array aInv, int N) {
                 N) );
         }
 
+        DataType scalar = 1/a[row * N + row];
+
         /*cublasErrchk*/( cublasSscal(handle,
             N,
-            &a[row * N + row],
+            &scalar,
             a + row,
             N) );
         /*cublasErrchk*/( cublasSscal(handle,
             N,
-            &a[row * N + row],
+            &scalar,
             aInv + row,
             N) );
 
