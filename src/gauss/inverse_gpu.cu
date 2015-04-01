@@ -150,8 +150,10 @@ extern "C" void inverse_gauss_gpu(cublasHandle_t handle, Array a, int n) {
     gpuErrchk( cudaMemcpy(a, devAInv, ArraySize, cudaMemcpyDeviceToHost) );
 
     /* Cleanup the mess */
-    gpuErrchk( cudaFree(devA) );
     gpuErrchk( cudaFree(devAInv) );
+    gpuErrchk( cudaFree(devA) );
+
+    free(aInv);
 }
 
 // int main(int argc, char *argv[]) {

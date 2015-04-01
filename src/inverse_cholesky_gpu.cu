@@ -158,19 +158,19 @@ void multiplyLowerGPU(Array a, int N) {
     multiplyLowerKernel<<< 1, threads >>>(a, N);
 }
 
-extern "C" void inverse_chol_gpu(Array a_dev, int n) {
-    // Array a_dev;
+extern "C" void inverse_chol_gpu(Array a, int N) {
+    Array a_dev;
 
-    // size_t matrixSize = n*n * sizeof(ELEMENT_TYPE);
-    // gpuErrchk( cudaMalloc(&a_dev, matrixSize) );
-    // gpuErrchk( cudaMemcpy(a_dev, a, matrixSize, cudaMemcpyHostToDevice) );
+    const size_t matrixSize = N*N * sizeof(DataType);
+    gpuErrchk( cudaMalloc(&a_dev, matrixSize) );
+    gpuErrchk( cudaMemcpy(a_dev, a, matrixSize, cudaMemcpyHostToDevice) );
 
-    decomposeCholeskyGPU(a_dev, n);
-    inverseLowerGPU(a_dev, n);
-    multiplyLowerGPU(a_dev, n);
+    decomposeCholeskyGPU(a_dev, N);
+    inverseLowerGPU(a_dev, N);
+    multiplyLowerGPU(a_dev, N);
 
-    // gpuErrchk( cudaMemcpy(a, a_dev, matrixSize, cudaMemcpyDeviceToHost) );
-    // gpuErrchk( cudaFree(a_dev) );
+    gpuErrchk( cudaMemcpy(a, a_dev, matrixSize, cudaMemcpyDeviceToHost) );
+    gpuErrchk( cudaFree(a_dev) );
 }
 
 // int main(int argc, char *argv[]) {
@@ -183,7 +183,7 @@ extern "C" void inverse_chol_gpu(Array a_dev, int n) {
 //     readMatricesFile(filePath, &numMatrices, &m, &n, &a);
 //     printMatrix(a, m, n);
 
-//     matrixSize = m * n * sizeof(ELEMENT_TYPE);
+//     matrixSize = m * n * sizeof(DataType);
 //     gpuErrchk( cudaMalloc(&a_dev, matrixSize) );
 //     gpuErrchk( cudaMemcpy(a_dev, a, matrixSize, cudaMemcpyHostToDevice) );
 
