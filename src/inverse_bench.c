@@ -223,7 +223,7 @@ int main(int argc, char const *argv[]) {
 
         // GPU Benchmark 2
         //////////////////
-            cudaProfilerStart();
+        gpuErrchk( cudaProfilerStart() );
         for (rep = 0; rep < 1; ++rep) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
@@ -234,7 +234,7 @@ int main(int argc, char const *argv[]) {
             gpuErrchk( cudaPeekAtLastError() );
             gpuErrchk( cudaDeviceSynchronize() );
         }
-            cudaProfilerStop();
+        gpuErrchk( cudaProfilerStop() );
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
         mat_sum(reconstr, M, N, &total_gauss_gpu);
@@ -296,6 +296,8 @@ int main(int argc, char const *argv[]) {
     free(inv);
     free(atra);
     free(mu);
+
+    cudaDeviceReset();
 
     return 0;
 }
