@@ -52,9 +52,9 @@ endif
 NVCC := $(CUDA_PATH)/bin/nvcc -ccbin $(GCC)
 
 # internal flags
-NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS}
+NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS} -arch=sm_35 -rdc=true
 CCFLAGS     :=
-LDFLAGS     := -lcublas
+LDFLAGS     :=
 
 # Extra user flags
 EXTRA_NVCCFLAGS   ?=
@@ -115,7 +115,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 INCLUDES  :=
-LIBRARIES :=
+LIBRARIES := -lcublas -lcublas_device -lcudadevrt
 
 ifeq ($(DARWIN),)
   LIBRARIES += -L/usr/lib64/atlas -llapack -lblas
@@ -147,7 +147,7 @@ run: build
 
 clean:
 	rm -f *.o
-	rm -f bench gaussian inverse inverse_bench
+	rm -f bench gaussian inverse inverse_bench cholesky_gpu
 	rm -rf inverse.dSYM
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
 
@@ -170,10 +170,13 @@ bench: bench.o
 inverse_gauss.o: src/gauss/inverse_gpu.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
+inverse_gauss_batched.o: src/gauss/batched_invert.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
 inverse_bench.o: src/inverse_bench.c
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-inverse_bench: inverse_bench.o cholesky_gpu.o inverse_gauss.o
+inverse_bench: inverse_bench.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 bench-all: bench
