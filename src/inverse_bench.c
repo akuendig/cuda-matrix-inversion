@@ -294,5 +294,7 @@ int main(int argc, char const *argv[]) {
     free(atra);
     free(mu);
 
+    cudaDeviceReset();
+
     return 0;
 }

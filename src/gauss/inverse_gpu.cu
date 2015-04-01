@@ -186,7 +186,7 @@ extern "C" void inverse_gauss_kernel_gpu(
 
     inverse_gauss_kernel<<<1, batchSize>>>(devAs, devAInvs, n);
 
-    gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs, pitchAInvs, ArraySize, batchSize,
+    gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
                 cudaMemcpyDeviceToHost) );
     gpuErrchk( cudaFree((void*)devAs[0]) );
     gpuErrchk( cudaFree((void*)devAInvs[0]) );
