@@ -181,9 +181,10 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
 
         TIMER_START()
         for (i = 0; i < numMatrices; ++i) {
+            Array current_atra = atra + (i * N * N);
             Array current_inv = inv + (i * N * N);
 
-            inverse_chol_blas(current_inv, N);
+            inverse_lu_blas(current_atra, current_inv, N);
         }
         TIMER_STOP(chol_cpu)
     }
