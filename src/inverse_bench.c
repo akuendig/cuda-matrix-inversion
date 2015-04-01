@@ -223,10 +223,10 @@ int main(int argc, char const *argv[]) {
         // GPU Benchmark 2
         //////////////////
         for (rep = 0; rep < 10; ++rep) {
-            cblas_scopy(N*N, atra, 1, inv, 1);
+            cblas_scopy(N*N, atra, 1, reconstr, 1);
 
             TIMER_START()
-            inverse_gauss_gpu(inv, N);
+            inverse_gauss_kernel_gpu(handle, N, reconstr, inv, 1);
             TIMER_STOP(gauss_gpu)
 
             gpuErrchk( cudaPeekAtLastError() );
@@ -236,7 +236,7 @@ int main(int argc, char const *argv[]) {
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
         mat_sum(reconstr, M, N, &total_gauss_gpu);
 
-        printf("Inversion using GPU gauss L1 error %f\n", total_gauss_gpu);
+        printf("Inversion using GPU gauss kernel batched L1 error %f\n", total_gauss_gpu);
 
         ensure(abs(total_gauss_gpu-total_chol_cpu) < 100*total_chol_cpu,
             "Error of GPU gauss (%f) should not be higher than 100 times the error of CPU (%f)",
@@ -259,7 +259,7 @@ int main(int argc, char const *argv[]) {
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
         mat_sum(reconstr, M, N, &total_gauss_batched_gpu);
 
-        printf("Inversion using GPU gauss_batched L1 error %f\n", total_gauss_batched_gpu);
+        printf("Inversion using GPU gauss batched L1 error %f\n", total_gauss_batched_gpu);
 
         ensure(abs(total_gauss_batched_gpu-total_chol_cpu) < 100*total_chol_cpu,
             "Error of GPU gauss batched (%f) should not be higher than 100 times the error of CPU (%f)",
