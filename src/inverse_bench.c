@@ -170,28 +170,35 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     ////////////////
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
+        Array current_atra = a + (i * N * N);
 
         cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, atra + (i * M * N), N);
-        fill_sym(atra + (i * M * N), N, N);
+            N, M, 1, current_a, M, 0, current_atra, N);
+        fill_sym(current_atra, N, N);
     }
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
-        cblas_scopy(numMatrices*N*N, atra + (i * M * N), 1, inv, 1);
+        cblas_scopy(numMatrices*N*N, atra, 1, inv, 1);
 
         TIMER_START()
         for (i = 0; i < numMatrices; ++i) {
-            inverse_chol_blas(inv + (i * M * N), N);
+            Array current_inv = inv + (i * N * N);
+
+            inverse_chol_blas(current_inv, N);
         }
         TIMER_STOP(chol_cpu)
     }
 
     for (i = 0; i < numMatrices; ++i) {
+        Array current_atra = a + (i * N * N);
+        Array current_inv = inv + (i * N * N);
+        Array current_rec = reconstr + (i * N * N);
+
         // Try to get identity matrix
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, inv + (i * M * N), N, atra + (i * M * N), N, 0, reconstr + (i * M * N), N);
+            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
         // Calculate the distance to real identity matrix
-        mat_sum(reconstr + (i * M * N), M, N, &total_chol_cpu);
+        mat_sum(current_rec, M, N, &total_chol_cpu);
 
         printf("Inversion using BLAS cholesky L1 error %f\n", total_chol_cpu);
     }
@@ -201,10 +208,11 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     // Build benchmark data
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
+        Array current_atra = a + (i * N * N);
 
         cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, atra + (i * M * N), N);
-        fill_sym(atra + (i * M * N), N, N);
+            N, M, 1, current_a, M, 0, current_atra, N);
+        fill_sym(current_atra, N, N);
     }
 
     // Compute inverses
@@ -221,9 +229,13 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
 
     // calculate error
     for (i = 0; i < numMatrices; ++i) {
+        Array current_atra = a + (i * N * N);
+        Array current_inv = inv + (i * N * N);
+        Array current_rec = reconstr + (i * N * N);
+
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, inv + (i * M * N), N, atra + (i * M * N), N, 0, reconstr + (i * M * N), N);
-        mat_sum(reconstr + (i * M * N), M, N, &total_chol_gpu);
+            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
+        mat_sum(current_rec, M, N, &total_chol_gpu);
 
         printf("Inversion using GPU cholesky L1 error %f\n", total_chol_gpu);
     }
@@ -233,10 +245,11 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     // Build benchmark data
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
+        Array current_atra = a + (i * N * N);
 
         cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, atra + (i * M * N), N);
-        fill_sym(atra + (i * M * N), N, N);
+            N, M, 1, current_a, M, 0, current_atra, N);
+        fill_sym(current_atra, N, N);
     }
 
     // Compute inverses
@@ -255,9 +268,13 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
 
     // calculate error
     for (i = 0; i < numMatrices; ++i) {
+        Array current_atra = a + (i * N * N);
+        Array current_inv = inv + (i * N * N);
+        Array current_rec = reconstr + (i * N * N);
+
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, inv + (i * M * N), N, atra + (i * M * N), N, 0, reconstr + (i * M * N), N);
-        mat_sum(reconstr + (i * M * N), M, N, &total_gauss_gpu);
+            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
+        mat_sum(current_rec, M, N, &total_gauss_gpu);
 
         printf("Inversion using GPU gauss kernel batched L1 error %f\n", total_gauss_gpu);
     }
@@ -267,10 +284,11 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     // Build benchmark data
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
+        Array current_atra = a + (i * N * N);
 
         cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, atra + (i * M * N), N);
-        fill_sym(atra + (i * M * N), N, N);
+            N, M, 1, current_a, M, 0, current_atra, N);
+        fill_sym(current_atra, N, N);
     }
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
@@ -286,9 +304,13 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
 
     // calculate error
     for (i = 0; i < numMatrices; ++i) {
+        Array current_atra = a + (i * N * N);
+        Array current_inv = inv + (i * N * N);
+        Array current_rec = reconstr + (i * N * N);
+
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, inv + (i * M * N), N, atra + (i * M * N), N, 0, reconstr + (i * M * N), N);
-        mat_sum(reconstr + (i * M * N), M, N, &total_gauss_batched_gpu);
+            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
+        mat_sum(current_rec, M, N, &total_gauss_batched_gpu);
 
         printf("Inversion using GPU gauss batched L1 error %f\n", total_gauss_batched_gpu);
     }
