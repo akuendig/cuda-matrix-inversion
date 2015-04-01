@@ -170,7 +170,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     ////////////////
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
-        Array current_atra = a + (i * N * N);
+        Array current_atra = atra + (i * N * N);
 
         cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
             N, M, 1, current_a, M, 0, current_atra, N);
@@ -190,7 +190,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     }
 
     for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = a + (i * N * N);
+        Array current_atra = atra + (i * N * N);
         Array current_inv = inv + (i * N * N);
         Array current_rec = reconstr + (i * N * N);
 
@@ -208,7 +208,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     // Build benchmark data
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
-        Array current_atra = a + (i * N * N);
+        Array current_atra = atra + (i * N * N);
 
         cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
             N, M, 1, current_a, M, 0, current_atra, N);
@@ -229,7 +229,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
 
     // calculate error
     for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = a + (i * N * N);
+        Array current_atra = atra + (i * N * N);
         Array current_inv = inv + (i * N * N);
         Array current_rec = reconstr + (i * N * N);
 
@@ -245,7 +245,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     // Build benchmark data
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
-        Array current_atra = a + (i * N * N);
+        Array current_atra = atra + (i * N * N);
 
         cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
             N, M, 1, current_a, M, 0, current_atra, N);
@@ -268,7 +268,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
 
     // calculate error
     for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = a + (i * N * N);
+        Array current_atra = atra + (i * N * N);
         Array current_inv = inv + (i * N * N);
         Array current_rec = reconstr + (i * N * N);
 
@@ -284,7 +284,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     // Build benchmark data
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
-        Array current_atra = a + (i * N * N);
+        Array current_atra = atra + (i * N * N);
 
         cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
             N, M, 1, current_a, M, 0, current_atra, N);
@@ -304,7 +304,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
 
     // calculate error
     for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = a + (i * N * N);
+        Array current_atra = atra + (i * N * N);
         Array current_inv = inv + (i * N * N);
         Array current_rec = reconstr + (i * N * N);
 
