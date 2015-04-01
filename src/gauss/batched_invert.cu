@@ -118,40 +118,48 @@ extern "C" void inverse_gauss_batched_gpu(
 		cublasHandle_t handle,
 		int n,
 		Array As,
-		Array A_invs,
+		Array aInvs,
 		int batchSize) {
 
-	Array *devBs;
-	size_t pitchBs;
-	Array *devCs;
-	size_t pitchCs;
+	int k, i;
+	Array *devAs;
+	size_t pitchAs;
+	Array *devAInvs;
+	size_t pitchAInvs;
 
-	const size_t sizeOfMatrixB = sizeof(DataType) * n * n;
+	const size_t ArraySize = sizeof(DataType) * n * n;
 
-	gpuErrchk( cudaHostAlloc((void**)&devBs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
-	gpuErrchk( cudaHostAlloc((void**)&devCs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
+	gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
+	gpuErrchk( cudaHostAlloc((void**)&devAInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 
-	gpuErrchk( batchedCudaMalloc(devBs, &pitchBs, sizeOfMatrixB, batchSize) );
-	gpuErrchk( batchedCudaMalloc(devCs, &pitchCs, sizeOfMatrixB, batchSize) );
+	gpuErrchk( batchedCudaMalloc(devAs, &pitchAs, ArraySize, batchSize) );
+	gpuErrchk( batchedCudaMalloc(devAInvs, &pitchAInvs, ArraySize, batchSize) );
 
-	gpuErrchk( cudaMemcpy2D(devBs[0], pitchBs, As, sizeOfMatrixB, sizeOfMatrixB, batchSize,
+    memset(aInvs, 0, batchSize*ArraySize);
+
+	for (k = 0; k < batchSize; ++k) {
+	    for (i = 0; i < n; ++i) {
+	    	aInvs[k*ArraySize + i*n + i] = 1.f;
+    	}
+	}
+
+	gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
 				cudaMemcpyHostToDevice) );
-	gpuErrchk( cudaMemcpy2D(devCs[0], pitchCs, A_invs, sizeOfMatrixB, sizeOfMatrixB, batchSize,
+	gpuErrchk( cudaMemcpy2D(devAInvs[0], pitchAInvs, aInvs, ArraySize, ArraySize, batchSize,
 				cudaMemcpyHostToDevice) );
-
 
 	// Calculate Minv = Madd^-1, store result in Bs
-	invert(handle, n, devBs, devCs, batchSize);
+	invert(handle, n, devAs, devAInvs, batchSize);
 	// devAs: As
-	// devBs: Minv
-	// devCs: Madd
+	// devAs: Minv
+	// devAInvs: Madd
 
-	gpuErrchk( cudaMemcpy2D(A_invs, sizeOfMatrixB, devCs[0], pitchCs, sizeOfMatrixB, batchSize,
+	gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
 				cudaMemcpyDeviceToHost) );
-	gpuErrchk( cudaFree((void*)devBs[0]) );
-	gpuErrchk( cudaFree((void*)devCs[0]) );
-	gpuErrchk( cudaFreeHost((void*)devBs) );
-	gpuErrchk( cudaFreeHost((void*)devCs) );
+	gpuErrchk( cudaFree((void*)devAs[0]) );
+	gpuErrchk( cudaFree((void*)devAInvs[0]) );
+	gpuErrchk( cudaFreeHost((void*)devAs) );
+	gpuErrchk( cudaFreeHost((void*)devAInvs) );
 }
 
 // int main(int argc, char *argv[]) {
