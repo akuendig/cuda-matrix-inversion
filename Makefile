@@ -52,9 +52,9 @@ endif
 NVCC := $(CUDA_PATH)/bin/nvcc -ccbin $(GCC)
 
 # internal flags
-NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS}
+NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS} -arch=sm_35
 CCFLAGS     :=
-LDFLAGS     := -lcublas
+LDFLAGS     :=
 
 # Extra user flags
 EXTRA_NVCCFLAGS   ?=
@@ -115,7 +115,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 INCLUDES  :=
-LIBRARIES :=
+LIBRARIES := -lcublas -lcublas_device -lcudadevrt
 
 ifeq ($(DARWIN),)
   LIBRARIES += -L/usr/lib64/atlas -llapack -lblas
