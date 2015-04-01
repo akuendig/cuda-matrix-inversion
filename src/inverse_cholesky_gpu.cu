@@ -9,7 +9,7 @@
 #include "../include/types.h"
 #include "../include/helper.h"
 
-#define OPS_PER_THREAD 62
+#define OPS_PER_THREAD 128
 
 
 __global__

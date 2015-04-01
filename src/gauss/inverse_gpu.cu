@@ -123,10 +123,9 @@ void inverse_gauss_kernel(cublasHandle_t handle, Array a, Array aInv, int N) {
     }
 }
 
-extern "C" void inverse_gauss_gpu(Array a, int n) {
+extern "C" void inverse_gauss_gpu(cublasHandle_t handle, Array a, int n) {
     int i;
     Array aInv, devA, devAInv;
-    cublasHandle_t handle;
 
     const size_t ArraySize = n*n * sizeof(DataType);
     aInv = (Array)malloc(ArraySize);
@@ -135,8 +134,6 @@ extern "C" void inverse_gauss_gpu(Array a, int n) {
     memset(aInv, 0, ArraySize);
     for (i = 0; i < n; ++i) { aInv[i*n + i] = 1.f; }
 
-    cublasErrchk( cublasCreate(&handle) );
-
     gpuErrchk( cudaMalloc(&devA, ArraySize) );
     gpuErrchk( cudaMalloc(&devAInv, ArraySize) );
 
@@ -144,7 +141,7 @@ extern "C" void inverse_gauss_gpu(Array a, int n) {
     gpuErrchk( cudaMemcpy(devAInv, aInv, ArraySize, cudaMemcpyHostToDevice) );
 
     /* Invert the matrix */
-    inverse_gauss_kernel<<<1, n>>>(handle, devA, devAInv, n);
+    inverse_gauss_kernel<<<1, 1>>>(handle, devA, devAInv, n);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -155,7 +152,6 @@ extern "C" void inverse_gauss_gpu(Array a, int n) {
     /* Cleanup the mess */
     gpuErrchk( cudaFree(devA) );
     gpuErrchk( cudaFree(devAInv) );
-    cublasErrchk( cublasDestroy(handle) );
 }
 
 // int main(int argc, char *argv[]) {

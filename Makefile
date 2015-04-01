@@ -52,7 +52,7 @@ endif
 NVCC := $(CUDA_PATH)/bin/nvcc -ccbin $(GCC)
 
 # internal flags
-NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS} -arch=sm_35 -rdc=true
+NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS}  -arch=compute_35 -code=sm_35 -rdc=true
 CCFLAGS     :=
 LDFLAGS     :=
 
