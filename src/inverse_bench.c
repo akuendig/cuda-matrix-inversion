@@ -243,7 +243,7 @@ int main(int argc, char const *argv[]) {
             cblas_scopy(N*N, atra, 1, reconstr, 1);
 
             TIMER_START()
-            inverse_gauss_batched_gpu(handle, N, &reconstr, &inv, 1);
+            inverse_gauss_batched_gpu(handle, N, reconstr, inv, 1);
             TIMER_STOP(gauss_batched_gpu)
         }
 
