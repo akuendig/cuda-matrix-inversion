@@ -11,6 +11,28 @@
 #define SWAP(x, y, z)   ((z) = (x),(x) = (y),(y) = (z))
 
 __global__
+void transform_matrix(Array a, Array a_inv, int row, int N) {
+    __shared__ DataType scalars[64];
+    __shared__ DataType currRowA[64], currRowI[64];
+
+    // store the scalars corresponding to the column 'row'
+    scalars[threadIdx.x] = a[row * N + threadIdx.x];
+    currRowA[threadIdx.x] = a[threadIdx.x * N + row];
+    currRowI[threadIdx.x] = a_inv[threadIdx.x * N + row];
+    __syncthreads();
+
+    // No need to transform 'row'th row
+    if(threadIdx.x == row)
+        return;
+
+    // Each thread transforms row
+    for(int i = 0; i < N; i++) {
+        a[i * N + threadIdx.x] -= (scalars[threadIdx.x] * currRowA[i]);
+        a_inv[i * N + threadIdx.x] -= (scalars[threadIdx.x] * currRowI[i]);
+    }
+}
+
+__global__
 void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
     int row, pivot;
     cublasHandle_t handle;
