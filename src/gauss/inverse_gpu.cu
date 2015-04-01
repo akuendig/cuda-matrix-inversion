@@ -9,33 +9,31 @@
 
 #define SWAP(x, y, z)   ((z) = (x),(x) = (y),(y) = (z))
 
-#define N 64
-#define ArraySize   (N * N * sizeof(DataType))
 
-void pivotRow(cublasHandle_t handle, DataType *a, DataType *a_inv, int col) {
-	int pivot = -1;
+void pivotRow(cublasHandle_t &handle, Array a, Array a_inv, int col, int N) {
+    int pivot = -1;
 
-	cublasIsamax(handle,
-		N - col,				// Number of elements to be searched
-		a + (col * N) + col,	// Starting position
-		1,						// Increment in words (NOT BYTES)
-		&pivot);				// Maximum element in the col
-	int row = pivot - 1 + col;	// Row number with maximum element (starts with 1)
+    cublasErrchk( cublasIsamax(handle,
+        N - col,            // Number of elements to be searched
+        a + (col * N) + col,        // Starting position
+        1,              // Increment in words (NOT BYTES)
+        &pivot) );            // Maximum element in the col
+    int row = pivot - 1 + col;          // Row number with maximum element (starts with 1)
 
-	// printf("Pivot: %d\nRow: %d\n", pivot, row);
-	if(row == col)
-		return;
+    // printf("Pivot: %d\nRow: %d\n", pivot, row);
+    if(row == col)
+        return;
 
-	cublasSswap(handle,
-		N,					// Nuber of elements to be swapped
-		a + col,			// Current row
-		N,					// Increment (becuase of column major)
-		a + row,			// Row with max pivot
-		N);
-	cublasSswap(handle, N, a_inv + col, N, a_inv + row, N);
+    cublasErrchk( cublasSswap(handle,
+        N,              // Nuber of elements to be swapped
+        a + col,            // Current row
+        N,              // Increment (becuase of column major)
+        a + row,            // Row with max pivot
+        N) );
+    cublasErrchk( cublasSswap(handle, N, a_inv + col, N, a_inv + row, N) );
 }
 
-void normalizeRow(cublasHandle_t handle, Array a, Array a_inv, int row) {
+void normalizeRow(cublasHandle_t handle, Array a, Array a_inv, int row, int N) {
     DataType scalar;
 
     gpuErrchk( cudaMemcpy(&scalar, &a[row * N + row], sizeof(DataType), cudaMemcpyDeviceToHost) );
@@ -45,9 +43,9 @@ void normalizeRow(cublasHandle_t handle, Array a, Array a_inv, int row) {
 }
 
 __global__
-void transform_matrix(Array a, Array a_inv, int row) {
-    __shared__ DataType scalars[N];
-    __shared__ DataType currRowA[N], currRowI[N];
+void transform_matrix(Array a, Array a_inv, int row, int N) {
+    __shared__ DataType scalars[64];
+    __shared__ DataType currRowA[64], currRowI[64];
 
     // store the scalars corresponding to the column 'row'
     scalars[threadIdx.x] = a[row * N + threadIdx.x];
@@ -66,34 +64,82 @@ void transform_matrix(Array a, Array a_inv, int row) {
     }
 }
 
-void invert(cublasHandle_t handle, Array devA, Array devAInv) {
+void invert(cublasHandle_t &handle, Array devA, Array devAInv, int N) {
     for(int i = 0; i < N; i++) {
         // Pivot the matrix
-        pivotRow(handle, devA, devAInv, i);
+        pivotRow(handle, devA, devAInv, i, N);
 
         // Make column entry to be one
-        normalizeRow(handle, devA, devAInv, i);
+        normalizeRow(handle, devA, devAInv, i, N);
 
         // Number of threads equals number of rows
-        transform_matrix<<<1, N>>>(devA, devAInv, i);
+        transform_matrix<<<1, N>>>(devA, devAInv, i, N);
 
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
     }
 }
 
-extern "C" void inverse_gauss_gpu(Array a, int n) {
-    int i;
-    Array aInv, devA, devAInv;
+__global__
+void inverse_gauss_kernel(Array a, Array aInv, int N) {
+    int row, pivot;
     cublasHandle_t handle;
 
+    cublasCreate(&handle);
+
+    for (row = 0; row < N; ++row) {
+        /*cublasErrchk*/( cublasIsamax(handle,
+            N - row,            // Number of elements to be searched
+            a + (row * N) + row,        // Starting position
+            1,              // Increment in words (NOT BYTES)
+            &pivot) );            // Maximum element in the row
+        int pivotRow = pivot - 1 + row;          // Row number with maximum element (starts with 1)
+
+        // printf("Pivot: %d\nRow: %d\n", pivot, pivotRow);
+        if(pivotRow != row) {
+            /*cublasErrchk*/( cublasSswap(handle,
+                N,              // Nuber of elements to be swapped
+                a + row,            // Current pivotRow
+                N,              // Increment (becuase of column major)
+                a + pivotRow,            // Row with max pivot
+                N) );
+            /*cublasErrchk*/( cublasSswap(handle,
+                N,
+                aInv + row,
+                N,
+                aInv + pivotRow,
+                N) );
+        }
+
+        DataType scalar = 1/a[row * N + row];
+
+        /*cublasErrchk*/( cublasSscal(handle,
+            N,
+            &scalar,
+            a + row,
+            N) );
+        /*cublasErrchk*/( cublasSscal(handle,
+            N,
+            &scalar,
+            aInv + row,
+            N) );
+
+        transform_matrix<<<1, N>>>(a, aInv, row, N);
+    }
+
+    cublasDestroy(handle);
+}
+
+extern "C" void inverse_gauss_gpu(cublasHandle_t handle, Array a, int n) {
+    int i;
+    Array aInv, devA, devAInv;
+
+    const size_t ArraySize = n*n * sizeof(DataType);
     aInv = (Array)malloc(ArraySize);
     ensure(aInv, "could not allocate 0x%lX bytes of memory for matrix inverse", ArraySize);
 
     memset(aInv, 0, ArraySize);
     for (i = 0; i < n; ++i) { aInv[i*n + i] = 1.f; }
-
-    cublasErrchk( cublasCreate(&handle) );
 
     gpuErrchk( cudaMalloc(&devA, ArraySize) );
     gpuErrchk( cudaMalloc(&devAInv, ArraySize) );
@@ -102,7 +148,7 @@ extern "C" void inverse_gauss_gpu(Array a, int n) {
     gpuErrchk( cudaMemcpy(devAInv, aInv, ArraySize, cudaMemcpyHostToDevice) );
 
     /* Invert the matrix */
-    invert(handle, devA, devAInv);
+    inverse_gauss_kernel<<<1, 1>>>(devA, devAInv, n);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -111,9 +157,10 @@ extern "C" void inverse_gauss_gpu(Array a, int n) {
     gpuErrchk( cudaMemcpy(a, devAInv, ArraySize, cudaMemcpyDeviceToHost) );
 
     /* Cleanup the mess */
-    gpuErrchk( cudaFree(devA) );
     gpuErrchk( cudaFree(devAInv) );
-    cublasErrchk( cublasDestroy(handle) );
+    gpuErrchk( cudaFree(devA) );
+
+    free(aInv);
 }
 
 // int main(int argc, char *argv[]) {

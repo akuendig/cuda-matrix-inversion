@@ -52,7 +52,7 @@ endif
 NVCC := $(CUDA_PATH)/bin/nvcc -ccbin $(GCC)
 
 # internal flags
-NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS} -arch=sm_35
+NVCCFLAGS   := -m${OS_SIZE} ${ARCH_FLAGS} -arch=sm_35 -rdc=true
 CCFLAGS     :=
 LDFLAGS     :=
 
@@ -147,7 +147,7 @@ run: build
 
 clean:
 	rm -f *.o
-	rm -f bench gaussian inverse inverse_bench
+	rm -f bench gaussian inverse inverse_bench cholesky_gpu
 	rm -rf inverse.dSYM
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
 
