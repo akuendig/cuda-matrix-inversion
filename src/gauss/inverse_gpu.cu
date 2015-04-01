@@ -25,20 +25,20 @@ void pivotRow(cublasHandle_t &handle, DataType *a, DataType *a_inv, int col) {
 	int pivot = -1;
 
 	cublasIsamax(handle,
-		N - col,			// Number of elements to be searched
-		a + (col * N) + col,		// Starting position
-		1,				// Increment in words (NOT BYTES)
-		&pivot);			// Maximum element in the col
-	int row = pivot - 1 + col;			// Row number with maximum element (starts with 1)
+		N - col,				// Number of elements to be searched
+		a + (col * N) + col,	// Starting position
+		1,						// Increment in words (NOT BYTES)
+		&pivot);				// Maximum element in the col
+	int row = pivot - 1 + col;	// Row number with maximum element (starts with 1)
 
 	printf("Pivot: %d\nRow: %d\n", pivot, row);
 	if(row == col)
 		return;
 
 	cublasSswap(handle,
-		N,				// Nuber of elements to be swapped
+		N,					// Nuber of elements to be swapped
 		a + col,			// Current row
-		N,				// Increment (becuase of column major)
+		N,					// Increment (becuase of column major)
 		a + row,			// Row with max pivot
 		N);
 	cublasSswap(handle, N, a_inv + col, N, a_inv + row, N);
