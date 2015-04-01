@@ -251,6 +251,9 @@ int main(int argc, char const *argv[]) {
             TIMER_START()
             inverse_gauss_batched_gpu(handle, N, reconstr, inv, 1);
             TIMER_STOP(gauss_batched_gpu)
+
+            gpuErrchk( cudaPeekAtLastError() );
+            gpuErrchk( cudaDeviceSynchronize() );
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
