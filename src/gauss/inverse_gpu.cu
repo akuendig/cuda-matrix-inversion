@@ -82,7 +82,7 @@ void invert(cublasHandle_t &handle, Array devA, Array devAInv, int N) {
 }
 
 __global__
-void inverse_gauss_kernel(Array a, Array aInv, int N) {
+void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
     int row, pivot;
     cublasHandle_t handle;
 
@@ -91,7 +91,7 @@ void inverse_gauss_kernel(Array a, Array aInv, int N) {
     for (row = 0; row < N; ++row) {
         /*cublasErrchk*/( cublasIsamax(handle,
             N - row,            // Number of elements to be searched
-            a + (row * N) + row,        // Starting position
+            &a[threadIdx.x][(row * N) + row],        // Starting position
             1,              // Increment in words (NOT BYTES)
             &pivot) );            // Maximum element in the row
         int pivotRow = pivot - 1 + row;          // Row number with maximum element (starts with 1)
@@ -100,68 +100,98 @@ void inverse_gauss_kernel(Array a, Array aInv, int N) {
         if(pivotRow != row) {
             /*cublasErrchk*/( cublasSswap(handle,
                 N,              // Nuber of elements to be swapped
-                a + row,            // Current pivotRow
+                &a[threadIdx.x][row],            // Current pivotRow
                 N,              // Increment (becuase of column major)
-                a + pivotRow,            // Row with max pivot
+                &a[threadIdx.x][pivotRow],            // Row with max pivot
                 N) );
             /*cublasErrchk*/( cublasSswap(handle,
                 N,
-                aInv + row,
+                &aInv[threadIdx.x][row],
                 N,
-                aInv + pivotRow,
+                &aInv[threadIdx.x][pivotRow],
                 N) );
         }
 
-        DataType scalar = 1/a[row * N + row];
+        DataType scalar = 1/a[threadIdx.x][row * N + row];
 
         /*cublasErrchk*/( cublasSscal(handle,
             N,
             &scalar,
-            a + row,
+            &a[threadIdx.x][row],
             N) );
         /*cublasErrchk*/( cublasSscal(handle,
             N,
             &scalar,
-            aInv + row,
+            &aInv[threadIdx.x][row],
             N) );
 
-        transform_matrix<<<1, N>>>(a, aInv, row, N);
+        transform_matrix<<<1, N>>>(a[threadIdx.x], aInv[threadIdx.x], row, N);
     }
 
     cublasDestroy(handle);
 }
 
-extern "C" void inverse_gauss_gpu(Array a, int n) {
-    int i;
-    Array aInv, devA, devAInv;
+// Allocates one continous array of memory of size arraySize*batchSize and writes the
+// pointers of all subarrays into the array of pointers located at devArrayPtr.
+static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
+    char *devPtr;
 
-    const size_t ArraySize = n*n * sizeof(DataType);
-    aInv = (Array)malloc(ArraySize);
-    ensure(aInv, "could not allocate 0x%lX bytes of memory for matrix inverse", ArraySize);
+    cudaError_t result = cudaMallocPitch((void**)&devPtr, pitch, arraySize, batchSize);
 
-    memset(aInv, 0, ArraySize);
-    for (i = 0; i < n; ++i) { aInv[i*n + i] = 1.f; }
+    if (cudaSuccess != result) {
+        return result;
+    }
 
-    gpuErrchk( cudaMalloc(&devA, ArraySize) );
-    gpuErrchk( cudaMalloc(&devAInv, ArraySize) );
+    for (int i = 0; i < batchSize; ++i) {
+        devArrayPtr[i] = (Array)devPtr;
+        devPtr += *pitch;
+    }
 
-    gpuErrchk( cudaMemcpy(devA, a, ArraySize, cudaMemcpyHostToDevice) );
-    gpuErrchk( cudaMemcpy(devAInv, aInv, ArraySize, cudaMemcpyHostToDevice) );
+    return cudaSuccess;
+}
 
-    /* Invert the matrix */
-    inverse_gauss_kernel<<<1, 1>>>(devA, devAInv, n);
+extern "C" void inverse_gauss_kernel_gpu(
+        cublasHandle_t handle,
+        int n,
+        Array As,
+        Array aInvs,
+        int batchSize) {
 
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
+    int k, i;
+    Array *devAs;
+    size_t pitchAs;
+    Array *devAInvs;
+    size_t pitchAInvs;
 
-    /* Display the result */
-    gpuErrchk( cudaMemcpy(a, devAInv, ArraySize, cudaMemcpyDeviceToHost) );
+    const size_t ArraySize = sizeof(DataType) * n * n;
 
-    /* Cleanup the mess */
-    gpuErrchk( cudaFree(devAInv) );
-    gpuErrchk( cudaFree(devA) );
+    gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
+    gpuErrchk( cudaHostAlloc((void**)&devAInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 
-    free(aInv);
+    gpuErrchk( batchedCudaMalloc(devAs, &pitchAs, ArraySize, batchSize) );
+    gpuErrchk( batchedCudaMalloc(devAInvs, &pitchAInvs, ArraySize, batchSize) );
+
+    memset(aInvs, 0, batchSize*ArraySize);
+
+    for (k = 0; k < batchSize; ++k) {
+        for (i = 0; i < n; ++i) {
+            aInvs[k*n*n + i*n + i] = 1.f;
+        }
+    }
+
+    gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
+                cudaMemcpyHostToDevice) );
+    gpuErrchk( cudaMemcpy2D(devAInvs[0], pitchAInvs, aInvs, ArraySize, ArraySize, batchSize,
+                cudaMemcpyHostToDevice) );
+
+    inverse_gauss_kernel<<<1, batchSize>>>(devAs, devAInvs, n);
+
+    gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
+                cudaMemcpyDeviceToHost) );
+    gpuErrchk( cudaFree((void*)devAs[0]) );
+    gpuErrchk( cudaFree((void*)devAInvs[0]) );
+    gpuErrchk( cudaFreeHost((void*)devAs) );
+    gpuErrchk( cudaFreeHost((void*)devAInvs) );
 }
 
 // int main(int argc, char *argv[]) {
