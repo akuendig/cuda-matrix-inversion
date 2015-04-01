@@ -80,10 +80,12 @@ void invert(cublasHandle_t &handle, Array devA, Array devAInv, int N) {
     }
 }
 
-__device__ int pivot;
 __global__
-void inverse_gauss_kernel(cublasHandle_t handle, Array a, Array aInv, int N) {
-    int row;
+void inverse_gauss_kernel(Array a, Array aInv, int N) {
+    int row, pivot;
+    cublasHandle_t handle;
+
+    cublasCreate(&handle);
 
     for (row = 0; row < N; ++row) {
         /*cublasErrchk*/( cublasIsamax(handle,
@@ -122,6 +124,8 @@ void inverse_gauss_kernel(cublasHandle_t handle, Array a, Array aInv, int N) {
 
         transform_matrix<<<1, N>>>(a, aInv, row, N);
     }
+
+    cublasDestroy(handle);
 }
 
 extern "C" void inverse_gauss_gpu(cublasHandle_t handle, Array a, int n) {
@@ -142,7 +146,7 @@ extern "C" void inverse_gauss_gpu(cublasHandle_t handle, Array a, int n) {
     gpuErrchk( cudaMemcpy(devAInv, aInv, ArraySize, cudaMemcpyHostToDevice) );
 
     /* Invert the matrix */
-    inverse_gauss_kernel<<<1, 1>>>(handle, devA, devAInv, n);
+    inverse_gauss_kernel<<<1, 1>>>(devA, devAInv, n);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
