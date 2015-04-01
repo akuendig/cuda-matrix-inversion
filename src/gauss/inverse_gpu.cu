@@ -22,7 +22,7 @@ void pivotRow(cublasHandle_t handle, DataType *a, DataType *a_inv, int col) {
 		&pivot);				// Maximum element in the col
 	int row = pivot - 1 + col;	// Row number with maximum element (starts with 1)
 
-	printf("Pivot: %d\nRow: %d\n", pivot, row);
+	// printf("Pivot: %d\nRow: %d\n", pivot, row);
 	if(row == col)
 		return;
 
