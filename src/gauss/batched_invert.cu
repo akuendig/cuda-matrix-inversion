@@ -1,26 +1,14 @@
-#include <stdio.h>	
+#include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+
 #include <cuda.h>
 #include "cublas_v2.h"
-#include "types.h"
-#include "helper.h"
+
+#include "../../include/types.h"
+#include "../../include/helper.h"
 
 #define SWAP(x, y, z)	((z) = (x),(x) = (y),(y) = (z))
-
-void printMatrix(Array a, int n, int batchSize) {
-	int i, j, k;
-
-	for(k = 0; k < batchSize; k++) {
-		printf("=============== <%d> ===============\n", k + 1);
-		for(i = 0; i < n; i++) {
-			for(j = 0; j < n; j++)
-				printf("%f\t", a[k * n * n + j * n + i]);
-			printf("\n");
-		}
-	}
-	printf("\n");
-}
 
 void pivotRow(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int col, int batchSize) {
 	cudaStream_t *streams = (cudaStream_t *) malloc(sizeof(cudaStream_t) * batchSize);
@@ -109,7 +97,7 @@ void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize
 	}
 }
 
-static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
+cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
 	char *devPtr;
 
 	cudaError_t result = cudaMallocPitch((void**)&devPtr, pitch, arraySize, batchSize);
@@ -125,7 +113,8 @@ static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t a
 
 	return cudaSuccess;
 }
-static void batchedInverse(
+
+extern "C" void inverse_gauss_batched_gpu(
 		cublasHandle_t handle,
 		int n,
 		Array As,
@@ -165,28 +154,28 @@ static void batchedInverse(
 	gpuErrchk( cudaFreeHost((void*)devCs) );
 }
 
-int main(int argc, char *argv[]) {
-	cublasHandle_t handle;
-	int numMatrices, n;
-	Array a, a_inv;
+// int main(int argc, char *argv[]) {
+// 	cublasHandle_t handle;
+// 	int numMatrices, n;
+// 	Array a, a_inv;
 
-	cublasErrchk( cublasCreate(&handle) );
+// 	cublasErrchk( cublasCreate(&handle) );
 
-	readMatricesFile(argv[1], &numMatrices, &n, &n, &a);
-	a_inv = (Array) malloc(sizeof(DataType) * numMatrices * n * n);
-	printMatrix(a, n, numMatrices);
-	for(int i = 0; i < numMatrices; i++)
-		for(int j = 0; j < n; j++)
-			for(int k = 0; k < n; k++)
-				if(j == k)
-					a_inv[i * n * n + j * n + k] = 1;
-				else
-					a_inv[i * n * n + j * n + k] = 0;
-	batchedInverse(handle, n, a, a_inv, numMatrices);
-	printMatrix(a_inv, n, numMatrices);
+// 	readMatricesFile(argv[1], &numMatrices, &n, &n, &a);
+// 	a_inv = (Array) malloc(sizeof(DataType) * numMatrices * n * n);
+// 	printMatrixList(a, n, numMatrices);
+// 	for(int i = 0; i < numMatrices; i++)
+// 		for(int j = 0; j < n; j++)
+// 			for(int k = 0; k < n; k++)
+// 				if(j == k)
+// 					a_inv[i * n * n + j * n + k] = 1;
+// 				else
+// 					a_inv[i * n * n + j * n + k] = 0;
+// 	batchedInverse(handle, n, a, a_inv, numMatrices);
+// 	printMatrixList(a_inv, n, numMatrices);
 
-	gpuErrchk( cudaPeekAtLastError() );
-	gpuErrchk( cudaDeviceSynchronize() );
+// 	gpuErrchk( cudaPeekAtLastError() );
+// 	gpuErrchk( cudaDeviceSynchronize() );
 
-	return 0;
-}
+// 	return 0;
+// }

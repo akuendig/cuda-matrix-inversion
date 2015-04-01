@@ -12,17 +12,7 @@
 #define N 64
 #define ArraySize   (N * N * sizeof(DataType))
 
-void pivotRow(cublasHandle_t &handle, Array a, Array a_inv, int col) {
-    int pivot = -1;
-
-    cublasErrchk( cublasIsamax(handle,
-        N - col,            // Number of elements to be searched
-        a + (col * N) + col,        // Starting position
-        1,              // Increment in words (NOT BYTES)
-        &pivot) );            // Maximum element in the col
-    int row = pivot - 1 + col;          // Row number with maximum element (starts with 1)
-
-void pivotRow(cublasHandle_t &handle, DataType *a, DataType *a_inv, int col) {
+void pivotRow(cublasHandle_t handle, DataType *a, DataType *a_inv, int col) {
 	int pivot = -1;
 
 	cublasIsamax(handle,
@@ -43,20 +33,9 @@ void pivotRow(cublasHandle_t &handle, DataType *a, DataType *a_inv, int col) {
 		a + row,			// Row with max pivot
 		N);
 	cublasSswap(handle, N, a_inv + col, N, a_inv + row, N);
-    // printf("Pivot: %d\nRow: %d\n", pivot, row);
-    if(row == col)
-        return;
-
-    cublasErrchk( cublasSswap(handle,
-        N,              // Nuber of elements to be swapped
-        a + col,            // Current row
-        N,              // Increment (becuase of column major)
-        a + row,            // Row with max pivot
-        N) );
-    cublasErrchk( cublasSswap(handle, N, a_inv + col, N, a_inv + row, N) );
 }
 
-void normalizeRow(cublasHandle_t &handle, Array a, Array a_inv, int row) {
+void normalizeRow(cublasHandle_t handle, Array a, Array a_inv, int row) {
     DataType scalar;
 
     gpuErrchk( cudaMemcpy(&scalar, &a[row * N + row], sizeof(DataType), cudaMemcpyDeviceToHost) );
@@ -87,7 +66,7 @@ void transform_matrix(Array a, Array a_inv, int row) {
     }
 }
 
-void invert(cublasHandle_t &handle, Array devA, Array devAInv) {
+void invert(cublasHandle_t handle, Array devA, Array devAInv) {
     for(int i = 0; i < N; i++) {
         // Pivot the matrix
         pivotRow(handle, devA, devAInv, i);
