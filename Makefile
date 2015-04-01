@@ -63,7 +63,7 @@ EXTRA_CCFLAGS     ?=
 
 # OS-specific build flags
 ifneq ($(DARWIN),)
-  LDFLAGS += -rpath $(CUDA_PATH)/lib
+  LDFLAGS += -rpath $(CUDA_PATH)/lib -framework Accelerate
   CCFLAGS += -arch $(OS_ARCH)
 else
   ifeq ($(OS_ARCH),armv7l)
@@ -117,6 +117,10 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 INCLUDES  :=
 LIBRARIES :=
 
+ifeq ($(DARWIN),)
+  LIBRARIES += -L/usr/lib64/atlas -llapack -lblas
+endif
+
 ################################################################################
 
 ifeq ($(SAMPLE_ENABLED),0)
@@ -142,9 +146,9 @@ run: build
 	$(EXEC) ./gaussian
 
 clean:
-	rm -f inverse
-	rm -f bench bench.o
-	rm -f gaussian gaussian.o
+	rm -f *.o
+	rm -f bench gaussian inverse inverse_bench
+	rm -rf inverse.dSYM
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
 
 c-test: src/inverse.c
@@ -163,7 +167,31 @@ bench.o: src/bench.cu
 bench: bench.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
+inverse_gauss.o: src/gauss/inverse_gpu.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+inverse_bench.o: src/inverse_bench.c
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+inverse_bench: inverse_bench.o cholesky_gpu.o inverse_gauss.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+
 bench-all: bench
 	./bench 10 134217728 10
+
+cholesky_gpu.o: src/inverse_cholesky_gpu.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+cholesky_gpu: cholesky_gpu.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+	./cholesky_gpu
+
+cholesky_cpu: src/inverse_cholesky_cpu.c
+	clang -g -o cholesky_cpu $+
+	echo "\
+	18 22 54 42\n\
+	22 70 86 62\n\
+	54 86 174 134\n\
+	42 62 134 106\n" | ./cholesky_cpu
 
 clobber: clean
