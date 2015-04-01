@@ -1,13 +1,26 @@
-#include <stdio.h>
+#include <stdio.h>	
 #include <errno.h>
 #include <stdlib.h>
 #include <cuda.h>
 #include "cublas_v2.h"
-
-#include "../../include/types.h"
-#include "../../include/helper.h"
+#include "types.h"
+#include "helper.h"
 
 #define SWAP(x, y, z)	((z) = (x),(x) = (y),(y) = (z))
+
+void printMatrix(Array a, int n, int batchSize) {
+	int i, j, k;
+
+	for(k = 0; k < batchSize; k++) {
+		printf("=============== <%d> ===============\n", k + 1);
+		for(i = 0; i < n; i++) {
+			for(j = 0; j < n; j++)
+				printf("%f\t", a[k * n * n + j * n + i]);
+			printf("\n");
+		}
+	}
+	printf("\n");
+}
 
 void pivotRow(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int col, int batchSize) {
 	cudaStream_t *streams = (cudaStream_t *) malloc(sizeof(cudaStream_t) * batchSize);
@@ -46,27 +59,16 @@ void pivotRow(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int col, in
 	free(streams);
 }
 
-void normalizeRow(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int row, int batchSize) {
-	cudaStream_t *streams = (cudaStream_t *) malloc(sizeof(cudaStream_t) * batchSize);
-	for(int i = 0; i < batchSize; i++)
-		cudaStreamCreate(&streams[i]);
-	DataType *scalar = (DataType *) malloc(sizeof(DataType) * batchSize);
+__global__
+void normalizeRow(Array *a, Array *a_inv, int n, int row) {
+	__shared__ DataType scalar;
 
-	for(int i = 0; i < batchSize; i++) {
-		cublasSetStream(handle, streams[i]);
-		cudaMemcpy(&scalar[i], &a[i][row * n + row], sizeof(DataType), cudaMemcpyDeviceToHost);
-	}
-	for(int i = 0; i < batchSize; i++) {
-		scalar[i] = 1 / scalar[i];
-		cublasSetStream(handle, streams[i]);
-		cublasSscal(handle, n, &scalar[i], a[i] + row, n);
-		cublasSscal(handle, n, &scalar[i], a_inv[i] + row, n);
-	}
+	if(threadIdx.x == 0)
+		scalar = 1 / a[blockIdx.x][row * n + row];
+	__syncthreads();
 
-	for(int i = 0; i < batchSize; i++)
-		cudaStreamDestroy(streams[i]);
-	free(scalar);
-	free(streams);
+	a[blockIdx.x][threadIdx.x * n + row] *= scalar;
+	a_inv[blockIdx.x][threadIdx.x * n + row] *= scalar;
 }
 
 __global__
@@ -100,7 +102,7 @@ void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize
 		pivotRow(handle, n, a, a_inv, i, batchSize);
 
 		// Make column entry to be one
-		normalizeRow(handle, n, a, a_inv, i, batchSize);
+		normalizeRow<<<batchSize, n>>>(a, a_inv, n, i);
 
 		// number of threads equals number of rows
 		transform_matrix<<<batchSize, n, 3 * n>>>(a, a_inv, i, n, batchSize);
@@ -172,7 +174,7 @@ int main(int argc, char *argv[]) {
 
 	readMatricesFile(argv[1], &numMatrices, &n, &n, &a);
 	a_inv = (Array) malloc(sizeof(DataType) * numMatrices * n * n);
-	printMatrixList(a, n, numMatrices);
+	printMatrix(a, n, numMatrices);
 	for(int i = 0; i < numMatrices; i++)
 		for(int j = 0; j < n; j++)
 			for(int k = 0; k < n; k++)
@@ -181,7 +183,7 @@ int main(int argc, char *argv[]) {
 				else
 					a_inv[i * n * n + j * n + k] = 0;
 	batchedInverse(handle, n, a, a_inv, numMatrices);
-	printMatrixList(a_inv, n, numMatrices);
+	printMatrix(a_inv, n, numMatrices);
 
 	gpuErrchk( cudaPeekAtLastError() );
 	gpuErrchk( cudaDeviceSynchronize() );
