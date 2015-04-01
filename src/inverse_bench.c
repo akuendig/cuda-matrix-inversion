@@ -142,7 +142,6 @@ void time_div(struct timespec *t1, double div) {
 
 void bench_parallel(int numMatrices, int M, int N, Array a) {
     cublasHandle_t handle;
-    cublasErrchk( cublasCreate(&handle) );
 
     Array atra = (Array)malloc(numMatrices*N*N*sizeof(DataType));
     Array inv = (Array)malloc(numMatrices*N*N*sizeof(DataType));
@@ -214,6 +213,8 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
             N, M, 1, current_a, M, 0, current_atra, N);
         fill_sym(current_atra, N, N);
     }
+
+    cublasErrchk( cublasCreate(&handle) );
 
     // Compute inverses
     for (rep = 0; rep < BENCH_REPS; ++rep) {
