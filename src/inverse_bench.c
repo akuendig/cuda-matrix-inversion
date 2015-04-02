@@ -128,8 +128,8 @@ void time_div(struct timespec *t1, double div) {
     t1->tv_nsec = floor(nsec);
 }
 
-long int time_to_ms(struct timespec *t1) {
-    return t1->tv_sec*1000 + t1->tv_nsec/1000/1000;
+double time_to_ms(struct timespec *t1) {
+    return t1->tv_sec*1000.0 + t1->tv_nsec/1000.0/1000.0;
 }
 
 #ifdef __APPLE__
@@ -335,13 +335,13 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     printf("Total Execution for %d matrices and %d replications of gauss_batched_gpu: %lu cycles (%lu cycles average)\n",
         numMatrices, BENCH_REPS, cycle_sum_gauss_batched_gpu, cycle_sum_gauss_batched_gpu/numMatrices/BENCH_REPS);
 #else
-    printf("Total Execution for %d matrices and %d replications of chol_cpu: %lu ms (%lu ms average)\n",
+    printf("Total Execution for %d matrices and %d replications of chol_cpu: %4.f ms (%4.f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_cpu), time_to_ms(&ts_sum_chol_cpu)/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of chol_gpu: %lu ms (%lu ms average)\n",
+    printf("Total Execution for %d matrices and %d replications of chol_gpu: %4.f ms (%4.f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_gpu), time_to_ms(&ts_sum_chol_gpu)/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of gauss_gpu: %lu ms (%lu ms average)\n",
+    printf("Total Execution for %d matrices and %d replications of gauss_gpu: %4.f ms (%4.f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_gpu), time_to_ms(&ts_sum_gauss_gpu)/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of gauss_batched_gpu: %lu ms (%lu ms average)\n",
+    printf("Total Execution for %d matrices and %d replications of gauss_batched_gpu: %4.f ms (%4.f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_batched_gpu), time_to_ms(&ts_sum_gauss_batched_gpu)/numMatrices/BENCH_REPS);
 #endif
 
