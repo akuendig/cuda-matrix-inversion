@@ -127,20 +127,26 @@ void time_div(struct timespec *t1, double div) {
     t1->tv_nsec = floor(nsec);
 }
 
+long int time_to_ms(struct timespec *t1) {
+    return t1->tv_sec*1000 + t1->tv_nsec/1000/1000;
+}
+
 #ifdef __APPLE__
 #define TIMER_START(name) start = clock();
 #define TIMER_STOP(name) \
     diff = clock() - start; \
-    cycle_sum_##name += diff;
+    cycle_sum_##name += diff; \
+    if (detailed) { printf("Execution time of " #name ": %lucycles \n", diff); }
 #else
 #define TIMER_START(name) clock_gettime(CLOCK_MONOTONIC, &ts_start);
 #define TIMER_STOP(name) \
     clock_gettime(CLOCK_MONOTONIC, &ts_end); \
     time_sub(&ts_end, &ts_start); \
-    time_add(&ts_sum_##name, &ts_end);
+    time_add(&ts_sum_##name, &ts_end); \
+    if (detailed) { printf("Execution time of " #name ": %lums \n", time_to_ms(&ts_end)); }
 #endif
 
-void bench_parallel(int numMatrices, int M, int N, Array a) {
+void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     cublasHandle_t handle;
 
     Array atra = (Array)malloc(numMatrices*N*N*sizeof(DataType));
@@ -201,7 +207,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
         // Calculate the distance to real identity matrix
         mat_sum(current_rec, M, N, &total_chol_cpu);
 
-        printf("Inversion using BLAS LU-decomposition L1 error %f\n", total_chol_cpu);
+        printf("L1 error for chol_cpu: %f\n", total_chol_cpu);
     }
 
     // GPU Benchmark 1
@@ -240,7 +246,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
             M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
         mat_sum(current_rec, M, N, &total_chol_gpu);
 
-        printf("Inversion using GPU cholesky L1 error %f\n", total_chol_gpu);
+        printf("L1 error for chol_gpu: %f\n", total_chol_gpu);
     }
 
     // GPU Benchmark 2
@@ -279,7 +285,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
             M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
         mat_sum(current_rec, M, N, &total_gauss_gpu);
 
-        printf("Inversion using GPU gauss kernel batched L1 error %f\n", total_gauss_gpu);
+        printf("L1 error for gauss_gpu: %f\n", total_gauss_gpu);
     }
 
     // GPU Benchmark 3
@@ -315,27 +321,27 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
             M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
         mat_sum(current_rec, M, N, &total_gauss_batched_gpu);
 
-        printf("Inversion using GPU gauss batched L1 error %f\n", total_gauss_batched_gpu);
+        printf("L1 error for gauss_batched_gpu: %f\n", total_gauss_batched_gpu);
     }
 
 #ifdef __APPLE__
-    printf("Execution time for BLAS cholesky on average:\t%lu cycles\n", cycle_sum_chol_cpu/numMatrices/BENCH_REPS);
-    printf("Execution time for GPU cholesky on average:\t%lu cycles\n", cycle_sum_chol_gpu/numMatrices/BENCH_REPS);
-    printf("Execution time for GPU gauss on average:\t%lu cycles\n", cycle_sum_gauss_gpu/numMatrices/BENCH_REPS);
-    printf("Execution time for GPU gauss batched on average:\t%lu cycles\n", cycle_sum_gauss_batched_gpu/numMatrices/BENCH_REPS);
+    printf("Total Execution for %d matrices and %d replications of chol_cpu: %lu cycles (%lu cycles average)\n",
+        numMatrices, BENCH_REPS, cycle_sum_chol_cpu, cycle_sum_chol_cpu/numMatrices/BENCH_REPS);
+    printf("Total Execution for %d matrices and %d replications of chol_gpu: %lu cycles (%lu cycles average)\n",
+        numMatrices, BENCH_REPS, cycle_sum_chol_gpu, cycle_sum_chol_gpu/numMatrices/BENCH_REPS);
+    printf("Total Execution for %d matrices and %d replications of gauss_gpu: %lu cycles (%lu cycles average)\n",
+        numMatrices, BENCH_REPS, cycle_sum_gauss_gpu, cycle_sum_gauss_gpu/numMatrices/BENCH_REPS);
+    printf("Total Execution for %d matrices and %d replications of gauss_batched_gpu: %lu cycles (%lu cycles average)\n",
+        numMatrices, BENCH_REPS, cycle_sum_gauss_batched_gpu, cycle_sum_gauss_batched_gpu/numMatrices/BENCH_REPS);
 #else
-    time_div(&ts_sum_chol_cpu, numMatrices*BENCH_REPS);
-    time_div(&ts_sum_chol_gpu, numMatrices*BENCH_REPS);
-    time_div(&ts_sum_gauss_gpu, numMatrices*BENCH_REPS);
-    time_div(&ts_sum_gauss_batched_gpu, numMatrices*BENCH_REPS);
-    printf("Execution time for BLAS cholesky on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
-        ts_sum_chol_cpu.tv_sec, ts_sum_chol_cpu.tv_nsec, ts_sum_chol_cpu.tv_nsec/1000000.f);
-    printf("Execution time for GPU cholesky on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
-        ts_sum_chol_gpu.tv_sec, ts_sum_chol_gpu.tv_nsec, ts_sum_chol_gpu.tv_nsec/1000000.f);
-    printf("Execution time for GPU gauss on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
-        ts_sum_gauss_gpu.tv_sec, ts_sum_gauss_gpu.tv_nsec, ts_sum_gauss_gpu.tv_nsec/1000000.f);
-    printf("Execution time for GPU gauss batched on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
-        ts_sum_gauss_batched_gpu.tv_sec, ts_sum_gauss_batched_gpu.tv_nsec, ts_sum_gauss_batched_gpu.tv_nsec/1000000.f);
+    printf("Total Execution for %d matrices and %d replications of chol_cpu: %lu ms (%lu ms average)\n",
+        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_cpu), time_to_ms(&ts_sum_chol_cpu)/numMatrices/BENCH_REPS);
+    printf("Total Execution for %d matrices and %d replications of chol_gpu: %lu ms (%lu ms average)\n",
+        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_gpu), time_to_ms(&ts_sum_chol_gpu)/numMatrices/BENCH_REPS);
+    printf("Total Execution for %d matrices and %d replications of gauss_gpu: %lu ms (%lu ms average)\n",
+        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_gpu), time_to_ms(&ts_sum_gauss_gpu)/numMatrices/BENCH_REPS);
+    printf("Total Execution for %d matrices and %d replications of gauss_batched_gpu: %lu ms (%lu ms average)\n",
+        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_batched_gpu), time_to_ms(&ts_sum_gauss_batched_gpu)/numMatrices/BENCH_REPS);
 #endif
 
     cublasErrchk( cublasDestroy(handle) );
@@ -346,7 +352,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     free(atra);
 }
 
-void bench_sequencial(int numMatrices, int M, int N, Array a) {
+void bench_sequencial(int numMatrices, int M, int N, Array a, bool detailed) {
     cublasHandle_t handle;
     cublasErrchk( cublasCreate(&handle) );
 
@@ -495,7 +501,9 @@ void bench_sequencial(int numMatrices, int M, int N, Array a) {
 }
 
 int main(int argc, char const *argv[]) {
-    ensure(argc >= 2, "Usage: inverse_bench TEST_FILE");
+    ensure(argc >= 2, "Usage: inverse_bench TEST_FILE [-d]");
+
+    bool detailedReporting = (argc >= 3) && !strncmp("-d", argv[2], 2);
 
     int numMatrices;
     int M;
@@ -505,7 +513,7 @@ int main(int argc, char const *argv[]) {
 
     readMatricesFile(argv[1], &numMatrices, &M, &N, &a);
 
-    bench_parallel(numMatrices, M, N, a);
+    bench_parallel(numMatrices, M, N, a, detailedReporting);
 
     cudaDeviceReset();
 
