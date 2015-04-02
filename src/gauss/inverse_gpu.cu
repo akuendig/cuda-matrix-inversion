@@ -42,7 +42,7 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
     for (row = 0; row < N; ++row) {
         /*cublasErrchk*/( cublasIsamax(handle,
             N - row,            // Number of elements to be searched
-            &a[threadIdx.x][(row * N) + row],        // Starting position
+            &a[blockIdx.x][(row * N) + row],        // Starting position
             1,              // Increment in words (NOT BYTES)
             &pivot) );            // Maximum element in the row
         int pivotRow = pivot - 1 + row;          // Row number with maximum element (starts with 1)
@@ -51,32 +51,32 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
         if(pivotRow != row) {
             /*cublasErrchk*/( cublasSswap(handle,
                 N,              // Nuber of elements to be swapped
-                &a[threadIdx.x][row],            // Current pivotRow
+                &a[blockIdx.x][row],            // Current pivotRow
                 N,              // Increment (becuase of column major)
-                &a[threadIdx.x][pivotRow],            // Row with max pivot
+                &a[blockIdx.x][pivotRow],            // Row with max pivot
                 N) );
             /*cublasErrchk*/( cublasSswap(handle,
                 N,
-                &aInv[threadIdx.x][row],
+                &aInv[blockIdx.x][row],
                 N,
-                &aInv[threadIdx.x][pivotRow],
+                &aInv[blockIdx.x][pivotRow],
                 N) );
         }
 
-        DataType scalar = 1/a[threadIdx.x][row * N + row];
+        DataType scalar = 1/a[blockIdx.x][row * N + row];
 
         /*cublasErrchk*/( cublasSscal(handle,
             N,
             &scalar,
-            &a[threadIdx.x][row],
+            &a[blockIdx.x][row],
             N) );
         /*cublasErrchk*/( cublasSscal(handle,
             N,
             &scalar,
-            &aInv[threadIdx.x][row],
+            &aInv[blockIdx.x][row],
             N) );
 
-        transform_matrix<<<1, N>>>(a[threadIdx.x], aInv[threadIdx.x], row, N);
+        transform_matrix<<<1, N>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
 
     cublasDestroy(handle);
@@ -135,7 +135,7 @@ extern "C" void inverse_gauss_kernel_gpu(
     gpuErrchk( cudaMemcpy2D(devAInvs[0], pitchAInvs, aInvs, ArraySize, ArraySize, batchSize,
                 cudaMemcpyHostToDevice) );
 
-    inverse_gauss_kernel<<<1, batchSize>>>(devAs, devAInvs, n);
+    inverse_gauss_kernel<<<batchSize, 1>>>(devAs, devAInvs, n);
 
     gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
                 cudaMemcpyDeviceToHost) );

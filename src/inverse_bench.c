@@ -146,6 +146,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
     Array atra = (Array)malloc(numMatrices*N*N*sizeof(DataType));
     Array inv = (Array)malloc(numMatrices*N*N*sizeof(DataType));
     Array reconstr = (Array)malloc(numMatrices*N*N*sizeof(DataType));
+    Array workspace = (Array)malloc(N*N*sizeof(DataType));
 
     DataType total_chol_cpu, total_chol_gpu, total_gauss_gpu, total_gauss_batched_gpu;
     int i, rep;
@@ -184,7 +185,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
             Array current_atra = atra + (i * N * N);
             Array current_inv = inv + (i * N * N);
 
-            inverse_lu_blas(current_atra, current_inv, N);
+            inverse_lu_blas(current_inv, workspace, N);
         }
         TIMER_STOP(chol_cpu)
     }
@@ -200,7 +201,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
         // Calculate the distance to real identity matrix
         mat_sum(current_rec, M, N, &total_chol_cpu);
 
-        printf("Inversion using BLAS cholesky L1 error %f\n", total_chol_cpu);
+        printf("Inversion using BLAS LU-decomposition L1 error %f\n", total_chol_cpu);
     }
 
     // GPU Benchmark 1
@@ -339,6 +340,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a) {
 
     cublasErrchk( cublasDestroy(handle) );
 
+    free(workspace);
     free(reconstr);
     free(inv);
     free(atra);
@@ -351,6 +353,7 @@ void bench_sequencial(int numMatrices, int M, int N, Array a) {
     Array atra = (Array)malloc(N*N*sizeof(DataType));
     Array inv = (Array)malloc(N*N*sizeof(DataType));
     Array reconstr = (Array)malloc(N*N*sizeof(DataType));
+    Array workspace = (Array)malloc(N*N*sizeof(DataType));
 
     DataType total_chol_cpu, total_chol_gpu, total_gauss_gpu, total_gauss_batched_gpu;
     int i, rep;
@@ -382,14 +385,14 @@ void bench_sequencial(int numMatrices, int M, int N, Array a) {
             cblas_scopy(N*N, atra, 1, inv, 1);
 
             TIMER_START()
-            inverse_chol_blas(inv, N);
+            inverse_lu_blas(inv, workspace, N);
             TIMER_STOP(chol_cpu)
         }
 
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
         mat_sum(reconstr, M, N, &total_chol_cpu);
 
-        printf("Inversion using BLAS cholesky L1 error %f\n", total_chol_cpu);
+        printf("Inversion using BLAS LU-decomposition L1 error %f\n", total_chol_cpu);
 
         // GPU Benchmark 1
         //////////////////
@@ -485,6 +488,7 @@ void bench_sequencial(int numMatrices, int M, int N, Array a) {
 
     cublasErrchk( cublasDestroy(handle) );
 
+    free(workspace);
     free(reconstr);
     free(inv);
     free(atra);
