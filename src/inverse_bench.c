@@ -144,7 +144,7 @@ double time_to_ms(struct timespec *t1) {
     clock_gettime(CLOCK_MONOTONIC, &ts_end); \
     time_sub(&ts_end, &ts_start); \
     time_add(&ts_sum_##name, &ts_end); \
-    if (detailed) { printf("Execution time of " #name ": %lums \n", time_to_ms(&ts_end)); }
+    if (detailed) { printf("Execution time of " #name ": %.4fms \n", time_to_ms(&ts_end)); }
 #endif
 
 void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
@@ -326,22 +326,22 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     }
 
 #ifdef __APPLE__
-    printf("Total Execution for %d matrices and %d replications of chol_cpu: %lu cycles (%lu cycles average)\n",
+    printf("Total execution time for %d matrices and %d replications of chol_cpu: %lu cycles (%lu cycles average)\n",
         numMatrices, BENCH_REPS, cycle_sum_chol_cpu, cycle_sum_chol_cpu/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of chol_gpu: %lu cycles (%lu cycles average)\n",
+    printf("Total execution time for %d matrices and %d replications of chol_gpu: %lu cycles (%lu cycles average)\n",
         numMatrices, BENCH_REPS, cycle_sum_chol_gpu, cycle_sum_chol_gpu/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of gauss_gpu: %lu cycles (%lu cycles average)\n",
+    printf("Total execution time for %d matrices and %d replications of gauss_gpu: %lu cycles (%lu cycles average)\n",
         numMatrices, BENCH_REPS, cycle_sum_gauss_gpu, cycle_sum_gauss_gpu/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of gauss_batched_gpu: %lu cycles (%lu cycles average)\n",
+    printf("Total execution time for %d matrices and %d replications of gauss_batched_gpu: %lu cycles (%lu cycles average)\n",
         numMatrices, BENCH_REPS, cycle_sum_gauss_batched_gpu, cycle_sum_gauss_batched_gpu/numMatrices/BENCH_REPS);
 #else
-    printf("Total Execution for %d matrices and %d replications of chol_cpu: %4.f ms (%4.f ms average)\n",
+    printf("Total execution time for %d matrices and %d replications of chol_cpu: %.4f ms (%.4f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_cpu), time_to_ms(&ts_sum_chol_cpu)/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of chol_gpu: %4.f ms (%4.f ms average)\n",
+    printf("Total execution time for %d matrices and %d replications of chol_gpu: %.4f ms (%.4f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_gpu), time_to_ms(&ts_sum_chol_gpu)/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of gauss_gpu: %4.f ms (%4.f ms average)\n",
+    printf("Total execution time for %d matrices and %d replications of gauss_gpu: %.4f ms (%.4f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_gpu), time_to_ms(&ts_sum_gauss_gpu)/numMatrices/BENCH_REPS);
-    printf("Total Execution for %d matrices and %d replications of gauss_batched_gpu: %4.f ms (%4.f ms average)\n",
+    printf("Total execution time for %d matrices and %d replications of gauss_batched_gpu: %.4f ms (%.4f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_batched_gpu), time_to_ms(&ts_sum_gauss_batched_gpu)/numMatrices/BENCH_REPS);
 #endif
 
