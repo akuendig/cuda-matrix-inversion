@@ -140,7 +140,7 @@ extern "C" void inverse_gauss_batched_gpu(
 
 	for (k = 0; k < batchSize; ++k) {
 	    for (i = 0; i < n; ++i) {
-	    	aInvs[k*ArraySize + i*n + i] = 1.f;
+	    	aInvs[k*n*n + i*n + i] = 1.f;
     	}
 	}
 
