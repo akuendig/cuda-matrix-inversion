@@ -12,24 +12,29 @@
 
 __global__
 void transform_matrix(Array a, Array a_inv, int row, int N) {
-    __shared__ DataType scalars[64];
-    __shared__ DataType currRowA[64], currRowI[64];
+    // __shared__ DataType scalars[64];
+    // __shared__ DataType currRowA[64], currRowI[64];
 
     // store the scalars corresponding to the column 'row'
-    scalars[threadIdx.x] = a[row * N + threadIdx.x];
-    currRowA[threadIdx.x] = a[threadIdx.x * N + row];
-    currRowI[threadIdx.x] = a_inv[threadIdx.x * N + row];
-    __syncthreads();
+    // scalars[threadIdx.x] = a[row * N + threadIdx.x];
+    // currRowA[threadIdx.x] = a[threadIdx.x * N + row];
+    // currRowI[threadIdx.x] = a_inv[threadIdx.x * N + row];
+    // __syncthreads();
 
     // No need to transform 'row'th row
-    if(threadIdx.x == row)
-        return;
+    // if(threadIdx.x == row)
+        // return;
 
     // Each thread transforms row
-    for(int i = 0; i < N; i++) {
-        a[i * N + threadIdx.x] -= (scalars[threadIdx.x] * currRowA[i]);
-        a_inv[i * N + threadIdx.x] -= (scalars[threadIdx.x] * currRowI[i]);
+    // for(int i = 0; i < N; i++) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (i < N && j < N && i != row) {
+        a_inv[j*N+i] -= (a[i + row*N] * a[row + j*N]);
+        a[j*N+i] -= (a[i + row*N] * a[row + j*N]);
     }
+    // }
 }
 
 __global__
@@ -76,7 +81,9 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
             &aInv[blockIdx.x][row],
             N) );
 
-        transform_matrix<<<1, N>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
+        dim3 threadsPerBlock(16, 16);
+        dim3 numBlocks(N / threadsPerBlock.x, N / threadsPerBlock.y);
+        transform_matrix<<<numBlocks, threadsPerBlock>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
 
     cublasDestroy(handle);
