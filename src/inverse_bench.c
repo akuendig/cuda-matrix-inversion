@@ -180,13 +180,13 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     Array workspace = (Array)malloc(N*N*sizeof(DataType));
 
     DataType
-        total_chol_cpu,
+        total_lu_blas_cpu,
         total_chol_gpu,
         total_gauss_gpu,
         total_gauss_batched_gpu,
         total_lu_cuda_batched_gpu,
 
-        total_sum_chol_cpu = 0,
+        total_sum_lu_blas_cpu = 0,
         total_sum_chol_gpu = 0,
         total_sum_gauss_gpu = 0,
         total_sum_gauss_batched_gpu = 0,
@@ -194,16 +194,14 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     int i, rep;
 #ifdef __APPLE__
     clock_t start, diff,
-        cycle_sum_chol_cpu = 0,
-        cycle_sum_chol_cpu_naive = 0,
+        cycle_sum_lu_blas_cpu = 0,
         cycle_sum_chol_gpu = 0,
         cycle_sum_gauss_gpu = 0,
         cycle_sum_gauss_batched_gpu = 0,
         cycle_sum_lu_cuda_batched_gpu = 0;
 #else
     struct timespec ts_start, ts_end,
-        ts_sum_chol_cpu = { 0 },
-        ts_sum_chol_cpu_naive = { 0 },
+        ts_sum_lu_blas_cpu = { 0 },
         ts_sum_chol_gpu = { 0 },
         ts_sum_gauss_gpu = { 0 },
         ts_sum_gauss_batched_gpu = { 0 },
@@ -231,10 +229,10 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
 
             inverse_lu_blas(current_inv, workspace, N);
         }
-        TIMER_STOP(chol_cpu)
+        TIMER_STOP(lu_blas_cpu)
     }
 
-    BENCH_CLEANUP(chol_cpu);
+    BENCH_CLEANUP(lu_blas_cpu);
 
     // Create handle after CPU benchmarks to allow testing on non-nvidia host
     cublasErrchk( cublasCreate(&handle) );
@@ -318,20 +316,20 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
 
     BENCH_CLEANUP(lu_cuda_batched_gpu)
 
-    printf("Total error for %d matrices of chol_cpu: %f (%f average)\n",
-        numMatrices, total_sum_chol_cpu, total_sum_chol_cpu/numMatrices);
-    printf("Total error for %d matrices of chol_gpu: %f (%f average)\n",
+    printf("Total error for %d matrices of lu_blas_cpu: %.2e (%.2e average)\n",
+        numMatrices, total_sum_lu_blas_cpu, total_sum_lu_blas_cpu/numMatrices);
+    printf("Total error for %d matrices of chol_gpu: %.2e (%.2e average)\n",
         numMatrices, total_sum_chol_gpu, total_sum_chol_gpu/numMatrices);
-    printf("Total error for %d matrices of gauss_gpu: %f (%f average)\n",
+    printf("Total error for %d matrices of gauss_gpu: %.2e (%.2e average)\n",
         numMatrices, total_sum_gauss_gpu, total_sum_gauss_gpu/numMatrices);
-    printf("Total error for %d matrices of gauss_batched_gpu: %f (%f average)\n",
+    printf("Total error for %d matrices of gauss_batched_gpu: %.2e (%.2e average)\n",
         numMatrices, total_sum_gauss_batched_gpu, total_sum_gauss_batched_gpu/numMatrices);
-    printf("Total error for %d matrices of lu_cuda_batched_gpu: %f (%f average)\n",
+    printf("Total error for %d matrices of lu_cuda_batched_gpu: %.2e (%.2e average)\n",
         numMatrices, total_sum_lu_cuda_batched_gpu, total_sum_lu_cuda_batched_gpu/numMatrices);
 
 #ifdef __APPLE__
-    printf("Total execution time for %d matrices and %d replications of chol_cpu: %lu cycles (%lu cycles average)\n",
-        numMatrices, BENCH_REPS, cycle_sum_chol_cpu, cycle_sum_chol_cpu/numMatrices/BENCH_REPS);
+    printf("Total execution time for %d matrices and %d replications of lu_blas_cpu: %lu cycles (%lu cycles average)\n",
+        numMatrices, BENCH_REPS, cycle_sum_lu_blas_cpu, cycle_sum_lu_blas_cpu/numMatrices/BENCH_REPS);
     printf("Total execution time for %d matrices and %d replications of chol_gpu: %lu cycles (%lu cycles average)\n",
         numMatrices, BENCH_REPS, cycle_sum_chol_gpu, cycle_sum_chol_gpu/numMatrices/BENCH_REPS);
     printf("Total execution time for %d matrices and %d replications of gauss_gpu: %lu cycles (%lu cycles average)\n",
@@ -341,8 +339,8 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     printf("Total execution time for %d matrices and %d replications of lu_cuda_batched_gpu: %lu cycles (%lu cycles average)\n",
         numMatrices, BENCH_REPS, cycle_sum_lu_cuda_batched_gpu, cycle_sum_lu_cuda_batched_gpu/numMatrices/BENCH_REPS);
 #else
-    printf("Total execution time for %d matrices and %d replications of chol_cpu: %.4f ms (%.4f ms average)\n",
-        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_cpu), time_to_ms(&ts_sum_chol_cpu)/numMatrices/BENCH_REPS);
+    printf("Total execution time for %d matrices and %d replications of lu_blas_cpu: %.4f ms (%.4f ms average)\n",
+        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_lu_blas_cpu), time_to_ms(&ts_sum_lu_blas_cpu)/numMatrices/BENCH_REPS);
     printf("Total execution time for %d matrices and %d replications of chol_gpu: %.4f ms (%.4f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_gpu), time_to_ms(&ts_sum_chol_gpu)/numMatrices/BENCH_REPS);
     printf("Total execution time for %d matrices and %d replications of gauss_gpu: %.4f ms (%.4f ms average)\n",
@@ -351,154 +349,6 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_batched_gpu), time_to_ms(&ts_sum_gauss_batched_gpu)/numMatrices/BENCH_REPS);
     printf("Total execution time for %d matrices and %d replications of lu_cuda_batched_gpu: %.4f ms (%.4f ms average)\n",
         numMatrices, BENCH_REPS, time_to_ms(&ts_sum_lu_cuda_batched_gpu), time_to_ms(&ts_sum_lu_cuda_batched_gpu)/numMatrices/BENCH_REPS);
-#endif
-
-    cublasErrchk( cublasDestroy(handle) );
-
-    free(workspace);
-    free(reconstr);
-    free(inv);
-    free(atra);
-}
-
-void bench_sequencial(int numMatrices, int M, int N, Array a, bool detailed) {
-    cublasHandle_t handle;
-    cublasErrchk( cublasCreate(&handle) );
-
-    Array atra = (Array)malloc(N*N*sizeof(DataType));
-    Array inv = (Array)malloc(N*N*sizeof(DataType));
-    Array reconstr = (Array)malloc(N*N*sizeof(DataType));
-    Array workspace = (Array)malloc(N*N*sizeof(DataType));
-
-    DataType total_chol_cpu, total_chol_gpu, total_gauss_gpu, total_gauss_batched_gpu;
-    int i, rep;
-#ifdef __APPLE__
-    clock_t start, diff,
-        cycle_sum_chol_cpu = 0,
-        cycle_sum_chol_cpu_naive = 0,
-        cycle_sum_chol_gpu = 0,
-        cycle_sum_gauss_gpu = 0,
-        cycle_sum_gauss_batched_gpu = 0;
-#else
-    struct timespec ts_start, ts_end,
-        ts_sum_chol_cpu = { 0 },
-        ts_sum_chol_cpu_naive = { 0 },
-        ts_sum_chol_gpu = { 0 },
-        ts_sum_gauss_gpu = { 0 },
-        ts_sum_gauss_batched_gpu = { 0 };
-#endif
-
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_a = a + (i * M * N);
-
-        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, N, M, 1, current_a, M, 0, atra, N);
-        fill_sym(atra, N, N);
-
-        // CPU Benchmark
-        ////////////////
-        for (rep = 0; rep < BENCH_REPS; ++rep) {
-            cblas_scopy(N*N, atra, 1, inv, 1);
-
-            TIMER_START()
-            inverse_lu_blas(inv, workspace, N);
-            TIMER_STOP(chol_cpu)
-        }
-
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
-        mat_sum(reconstr, M, N, &total_chol_cpu);
-
-        printf("Inversion using BLAS LU-decomposition L1 error %f\n", total_chol_cpu);
-
-        // GPU Benchmark 1
-        //////////////////
-        for (rep = 0; rep < BENCH_REPS; ++rep) {
-            cblas_scopy(N*N, atra, 1, inv, 1);
-
-            TIMER_START()
-            inverse_chol_gpu(inv, N);
-            TIMER_STOP(chol_gpu)
-
-            gpuErrchk( cudaPeekAtLastError() );
-            gpuErrchk( cudaDeviceSynchronize() );
-        }
-
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
-        mat_sum(reconstr, M, N, &total_chol_gpu);
-
-        printf("Inversion using GPU cholesky L1 error %f\n", total_chol_gpu);
-
-        ensure(abs(total_chol_gpu-total_chol_cpu) < 2*total_chol_cpu,
-            "Error of GPU cholesky (%f) should not be higher than twice the error of CPU (%f)",
-            total_chol_gpu,
-            total_chol_cpu);
-
-        // GPU Benchmark 2
-        //////////////////
-        //gpuErrchk( cudaProfilerStart() );
-        for (rep = 0; rep < BENCH_REPS; ++rep) {
-            cblas_scopy(N*N, atra, 1, reconstr, 1);
-
-            TIMER_START()
-            inverse_gauss_kernel_gpu(handle, N, reconstr, inv, 1);
-            TIMER_STOP(gauss_gpu)
-
-            gpuErrchk( cudaPeekAtLastError() );
-            gpuErrchk( cudaDeviceSynchronize() );
-        }
-        //gpuErrchk( cudaProfilerStop() );
-
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
-        mat_sum(reconstr, M, N, &total_gauss_gpu);
-
-        printf("Inversion using GPU gauss kernel batched L1 error %f\n", total_gauss_gpu);
-
-        ensure(abs(total_gauss_gpu-total_chol_cpu) < 100*total_chol_cpu,
-            "Error of GPU gauss (%f) should not be higher than 100 times the error of CPU (%f)",
-            total_gauss_gpu,
-            total_chol_cpu);
-
-        // GPU Benchmark 3
-        //////////////////
-        for (rep = 0; rep < BENCH_REPS; ++rep) {
-            cblas_scopy(N*N, atra, 1, reconstr, 1);
-
-            TIMER_START()
-            inverse_gauss_batched_gpu(handle, N, reconstr, inv, 1);
-            TIMER_STOP(gauss_batched_gpu)
-
-            gpuErrchk( cudaPeekAtLastError() );
-            gpuErrchk( cudaDeviceSynchronize() );
-        }
-
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, M, N, 1.f, inv, N, atra, N, 0, reconstr, N);
-        mat_sum(reconstr, M, N, &total_gauss_batched_gpu);
-
-        printf("Inversion using GPU gauss batched L1 error %f\n", total_gauss_batched_gpu);
-
-        ensure(abs(total_gauss_batched_gpu-total_chol_cpu) < 100*total_chol_cpu,
-            "Error of GPU gauss (%f) should not be higher than 100 times the error of CPU (%f)",
-            total_gauss_batched_gpu,
-            total_chol_cpu);
-    }
-
-#ifdef __APPLE__
-    printf("Execution time for BLAS cholesky on average:\t%lu cycles\n", cycle_sum_chol_cpu/numMatrices/BENCH_REPS);
-    printf("Execution time for GPU cholesky on average:\t%lu cycles\n", cycle_sum_chol_gpu/numMatrices/BENCH_REPS);
-    printf("Execution time for GPU gauss on average:\t%lu cycles\n", cycle_sum_gauss_gpu/numMatrices/BENCH_REPS);
-    printf("Execution time for GPU gauss batched on average:\t%lu cycles\n", cycle_sum_gauss_batched_gpu/numMatrices/BENCH_REPS);
-#else
-    time_div(&ts_sum_chol_cpu, numMatrices*BENCH_REPS);
-    time_div(&ts_sum_chol_gpu, numMatrices*BENCH_REPS);
-    time_div(&ts_sum_gauss_gpu, numMatrices*BENCH_REPS);
-    time_div(&ts_sum_gauss_batched_gpu, numMatrices*BENCH_REPS);
-    printf("Execution time for BLAS cholesky on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
-        ts_sum_chol_cpu.tv_sec, ts_sum_chol_cpu.tv_nsec, ts_sum_chol_cpu.tv_nsec/1000000.f);
-    printf("Execution time for GPU cholesky on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
-        ts_sum_chol_gpu.tv_sec, ts_sum_chol_gpu.tv_nsec, ts_sum_chol_gpu.tv_nsec/1000000.f);
-    printf("Execution time for GPU gauss on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
-        ts_sum_gauss_gpu.tv_sec, ts_sum_gauss_gpu.tv_nsec, ts_sum_gauss_gpu.tv_nsec/1000000.f);
-    printf("Execution time for GPU gauss batched on average:\t%lu seconds and %lu nanoseconds (%.3f ms)\n",
-        ts_sum_gauss_batched_gpu.tv_sec, ts_sum_gauss_batched_gpu.tv_nsec, ts_sum_gauss_batched_gpu.tv_nsec/1000000.f);
 #endif
 
     cublasErrchk( cublasDestroy(handle) );
