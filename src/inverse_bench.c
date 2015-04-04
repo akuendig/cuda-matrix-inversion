@@ -147,6 +147,30 @@ double time_to_ms(struct timespec *t1) {
     if (detailed) { printf("Execution time of " #name ": %.4fms \n", time_to_ms(&ts_end)); }
 #endif
 
+#define BENCH_PREPARE(name) \
+    for (i = 0; i < numMatrices; ++i) { \
+        Array current_a = a + (i * M * N); \
+        Array current_atra = atra + (i * N * N); \
+\
+        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, \
+            N, M, 1, current_a, M, 0, current_atra, N); \
+        fill_sym(current_atra, N, N); \
+    }
+
+#define BENCH_CLEANUP(name) \
+    for (i = 0; i < numMatrices; ++i) { \
+        Array current_atra = atra + (i * N * N); \
+        Array current_inv = inv + (i * N * N); \
+        Array current_rec = reconstr + (i * N * N);\
+\
+        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, \
+            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N); \
+        mat_sum(current_rec, M, N, &total_##name); \
+\
+        total_sum_##name += total_##name; \
+        if (detailed) { printf("L1 error for " #name  ": %f\n", total_##name); } \
+    }
+
 void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     cublasHandle_t handle;
 
@@ -160,7 +184,13 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
         total_chol_gpu,
         total_gauss_gpu,
         total_gauss_batched_gpu,
-        total_lu_cuda_batched_gpu;
+        total_lu_cuda_batched_gpu,
+
+        total_sum_chol_cpu = 0,
+        total_sum_chol_gpu = 0,
+        total_sum_gauss_gpu = 0,
+        total_sum_gauss_batched_gpu = 0,
+        total_sum_lu_cuda_batched_gpu = 0;
     int i, rep;
 #ifdef __APPLE__
     clock_t start, diff,
@@ -204,33 +234,15 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
         TIMER_STOP(chol_cpu)
     }
 
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = atra + (i * N * N);
-        Array current_inv = inv + (i * N * N);
-        Array current_rec = reconstr + (i * N * N);
+    BENCH_CLEANUP(chol_cpu);
 
-        // Try to get identity matrix
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
-        // Calculate the distance to real identity matrix
-        mat_sum(current_rec, M, N, &total_chol_cpu);
-
-        printf("L1 error for chol_cpu: %f\n", total_chol_cpu);
-    }
+    // Create handle after CPU benchmarks to allow testing on non-nvidia host
+    cublasErrchk( cublasCreate(&handle) );
 
     // GPU Benchmark 1
     //////////////////
     // Build benchmark data
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_a = a + (i * M * N);
-        Array current_atra = atra + (i * N * N);
-
-        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, current_atra, N);
-        fill_sym(current_atra, N, N);
-    }
-
-    cublasErrchk( cublasCreate(&handle) );
+    BENCH_PREPARE(chol_gpu)
 
     // Compute inverses
     for (rep = 0; rep < BENCH_REPS; ++rep) {
@@ -245,29 +257,12 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     }
 
     // calculate error
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = atra + (i * N * N);
-        Array current_inv = inv + (i * N * N);
-        Array current_rec = reconstr + (i * N * N);
-
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
-        mat_sum(current_rec, M, N, &total_chol_gpu);
-
-        printf("L1 error for chol_gpu: %f\n", total_chol_gpu);
-    }
+    BENCH_CLEANUP(chol_gpu)
 
     // GPU Benchmark 2
     //////////////////
     // Build benchmark data
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_a = a + (i * M * N);
-        Array current_atra = atra + (i * N * N);
-
-        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, current_atra, N);
-        fill_sym(current_atra, N, N);
-    }
+    BENCH_PREPARE(gauss_gpu)
 
     // Compute inverses
     //gpuErrchk( cudaProfilerStart() );
@@ -284,29 +279,12 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     //gpuErrchk( cudaProfilerStop() );
 
     // calculate error
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = atra + (i * N * N);
-        Array current_inv = inv + (i * N * N);
-        Array current_rec = reconstr + (i * N * N);
-
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
-        mat_sum(current_rec, M, N, &total_gauss_gpu);
-
-        printf("L1 error for gauss_gpu: %f\n", total_gauss_gpu);
-    }
+    BENCH_CLEANUP(gauss_gpu)
 
     // GPU Benchmark 3
     //////////////////
     // Build benchmark data
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_a = a + (i * M * N);
-        Array current_atra = atra + (i * N * N);
-
-        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, current_atra, N);
-        fill_sym(current_atra, N, N);
-    }
+    BENCH_PREPARE(gauss_batched_gpu)
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
         cblas_scopy(numMatrices*N*N, atra, 1, reconstr, 1);
@@ -320,29 +298,12 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     }
 
     // calculate error
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = atra + (i * N * N);
-        Array current_inv = inv + (i * N * N);
-        Array current_rec = reconstr + (i * N * N);
-
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
-        mat_sum(current_rec, M, N, &total_gauss_batched_gpu);
-
-        printf("L1 error for gauss_batched_gpu: %f\n", total_gauss_batched_gpu);
-    }
+    BENCH_CLEANUP(gauss_batched_gpu)
 
     // GPU Benchmark 4
     //////////////////
     // Build benchmark data
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_a = a + (i * M * N);
-        Array current_atra = atra + (i * N * N);
-
-        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, current_atra, N);
-        fill_sym(current_atra, N, N);
-    }
+    BENCH_PREPARE(lu_cuda_batched_gpu)
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
         cblas_scopy(numMatrices*N*N, atra, 1, reconstr, 1);
@@ -355,18 +316,18 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
         gpuErrchk( cudaDeviceSynchronize() );
     }
 
-    // calculate error
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_atra = atra + (i * N * N);
-        Array current_inv = inv + (i * N * N);
-        Array current_rec = reconstr + (i * N * N);
+    BENCH_CLEANUP(lu_cuda_batched_gpu)
 
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper,
-            M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N);
-        mat_sum(current_rec, M, N, &total_lu_cuda_batched_gpu);
-
-        printf("L1 error for lu_cuda_batched_gpu: %f\n", total_lu_cuda_batched_gpu);
-    }
+    printf("Total error for %d matrices of chol_cpu: %f (%f average)\n",
+        numMatrices, total_sum_chol_cpu, total_sum_chol_cpu/numMatrices);
+    printf("Total error for %d matrices of chol_gpu: %f (%f average)\n",
+        numMatrices, total_sum_chol_gpu, total_sum_chol_gpu/numMatrices);
+    printf("Total error for %d matrices of gauss_gpu: %f (%f average)\n",
+        numMatrices, total_sum_gauss_gpu, total_sum_gauss_gpu/numMatrices);
+    printf("Total error for %d matrices of gauss_batched_gpu: %f (%f average)\n",
+        numMatrices, total_sum_gauss_batched_gpu, total_sum_gauss_batched_gpu/numMatrices);
+    printf("Total error for %d matrices of lu_cuda_batched_gpu: %f (%f average)\n",
+        numMatrices, total_sum_lu_cuda_batched_gpu, total_sum_lu_cuda_batched_gpu/numMatrices);
 
 #ifdef __APPLE__
     printf("Total execution time for %d matrices and %d replications of chol_cpu: %lu cycles (%lu cycles average)\n",
