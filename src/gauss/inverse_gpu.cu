@@ -12,29 +12,26 @@
 
 __global__
 void transform_matrix(Array a, Array a_inv, int row, int N) {
-    // __shared__ DataType scalars[64];
-    // __shared__ DataType currRowA[64], currRowI[64];
+    __shared__ DataType scalars[64];
+    __shared__ DataType currRowA[64], currRowI[64];
+
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     // store the scalars corresponding to the column 'row'
-    // scalars[threadIdx.x] = a[row * N + threadIdx.x];
-    // currRowA[threadIdx.x] = a[threadIdx.x * N + row];
-    // currRowI[threadIdx.x] = a_inv[threadIdx.x * N + row];
-    // __syncthreads();
+    scalars[idx] = a[row * N + idx];
+    currRowA[idx] = a[idx * N + row];
+    currRowI[idx] = a_inv[idx * N + row];
+    __syncthreads();
 
     // No need to transform 'row'th row
-    // if(threadIdx.x == row)
-        // return;
+    if(idx == row)
+        return;
 
     // Each thread transforms row
-    // for(int i = 0; i < N; i++) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if (i < N && j < N && i != row) {
-        a_inv[j*N+i] -= (a[i + row*N] * a[row + j*N]);
-        a[j*N+i] -= (a[i + row*N] * a[row + j*N]);
+    for(int i = 0; i < N; i++) {
+        a[i * N + idx] -= (scalars[idx] * currRowA[i]);
+        a_inv[i * N + idx] -= (scalars[idx] * currRowI[i]);
     }
-    // }
 }
 
 __global__
@@ -81,12 +78,57 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
             &aInv[blockIdx.x][row],
             N) );
 
-        dim3 threadsPerBlock(16, 16);
-        dim3 numBlocks(N / threadsPerBlock.x, N / threadsPerBlock.y);
+        dim3 threadsPerBlock(16*16, 1, 1);
+        dim3 numBlocks(N / threadsPerBlock.x);
         transform_matrix<<<numBlocks, threadsPerBlock>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
 
     cublasDestroy(handle);
+}
+
+// Inverts `a` by inplace factorizing `a` and then inverting it into `aInv`.
+static void inverse_cublas(cublasHandle_t handle, Array *a, Array *aInv, int N, int batchSize) {
+    int i;
+    int *PivotArray;
+    int *infoArray;
+
+    gpuErrchk( cudaHostAlloc((void**)&PivotArray, sizeof(int)*batchSize*N, cudaHostAllocDefault) );
+    gpuErrchk( cudaHostAlloc((void**)&infoArray, sizeof(int)*batchSize, cudaHostAllocDefault) );
+
+    cublasErrchk( cublasSgetrfBatched(handle,
+        N, // number of rows and columns of Aarray[i].
+        a, // array of pointers to <type> array, with each array of dimension n*n with lda>=max(1,n).
+        N, // leading dimension of two-dimensional array used to store each matrix Aarray[i].
+        PivotArray, // array of size n*batchSize that contains the pivoting sequence of each factorization of Aarray[i] stored in a linear fashion. If PivotArray is nil, pivoting is disabled.
+        infoArray, // array of size batchSize that info(=infoArray[i]) contains the information of inversion of A[i].
+                   // If info=0, the execution is successful.
+                   // If info = k, U(k,k) is 0. The U is exactly singular and the inversion failed.
+        batchSize) // number of pointers contained in A
+    );
+
+    for (i = 0; i < batchSize; ++i) {
+        ensure(!infoArray[i], "Error during lu decomposition of batched matrix %d", i);
+    }
+
+    cublasErrchk( cublasSgetriBatched(handle,
+        N, // number of rows and columns of Aarray[i].
+        const_cast<const float**>(a),  // array of pointers to <type> array, with each array of dimension n*n with lda>=max(1,n).
+        N, // leading dimension of two-dimensional array used to store each matrix Aarray[i].
+        PivotArray,  // array of size n*batchSize that contains the pivoting sequence of each factorization of Aarray[i] stored in a linear fashion. If PivotArray is nil, pivoting is disabled.
+        aInv, // array of pointers to <type> array, with each array of dimension n*n with ldc>=max(1,n).
+        N, // leading dimension of two-dimensional array used to store each matrix Carray[i].
+        infoArray, // array of size batchSize that info(=infoArray[i]) contains the information of inversion of A[i].
+                   // If info=0, the execution is successful.
+                   // If info = k, U(k,k) is 0. The U is exactly singular and the inversion failed.
+        batchSize)  // number of pointers contained in A
+    );
+
+    for (i = 0; i < batchSize; ++i) {
+        ensure(!infoArray[i], "Error during inversion of batched matrix %d", i);
+    }
+
+    gpuErrchk( cudaFreeHost((void*)infoArray) );
+    gpuErrchk( cudaFreeHost((void*)PivotArray) );
 }
 
 // Allocates one continous array of memory of size arraySize*batchSize and writes the
@@ -146,6 +188,40 @@ extern "C" void inverse_gauss_kernel_gpu(
 
     gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
                 cudaMemcpyDeviceToHost) );
+    gpuErrchk( cudaFree((void*)devAs[0]) );
+    gpuErrchk( cudaFree((void*)devAInvs[0]) );
+    gpuErrchk( cudaFreeHost((void*)devAs) );
+    gpuErrchk( cudaFreeHost((void*)devAInvs) );
+}
+
+extern "C" void inverse_lu_cuda_batched_gpu(
+        cublasHandle_t handle,
+        int n,
+        Array As,
+        Array aInvs,
+        int batchSize) {
+
+    Array *devAs;
+    size_t pitchAs;
+    Array *devAInvs;
+    size_t pitchAInvs;
+
+    const size_t ArraySize = sizeof(DataType) * n * n;
+
+    gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
+    gpuErrchk( cudaHostAlloc((void**)&devAInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
+
+    gpuErrchk( batchedCudaMalloc(devAs, &pitchAs, ArraySize, batchSize) );
+    gpuErrchk( batchedCudaMalloc(devAInvs, &pitchAInvs, ArraySize, batchSize) );
+
+    gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
+                cudaMemcpyHostToDevice) );
+
+    inverse_cublas(handle, devAs, devAInvs, n, batchSize);
+
+    gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
+                cudaMemcpyDeviceToHost) );
+
     gpuErrchk( cudaFree((void*)devAs[0]) );
     gpuErrchk( cudaFree((void*)devAInvs[0]) );
     gpuErrchk( cudaFreeHost((void*)devAs) );
