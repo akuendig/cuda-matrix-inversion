@@ -8,7 +8,17 @@
 #include "../../include/helper.h"
 #include "../../include/inverse.h"
 
-#define SWAP(x, y, z)   ((z) = (x),(x) = (y),(y) = (z))
+__global__
+void identity(Array a, int M, int N) {
+    int i, j;
+
+    i = blockIdx.x * blockDim.x + threadIdx.x;
+    j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (i < M && j < N) {
+        a[i + j*M] = DataType(i==j);
+    }
+}
 
 __global__
 void transform_matrix(Array a, Array a_inv, int row, int N) {
@@ -24,7 +34,7 @@ void transform_matrix(Array a, Array a_inv, int row, int N) {
     __syncthreads();
 
     // No need to transform 'row'th row
-    if(idx == row)
+    if(idx == row || idx > N)
         return;
 
     // Each thread transforms row
@@ -40,6 +50,10 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
     cublasHandle_t handle;
 
     cublasCreate(&handle);
+
+    dim3 threadsPerBlock(16, 16, 1);
+    dim3 numBlocks(div_ceil(N, threadsPerBlock.x), div_ceil(N, threadsPerBlock.y));
+    identity<<<numBlocks, threadsPerBlock>>>(aInv[blockIdx.x], N, N);
 
     for (row = 0; row < N; ++row) {
         /*cublasErrchk*/( cublasIsamax(handle,
@@ -78,16 +92,20 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
             &aInv[blockIdx.x][row],
             N) );
 
-        dim3 threadsPerBlock(16*16, 1, 1);
-        dim3 numBlocks(N / threadsPerBlock.x);
+        threadsPerBlock = dim3(16*16, 1, 1);
+        numBlocks = dim3(div_ceil(N, threadsPerBlock.x));
         transform_matrix<<<numBlocks, threadsPerBlock>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
 
     cublasDestroy(handle);
 }
 
+extern "C" void inverse_gauss_kernel_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
+    inverse_gauss_kernel<<<batchSize, 1>>>(devAs, devAInvs, N);
+}
+
 // Inverts `a` by inplace factorizing `a` and then inverting it into `aInv`.
-static void inverse_cublas(cublasHandle_t handle, Array *a, Array *aInv, int N, int batchSize) {
+extern "C" void inverse_lu_cuda_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     int i;
     int *PivotArray;
     int *infoArray;
@@ -97,7 +115,7 @@ static void inverse_cublas(cublasHandle_t handle, Array *a, Array *aInv, int N, 
 
     cublasErrchk( cublasSgetrfBatched(handle,
         N, // number of rows and columns of Aarray[i].
-        a, // array of pointers to <type> array, with each array of dimension n*n with lda>=max(1,n).
+        devAs, // array of pointers to <type> array, with each array of dimension n*n with lda>=max(1,n).
         N, // leading dimension of two-dimensional array used to store each matrix Aarray[i].
         PivotArray, // array of size n*batchSize that contains the pivoting sequence of each factorization of Aarray[i] stored in a linear fashion. If PivotArray is nil, pivoting is disabled.
         infoArray, // array of size batchSize that info(=infoArray[i]) contains the information of inversion of A[i].
@@ -112,10 +130,10 @@ static void inverse_cublas(cublasHandle_t handle, Array *a, Array *aInv, int N, 
 
     cublasErrchk( cublasSgetriBatched(handle,
         N, // number of rows and columns of Aarray[i].
-        const_cast<const float**>(a),  // array of pointers to <type> array, with each array of dimension n*n with lda>=max(1,n).
+        const_cast<const float**>(devAs),  // array of pointers to <type> array, with each array of dimension n*n with lda>=max(1,n).
         N, // leading dimension of two-dimensional array used to store each matrix Aarray[i].
         PivotArray,  // array of size n*batchSize that contains the pivoting sequence of each factorization of Aarray[i] stored in a linear fashion. If PivotArray is nil, pivoting is disabled.
-        aInv, // array of pointers to <type> array, with each array of dimension n*n with ldc>=max(1,n).
+        devAInvs, // array of pointers to <type> array, with each array of dimension n*n with ldc>=max(1,n).
         N, // leading dimension of two-dimensional array used to store each matrix Carray[i].
         infoArray, // array of size batchSize that info(=infoArray[i]) contains the information of inversion of A[i].
                    // If info=0, the execution is successful.
@@ -131,25 +149,6 @@ static void inverse_cublas(cublasHandle_t handle, Array *a, Array *aInv, int N, 
     gpuErrchk( cudaFreeHost((void*)PivotArray) );
 }
 
-// Allocates one continous array of memory of size arraySize*batchSize and writes the
-// pointers of all subarrays into the array of pointers located at devArrayPtr.
-static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
-    char *devPtr;
-
-    cudaError_t result = cudaMallocPitch((void**)&devPtr, pitch, arraySize, batchSize);
-
-    if (cudaSuccess != result) {
-        return result;
-    }
-
-    for (int i = 0; i < batchSize; ++i) {
-        devArrayPtr[i] = (Array)devPtr;
-        devPtr += *pitch;
-    }
-
-    return cudaSuccess;
-}
-
 extern "C" void inverse_gauss_kernel_gpu(
         cublasHandle_t handle,
         int n,
@@ -157,7 +156,6 @@ extern "C" void inverse_gauss_kernel_gpu(
         Array aInvs,
         int batchSize) {
 
-    int k, i;
     Array *devAs;
     size_t pitchAs;
     Array *devAInvs;
@@ -171,20 +169,10 @@ extern "C" void inverse_gauss_kernel_gpu(
     gpuErrchk( batchedCudaMalloc(devAs, &pitchAs, ArraySize, batchSize) );
     gpuErrchk( batchedCudaMalloc(devAInvs, &pitchAInvs, ArraySize, batchSize) );
 
-    memset(aInvs, 0, batchSize*ArraySize);
-
-    for (k = 0; k < batchSize; ++k) {
-        for (i = 0; i < n; ++i) {
-            aInvs[k*n*n + i*n + i] = 1.f;
-        }
-    }
-
     gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
                 cudaMemcpyHostToDevice) );
-    gpuErrchk( cudaMemcpy2D(devAInvs[0], pitchAInvs, aInvs, ArraySize, ArraySize, batchSize,
-                cudaMemcpyHostToDevice) );
 
-    inverse_gauss_kernel<<<batchSize, 1>>>(devAs, devAInvs, n);
+    inverse_gauss_kernel_device(handle, n, devAs, devAInvs, batchSize);
 
     gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
                 cudaMemcpyDeviceToHost) );
@@ -217,7 +205,7 @@ extern "C" void inverse_lu_cuda_batched_gpu(
     gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
                 cudaMemcpyHostToDevice) );
 
-    inverse_cublas(handle, devAs, devAInvs, n, batchSize);
+    inverse_lu_cuda_batched_device(handle, n, devAs, devAInvs, batchSize);
 
     gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
                 cudaMemcpyDeviceToHost) );

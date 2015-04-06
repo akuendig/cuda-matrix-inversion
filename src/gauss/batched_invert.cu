@@ -11,41 +11,28 @@
 
 #define SWAP(x, y, z)	((z) = (x),(x) = (y),(y) = (z))
 
-void pivotRow(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int col, int batchSize) {
-	cudaStream_t *streams = (cudaStream_t *) malloc(sizeof(cudaStream_t) * batchSize);
-	for(int i = 0; i < batchSize; i++)
-		cudaStreamCreate(&streams[i]);
+__global__
+void pivotRow(Array *a, Array *a_inv, int n, int col) {
+	__shared__ int row;
 
-	int *pivot = (int *) malloc(sizeof(int) * batchSize);
-	for(int i = 0; i < batchSize; i++) {
-		cublasSetStream(handle, streams[i]);
-		cublasIsamax(handle,
-				n - col,			// Number of elements to be searched
-				a[i] + (col * n) + col,		// Starting position
-				1,				// Increment in words (NOT BYTES)
-				&pivot[i]);			// Maximum element in the col
-	}
-	cudaDeviceSynchronize();
+	if(a[blockIdx.x][col * n + col] != 0)
+		return;
 
-	for(int i = 0; i < batchSize; i++) {
-		int row = pivot[i] - 1 + col;		// Row number with maximum element (starts with 1)
-		if(row == col)
-			return;
-		cublasSetStream(handle, streams[i]);
-		cublasSswap(handle,
-				n,				// Nuber of elements to be swapped
-				a[i] + col,			// Current row
-				n,				// Increment (becuase of column major)
-				a[i] + row,			// Row with max pivot
-				n);
-		cublasSswap(handle, n, a_inv[i] + col, n, a_inv[i] + row, n);
-	}
-	cudaDeviceSynchronize();
+	// You can not add cublas error check here. Raises error
+	cublasHandle_t handle;
+	int pivot;
 
-	for(int i = 0; i < batchSize; i++)
-		cudaStreamDestroy(streams[i]);
-	free(pivot);
-	free(streams);
+	cublasCreate(&handle);
+	cublasIsamax(handle,
+		n - col,						// Number of elements to be searched
+		a[blockIdx.x] + (col * n) + col,// Starting position
+		1,								// Increment in words (NOT BYTES)
+		&pivot);						// Maximum element in the col
+	row = pivot - 1 + col;
+
+	cublasSswap(handle, n, a[blockIdx.x] + col, n, a[blockIdx.x] + row, n);
+	cublasSswap(handle, n, a_inv[blockIdx.x] + col, n, a_inv[blockIdx.x] + row, n);
+	cublasDestroy(handle);
 }
 
 __global__
@@ -61,7 +48,7 @@ void normalizeRow(Array *a, Array *a_inv, int n, int row) {
 }
 
 __global__
-void transform_matrix(Array *a, Array *a_inv, int row, int n, int batchSize) {
+void transform_matrix(Array *a, Array *a_inv, int n, int row) {
 	extern __shared__ DataType shared[];
 
 	DataType *scalars = &shared[0];
@@ -88,32 +75,17 @@ void transform_matrix(Array *a, Array *a_inv, int row, int n, int batchSize) {
 void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize) {
 	for(int i = 0; i < n; i++) {
 		// Pivot the matrix
-		pivotRow(handle, n, a, a_inv, i, batchSize);
+		pivotRow<<<batchSize, n>>>(a, a_inv, n, i);
 
 		// Make column entry to be one
 		normalizeRow<<<batchSize, n>>>(a, a_inv, n, i);
 
 		// number of threads equals number of rows
-		transform_matrix<<<batchSize, n, 3 * n>>>(a, a_inv, i, n, batchSize);
+		transform_matrix<<<batchSize, n, 3 * n>>>(a, a_inv, n, i);
 	}
 }
 
-cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
-	char *devPtr;
-
-	cudaError_t result = cudaMallocPitch((void**)&devPtr, pitch, arraySize, batchSize);
-
-	if (cudaSuccess != result) {
-		return result;
-	}
-
-	for (int i = 0; i < batchSize; ++i) {
-		devArrayPtr[i] = (Array)devPtr;
-		devPtr += *pitch;
-	}
-
-	return cudaSuccess;
-}
+void inverse_gauss_batched_device(cublasHandle_t handle, int n, Array devAs, Array devAInvs, int batchSize);
 
 extern "C" void inverse_gauss_batched_gpu(
 		cublasHandle_t handle,
