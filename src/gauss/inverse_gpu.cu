@@ -8,8 +8,6 @@
 #include "../../include/helper.h"
 #include "../../include/inverse.h"
 
-#define SWAP(x, y, z)   ((z) = (x),(x) = (y),(y) = (z))
-
 __global__
 void transform_matrix(Array a, Array a_inv, int row, int N) {
     __shared__ DataType scalars[64];
@@ -24,7 +22,7 @@ void transform_matrix(Array a, Array a_inv, int row, int N) {
     __syncthreads();
 
     // No need to transform 'row'th row
-    if(idx == row)
+    if(idx == row || idx > N)
         return;
 
     // Each thread transforms row
@@ -79,7 +77,7 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
             N) );
 
         dim3 threadsPerBlock(16*16, 1, 1);
-        dim3 numBlocks(N / threadsPerBlock.x);
+        dim3 numBlocks(div_ceil(N, threadsPerBlock.x));
         transform_matrix<<<numBlocks, threadsPerBlock>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
 
@@ -129,25 +127,6 @@ static void inverse_cublas(cublasHandle_t handle, Array *a, Array *aInv, int N, 
 
     gpuErrchk( cudaFreeHost((void*)infoArray) );
     gpuErrchk( cudaFreeHost((void*)PivotArray) );
-}
-
-// Allocates one continous array of memory of size arraySize*batchSize and writes the
-// pointers of all subarrays into the array of pointers located at devArrayPtr.
-static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
-    char *devPtr;
-
-    cudaError_t result = cudaMallocPitch((void**)&devPtr, pitch, arraySize, batchSize);
-
-    if (cudaSuccess != result) {
-        return result;
-    }
-
-    for (int i = 0; i < batchSize; ++i) {
-        devArrayPtr[i] = (Array)devPtr;
-        devPtr += *pitch;
-    }
-
-    return cudaSuccess;
 }
 
 extern "C" void inverse_gauss_kernel_gpu(

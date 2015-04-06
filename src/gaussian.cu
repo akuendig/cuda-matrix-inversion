@@ -9,6 +9,7 @@
 
 #include "../include/types.h"
 #include "../include/helper.h"
+#include "../include/inverse.h"
 
 static const DataType ELEMENT_ZERO = DataType(0);
 static const DataType ELEMENT_ONE = DataType(1);
