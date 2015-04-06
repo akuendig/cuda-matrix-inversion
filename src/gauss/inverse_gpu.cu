@@ -25,8 +25,8 @@ void transform_matrix(Array a, Array a_inv, int row, int N) {
     extern __shared__ DataType shared[];
 
     DataType *scalars = &shared[0];
-    DataType *currRowA = &shared[n];
-    DataType *currRowI = &shared[2 * n];
+    DataType *currRowA = &shared[N];
+    DataType *currRowI = &shared[2 * N];
 
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -51,7 +51,7 @@ void transform_matrix(Array a, Array a_inv, int row, int N) {
 }
 
 __global__
-void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
+void inverse_gauss_kernel(Array *a, Array *aInv, int N, int batchSize) {
     int row, pivot;
     cublasHandle_t handle;
 
@@ -100,14 +100,14 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
 
         threadsPerBlock = dim3(min(N, 16*16), 1, 1);
         numBlocks = dim3(div_ceil(N, threadsPerBlock.x));
-        transform_matrix<<<numBlocks, threadsPerBlock, 3*n*sizeof(DataType)>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
+        transform_matrix<<<numBlocks, threadsPerBlock, 3*N*sizeof(DataType)>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
 
     cublasDestroy(handle);
 }
 
 extern "C" void inverse_gauss_kernel_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
-    inverse_gauss_kernel<<<batchSize, 1>>>(devAs, devAInvs, N);
+    inverse_gauss_kernel<<<batchSize, 1>>>(devAs, devAInvs, N, batchSize);
 }
 
 // Inverts `a` by inplace factorizing `a` and then inverting it into `aInv`.
