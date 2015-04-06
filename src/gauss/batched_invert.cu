@@ -81,7 +81,7 @@ void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize
 		normalizeRow<<<batchSize, n>>>(a, a_inv, n, i);
 
 		// number of threads equals number of rows
-		transform_matrix<<<batchSize, n, 3 * n>>>(a, a_inv, n, i);
+		transform_matrix<<<batchSize, n, 3*n*sizeof(DataType)>>>(a, a_inv, n, i);
 	}
 }
 
