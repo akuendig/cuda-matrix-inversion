@@ -27,6 +27,9 @@ void transform_matrix(Array a, Array a_inv, int row, int N) {
 
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
+    if(idx >= N)
+        return;
+
     // store the scalars corresponding to the column 'row'
     scalars[idx] = a[row * N + idx];
     currRowA[idx] = a[idx * N + row];
@@ -34,7 +37,7 @@ void transform_matrix(Array a, Array a_inv, int row, int N) {
     __syncthreads();
 
     // No need to transform 'row'th row
-    if(idx == row || idx > N)
+    if(idx == row)
         return;
 
     // Each thread transforms row
@@ -51,7 +54,7 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
 
     cublasCreate(&handle);
 
-    dim3 threadsPerBlock(16, 16, 1);
+    dim3 threadsPerBlock(min(16, N), min(16, N), 1);
     dim3 numBlocks(div_ceil(N, threadsPerBlock.x), div_ceil(N, threadsPerBlock.y));
     identity<<<numBlocks, threadsPerBlock>>>(aInv[blockIdx.x], N, N);
 
@@ -92,7 +95,7 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
             &aInv[blockIdx.x][row],
             N) );
 
-        threadsPerBlock = dim3(16*16, 1, 1);
+        threadsPerBlock = dim3(min(N, 16*16), 1, 1);
         numBlocks = dim3(div_ceil(N, threadsPerBlock.x));
         transform_matrix<<<numBlocks, threadsPerBlock>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
