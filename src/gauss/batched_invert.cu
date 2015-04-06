@@ -98,22 +98,7 @@ void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize
 	}
 }
 
-cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
-	char *devPtr;
-
-	cudaError_t result = cudaMallocPitch((void**)&devPtr, pitch, arraySize, batchSize);
-
-	if (cudaSuccess != result) {
-		return result;
-	}
-
-	for (int i = 0; i < batchSize; ++i) {
-		devArrayPtr[i] = (Array)devPtr;
-		devPtr += *pitch;
-	}
-
-	return cudaSuccess;
-}
+void inverse_gauss_batched_device(cublasHandle_t handle, int n, Array devAs, Array devAInvs, int batchSize);
 
 extern "C" void inverse_gauss_batched_gpu(
 		cublasHandle_t handle,

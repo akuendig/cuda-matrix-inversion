@@ -167,7 +167,7 @@ bench.o: src/bench.cu
 bench: bench.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
-helper.o: src/helper.c
+helper.o: src/helper.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 inverse_gauss.o: src/gauss/inverse_gpu.cu

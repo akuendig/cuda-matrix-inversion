@@ -29,24 +29,15 @@ static const DataType ELEMENT_ONE = DataType(1);
 // - Some memory access in the kernels will be missaligned which can hamper performance (needs profiling)
 //      > Seems like this can be avoided with cudaMallocPitch and cudaMemcpy2D
 
-// Allocates one continous array of memory of size arraySize*batchSize and writes the
-// pointers of all subarrays into the array of pointers located at devArrayPtr.
-static cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize) {
-    char *devPtr;
-
-    cudaError_t result = cudaMallocPitch((void**)&devPtr, pitch, arraySize, batchSize);
-
-    if (cudaSuccess != result) {
-        return result;
+__global__ void add(const DataType alpha, Array devLeft[], Array devRight[], int batchSize, int n)
+{
+    for(int i = 0; i < n; i++)
+    {
+        devRight[blockIdx.x][threadIdx.x*n+i] =
+            alpha*devRight[blockIdx.x][threadIdx.x*n+i] +
+            devLeft[blockIdx.x][threadIdx.x*n+i];
     }
-
-    for (int i = 0; i < batchSize; ++i) {
-        devArrayPtr[i] = (Array)devPtr;
-        devPtr += *pitch;
-    }
-
-    return cudaSuccess;
-}
+}  /* add */
 
 // Adds all matrices in devLeft to their corresponding matrix in devRight.
 // The data inside devRight is modified, devLeft is left untouched.
@@ -63,6 +54,8 @@ static void batchedAdd(
     // need to do it before transferring the data to the GPU.
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-axpy
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-geam
+
+    add<<<batchSize, n>>> (devLeft, devRight, batchSize, n);
 }
 
 // Inverts all matrices in devMatrices and stores the result in devInvMatrices.
@@ -79,6 +72,7 @@ static void batchedInverse(
     // TODO: implement matrix inversion. Please see how you want to dispatch to the corresponding inversion algorithm.
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-getrfbatched
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-getribatched
+    inverse_lu_cuda_batched_device(handle, n, devMatrices, devInvMatrices, batchSize);
 }
 
 // Multiplies all matrices in devLeft to their corresponding matrix in devRight.
@@ -100,6 +94,14 @@ static void batchedMul(
     int batchSize) {
     // TODO: implement matrix multiplication.
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-gemmbatched
+    gpuErrchk( cublasSgemmBatched(handle,
+        transa, transb,
+        m, n, k,
+        alpha, Aarray, lda,
+        Barray, ldb,
+        beta, Carray, ldc,
+        batchCount)
+    );
 }
 
 // Calculates the mean of the matrix set {A, B, C, D}.
@@ -326,8 +328,7 @@ void readMeanTest(const char *directory, int *numMatrices, int *n,
     *n = mA;
 }
 
-int main(void)
-{
+int main(void) {
     cublasHandle_t handle;
 
     int numMatrices, n;

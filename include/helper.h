@@ -27,9 +27,15 @@
   // return 1 + ((x - 1) / y); // if x != 0
 // }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void printMatrix(Array a, int M, int N);
 void printMatrixList(Array a, int N, int batchSize);
 void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array *matrices);
+#ifdef __cplusplus
+}
+#endif
 
 cudaError_t batchedCudaMalloc(Array* devArrayPtr, size_t *pitch, size_t arraySize, int batchSize);
 
