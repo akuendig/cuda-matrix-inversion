@@ -22,8 +22,11 @@ void identity(Array a, int M, int N) {
 
 __global__
 void transform_matrix(Array a, Array a_inv, int row, int N) {
-    __shared__ DataType scalars[64];
-    __shared__ DataType currRowA[64], currRowI[64];
+    extern __shared__ DataType shared[];
+
+    DataType *scalars = &shared[0];
+    DataType *currRowA = &shared[n];
+    DataType *currRowI = &shared[2 * n];
 
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -97,7 +100,7 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N) {
 
         threadsPerBlock = dim3(min(N, 16*16), 1, 1);
         numBlocks = dim3(div_ceil(N, threadsPerBlock.x));
-        transform_matrix<<<numBlocks, threadsPerBlock>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
+        transform_matrix<<<numBlocks, threadsPerBlock, 3*n*sizeof(DataType)>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
 
     cublasDestroy(handle);
