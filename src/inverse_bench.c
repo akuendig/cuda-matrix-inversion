@@ -26,7 +26,7 @@
 #include "../include/inverse.h"
 
 #define MAX_MATRIX_BYTE_READ 67108864
-#define BENCH_REPS 1
+#define BENCH_REPS 10
 
 void mean(Array a, Array mean, const int M, const int N) {
     int i;

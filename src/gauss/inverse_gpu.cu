@@ -62,15 +62,14 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N, int batchSize) {
     identity<<<numBlocks, threadsPerBlock>>>(aInv[blockIdx.x], N, N);
 
     for (row = 0; row < N; ++row) {
-        /*cublasErrchk*/( cublasIsamax(handle,
-            N - row,            // Number of elements to be searched
-            &a[blockIdx.x][(row * N) + row],        // Starting position
-            1,              // Increment in words (NOT BYTES)
-            &pivot) );            // Maximum element in the row
-        int pivotRow = pivot - 1 + row;          // Row number with maximum element (starts with 1)
+	if (a[blockIdx.x][(row * N) + row] == 0) {
+            /*cublasErrchk*/( cublasIsamax(handle,
+                N - row,            // Number of elements to be searched
+                &a[blockIdx.x][(row * N) + row],        // Starting position
+                1,              // Increment in words (NOT BYTES)
+                &pivot) );            // Maximum element in the row
+            int pivotRow = pivot - 1 + row;          // Row number with maximum element (starts with 1)
 
-        // printf("Pivot: %d\nRow: %d\n", pivot, pivotRow);
-        if(pivotRow != row) {
             /*cublasErrchk*/( cublasSswap(handle,
                 N,              // Nuber of elements to be swapped
                 &a[blockIdx.x][row],            // Current pivotRow
