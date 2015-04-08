@@ -7,7 +7,8 @@
 #include "cublas_v2.h"
 
 #include "../include/types.h"
-#include "../include/helper.h"
+#include "../include/helper_cpu.h"
+#include "../include/helper_gpu.h"
 
 // Reads `numMatrices` matrices from file at `path` where each matrix has dimension `m` x `n`.
 // Memory is allocated in one big block, so `matrices` points to the beginning of all matrices.

@@ -8,8 +8,10 @@
 #include "cublas_v2.h"
 
 #include "../include/types.h"
-#include "../include/helper.h"
-#include "../include/inverse.h"
+#include "../include/helper_cpu.h"
+#include "../include/helper_gpu.h"
+#include "../include/inverse_cpu.h"
+#include "../include/inverse_gpu.h"
 
 static const DataType ELEMENT_ZERO = DataType(0);
 static const DataType ELEMENT_ONE = DataType(1);
@@ -102,6 +104,37 @@ static void batchedMul(
         beta, Carray, ldc,
         batchCount)
     );
+}
+
+// Calculates the mean of the matrix set {A, B, C, D}.
+// Mean = A^{T} * (B+C)^{-1} * D
+// As       batchSize x n x 1
+// Bs       batchSize x n x n
+// Cs       batchSize x n x 1 diagonal
+// Ds       batchSize x n x 1
+// Means    batchSize x 1 x 1
+// Means is assumed to be already allocated.
+// Total memory requirement without optimization
+// batchSize x n x (2n+3)
+// --> 8x8:     608 bytes/calculation       => 5298068 calculations can live on the GPU
+// --> 16x16:   2'240 bytes/calculation     => 1438047 calculations can live on the GPU
+// --> 32x32:   8'576 bytes/calculation     => 375609 calculations can live on the GPU
+// --> 64x64:   33'536 bytes/calculation    => 96052 calculations can live on the GPU
+// --> 128x128: 132'608 bytes/calculation   => 24291 calculations can live on the GPU
+// --> 256x256: 527'360 bytes/calculation   => 6108 calculations can live on the GPU
+// --> 512x512: 2'103'296 bytes/calculation => 1531 calculations can live on the GPU
+// 2n because of workspace required
+static void calcluateMeanDev(
+    cublasHandle_t handle,
+    int n,
+    Array devAs[],
+    Array devBs[],
+    Array devCs[],
+    Array devDs[],
+    Array devMeans[],
+    int batchSize) {
+
+
 }
 
 // Calculates the mean of the matrix set {A, B, C, D}.

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <assert.h>
 #include <errno.h>
 #include <time.h>
@@ -8,81 +9,25 @@
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
 
-#ifdef __APPLE__
-    #include <Accelerate/Accelerate.h>
-#else
-    #ifdef __cplusplus
-    extern "C" {
-    #endif
-    #include <cblas.h>
-    #include <clapack.h>
-    #ifdef __cplusplus
-    }
-    #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include <cblas.h>
+#include <lapacke.h>
+#ifdef __cplusplus
+}
 #endif
 
 #include "../include/types.h"
-#include "../include/helper.h"
-#include "../include/inverse.h"
+#include "../include/helper_cpu.h"
+#include "../include/helper_gpu.h"
+#include "../include/inverse_cpu.h"
+#include "../include/inverse_gpu.h"
 
 #define MAX_MATRIX_BYTE_READ 67108864
 #define BENCH_REPS 10
 
-void mean(Array a, Array mean, const int M, const int N) {
-    int i;
-
-    for (i = 0; i < N; ++i) {
-        mean[i] = cblas_sasum(M, &a[i*M], 1);
-    }
-
-    cblas_sscal(N, 1.0f/((float)M), mean, 1);
-}
-
-void sub_each(Array a, Array vec, const int M, const int N) {
-    int i;
-
-    for (i = 0; i < M; ++i) {
-        cblas_saxpy(N, -1.f, vec, 1, &a[i], M);
-    }
-}
-
-void covariance(Array a, Array cov, Array mu, int M, int N) {
-    mean(a, mu, M, N);
-    sub_each(a, mu, M, N);
-    cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, N, M, 1, a, M, 0, cov, N);
-}
-
-/*
- * Source: http://stackoverflow.com/questions/3519959/computing-the-inverse-of-a-matrix-using-lapack-in-c
- *
- */
-
-void inverse_lu_blas(Array a, Array workspace, int N) {
-    int *pivot = (int*)malloc(N*sizeof(int));
-    int workspace_size = N*N;
-    int error;
-
-    sgetrf_(&N, &N, a, &N, pivot, &error);
-    ensure(!error, "Error code %d in LU-decomposition", error);
-    sgetri_(&N, a, &N, pivot, workspace, &workspace_size, &error);
-    ensure(!error, "Error code %d in LU-inversion", error);
-
-    free(pivot);
-}
-
-// Result is stored in the lower triangular part of a.
-void inverse_chol_blas(Array a, int N) {
-    int error;
-
-    spotrf_("U", &N, a, &N, &error);
-    // printMatrix(a, N, N);
-    ensure(!error, "Error code %d in cholesky factorization", error);
-    spotri_("U", &N, a, &N, &error);
-    // printMatrix(a, N, N);
-    ensure(!error, "Error code %d in cholesky inversion", error);
-}
-
-void fill_sym(Array a, int M, int N) {
+static void fill_sym(Array a, int M, int N) {
     int i, j;
 
     for (i = 0; i < N-1; ++i) {
@@ -92,12 +37,12 @@ void fill_sym(Array a, int M, int N) {
     }
 }
 
-void mat_sum(Array a, int M, int N, DataType *total) {
+static void mat_sum(Array a, int M, int N, DataType *total) {
     *total = cblas_sasum(M*N, a, 1);
 }
 
 #define BILLION 1000000000
-void time_add(struct timespec *t1, const struct timespec *t2) {
+static void time_add(struct timespec *t1, const struct timespec *t2) {
     t1->tv_sec += t2->tv_sec;
     t1->tv_nsec += t2->tv_nsec;
 
@@ -107,7 +52,7 @@ void time_add(struct timespec *t1, const struct timespec *t2) {
     }
 }
 
-void time_sub(struct timespec *t1, const struct timespec *t2) {
+static void time_sub(struct timespec *t1, const struct timespec *t2) {
     if (t1->tv_nsec < t2->tv_nsec) {
         ensure(t1->tv_sec >= 1, "No negative time possible");
 
@@ -120,7 +65,7 @@ void time_sub(struct timespec *t1, const struct timespec *t2) {
     t1->tv_sec -= t2->tv_sec;
 }
 
-void time_div(struct timespec *t1, double div) {
+static void time_div(struct timespec *t1, double div) {
     double sec = t1->tv_sec / div;
     double nsec = (sec - floor(sec))*BILLION + t1->tv_nsec / div;
 
@@ -128,7 +73,7 @@ void time_div(struct timespec *t1, double div) {
     t1->tv_nsec = floor(nsec);
 }
 
-double time_to_ms(struct timespec *t1) {
+static double time_to_ms(struct timespec *t1) {
     return t1->tv_sec*1000.0 + t1->tv_nsec/1000.0/1000.0;
 }
 

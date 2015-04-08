@@ -38,8 +38,10 @@ endif
 # Common binaries
 ifneq ($(DARWIN),)
 ifeq ($(XCODE_GE_5),1)
+  CC ?= clang
   GCC ?= clang
 else
+  CC ?= gcc
   GCC ?= g++
 endif
 else
@@ -115,10 +117,13 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 INCLUDES  :=
-LIBRARIES := -lcublas -lcublas_device -lcudadevrt
+LIBRARIES := -lcublas -lcublas_device -lcudadevrt -llapack -lblas -lgomp
 
-ifeq ($(DARWIN),)
-  LIBRARIES += -L/usr/lib64/atlas -llapack -lblas
+ifneq ($(DARWIN),)
+  INCLUDES +=  -I/usr/local/opt/openblas/include -I/usr/local/opt/lapack/include
+  LIBRARIES += -L/usr/local/opt/openblas/lib -L/usr/local/opt/lapack/lib -L/usr/local/opt/gcc/lib/gcc/4.9
+else
+  LIBRARIES += -L/usr/lib64/atlas
 endif
 
 ################################################################################
@@ -176,10 +181,13 @@ inverse_gauss.o: src/gauss/inverse_gpu.cu
 inverse_gauss_batched.o: src/gauss/batched_invert.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
+inverse_cpu.o: src/inverse.c
+	$(EXEC) $(CC) $(INCLUDES) -fopenmp -o $@ -c $<
+
 inverse_bench.o: src/inverse_bench.c
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-inverse_bench: inverse_bench.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
+inverse_bench: inverse_bench.o inverse_cpu.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 bench-all: bench

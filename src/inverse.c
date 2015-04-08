@@ -1,102 +1,84 @@
-#include <stdio.h>	
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <errno.h>
+#include <time.h>
+#include <omp.h>
 
-#define N 5
-#define SWAP(x, y, z)	((z) = (x),(x) = (y),(y) = (z))
+#ifdef __cplusplus
+extern "C" {
+#endif
+    #include <cblas.h>
+    #include <lapacke.h>
+#ifdef __cplusplus
+}
+#endif
 
-void printMatrix(float a[N][N]) {
-	int i, j;
+#include "../include/types.h"
+#include "../include/helper_cpu.h"
+#include "../include/inverse_cpu.h"
 
-	for(i = 0; i < N; i++) {
-		for(j = 0; j < N; j++)
-			printf("%f\t", a[i][j]);
-		printf("\n");
-	}
-	printf("\n");
+
+static void mean(Array a, Array mean, const int M, const int N) {
+    int i;
+
+    for (i = 0; i < N; ++i) {
+        mean[i] = cblas_sasum(M, &a[i*M], 1);
+    }
+
+    cblas_sscal(N, 1.0f/((float)M), mean, 1);
 }
 
-void pivotRow(float a[N][N], float a_inv[N][N], int col) {
-	int row, temp, j;
+static void sub_each(Array a, Array vec, const int M, const int N) {
+    int i;
 
-	for(row = col; row < N; row++)
-		if(a[row][col] != 0)
-			break;
-
-	if(row == col)
-		return;
-	for(j = 0; j < N; j++) {
-		SWAP(a[row][j], a[col][j], temp);
-		SWAP(a_inv[row][j], a_inv[col][j], temp);
-	}
+    for (i = 0; i < M; ++i) {
+        cblas_saxpy(N, -1.f, vec, 1, &a[i], M);
+    }
 }
 
-void normalizeRow(float a[N][N], float a_inv[N][N], int row) {
-	int j;
-	float scalar = a[row][row];
-
-	for(j = 0; j < N; j++) {
-		a[row][j] /= scalar;
-		a_inv[row][j] /= scalar;
-	}
+static void covariance(Array a, Array cov, Array mu, int M, int N) {
+    mean(a, mu, M, N);
+    sub_each(a, mu, M, N);
+    cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, N, M, 1, a, M, 0, cov, N);
 }
 
-void verifyInverse(float a[N][N], float a_inv[N][N]) {
-	float c[N][N];
-	int i, j, k;
-	float sum;
+/*
+ * Source: http://stackoverflow.com/questions/3519959/computing-the-inverse-of-a-matrix-using-lapack-in-c
+ *
+ */
 
-	for(i = 0; i < N; i++)
-		for(j = 0; j < N; j++) {
-			sum = 0;
-			for(k = 0; k < N; k++)
-				sum += (a[i][k] * a_inv[k][j]);
-			c[i][j] = sum;
-		}
+void inverse_lu_blas(Array a, Array workspace, int N) {
+    int *pivot = (int*)malloc(N*sizeof(int));
+    int workspace_size = N*N;
+    int error;
 
-	printf("Verification\n");
-	printMatrix(c);
+    sgetrf_(&N, &N, a, &N, pivot, &error);
+    ensure(!error, "Error code %d in LU-decomposition", error);
+    sgetri_(&N, a, &N, pivot, workspace, &workspace_size, &error);
+    ensure(!error, "Error code %d in LU-inversion", error);
+
+    free(pivot);
 }
 
-int main(int argc, char *argv[]) {
-	float a[N][N], a_inv[N][N];
-	int i, j, k;
-	float scalar;
+void inverse_lu_blas_omp(Array as, Array workspaces, int N, int batchSize) {
+    int i;
 
-	for(i = 0; i < N; i++)
-		for(j = 0; j < N; j++) {
-			scanf("%f", &a[i][j]);
-			if(i == j)
-				a_inv[i][j] = 1;
-			else
-				a_inv[i][j] = 0;
-		}
+    #pragma omp parallel for
+    for (i = 0; i < batchSize; ++i) {
 
-	for(i = 0; i < N; i++) {
-		// Pivot the matrix
-		pivotRow(a, a_inv, i);
+    }
+}
 
-		// Make column entry to be one
-		normalizeRow(a, a_inv, i);
+// Result is stored in the lower triangular part of a.
+void inverse_chol_blas(Array a, int N) {
+    int error;
 
-		// Transform all other rows
-		for(k = 0; k < N; k++) {
-			if(i == k)
-				continue;
-			scalar = a[k][i];
-			if(scalar == 0)
-				continue;
-			for(j = 0; j < N; j++) {
-				a[k][j] -= (scalar * a[i][j]);
-				a_inv[k][j] -= (scalar * a_inv[i][j]);
-				printf("Transform [%d][%d]:\n", k, j);
-				printMatrix(a);
-			}
-		}
-	}
-
-	//verifyInverse(a, a_inv);
-
-	printf("Inverse is:\n");
-	printMatrix(a_inv);
-
-	return 0;
+    spotrf_("U", &N, a, &N, &error);
+    // printMatrix(a, N, N);
+    ensure(!error, "Error code %d in cholesky factorization", error);
+    spotri_("U", &N, a, &N, &error);
+    // printMatrix(a, N, N);
+    ensure(!error, "Error code %d in cholesky inversion", error);
 }

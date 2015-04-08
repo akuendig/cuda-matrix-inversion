@@ -5,8 +5,10 @@
 #include "cublas_v2.h"
 
 #include "../../include/types.h"
-#include "../../include/helper.h"
-#include "../../include/inverse.h"
+#include "../../include/helper_cpu.h"
+#include "../../include/helper_gpu.h"
+#include "../../include/inverse_cpu.h"
+#include "../../include/inverse_gpu.h"
 
 __global__
 void identity(Array a, int M, int N) {
