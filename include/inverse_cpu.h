@@ -6,7 +6,7 @@ extern "C" {
 #endif // __cplusplus
 
 void inverse_lu_blas(Array a, Array workspace, int N);
-void inverse_lu_blas_omp(Array as, Array workspaces, int N, int batchSize);
+void inverse_lu_blas_omp(Array as, int N, int batchSize);
 void inverse_chol_blas(Array a, int N);
 
 void inverse_lu_blas(Array a, Array workspace, int n);

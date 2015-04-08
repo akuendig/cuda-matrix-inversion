@@ -120,6 +120,20 @@ static double time_to_ms(struct timespec *t1) {
         if (detailed) { printf("L1 error for " #name  ": %f\n", total_##name); } \
     }
 
+#define BENCH_REPORT_ERROR(name) \
+    printf("Total error for %d matrices of " #name ": %.2e (%.2e average)\n", \
+        numMatrices, total_sum_##name, total_sum_##name/numMatrices)
+
+#ifdef __APPLE__
+#define BENCH_REPORT_TIME(name) \
+    printf("Total execution time for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
+        numMatrices, BENCH_REPS, cycle_sum_##name, cycle_sum_##name/numMatrices/BENCH_REPS)
+#else
+#define BENCH_REPORT_TIME(name) \
+    printf("Total execution time for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
+        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_##name), time_to_ms(&ts_sum_##name)/numMatrices/BENCH_REPS)
+#endif // __APPLE__
+
 void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     cublasHandle_t handle;
 
@@ -130,12 +144,14 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
 
     DataType
         total_lu_blas_cpu,
+        total_lu_blas_omp_cpu,
         total_chol_gpu,
         total_gauss_kernel_gpu,
         total_gauss_batched_gpu,
         total_lu_cuda_batched_gpu,
 
         total_sum_lu_blas_cpu = 0,
+        total_sum_lu_blas_omp_cpu = 0,
         total_sum_chol_gpu = 0,
         total_sum_gauss_kernel_gpu = 0,
         total_sum_gauss_batched_gpu = 0,
@@ -144,6 +160,7 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
 #ifdef __APPLE__
     clock_t start, diff,
         cycle_sum_lu_blas_cpu = 0,
+        cycle_sum_lu_blas_omp_cpu = 0,
         cycle_sum_chol_gpu = 0,
         cycle_sum_gauss_kernel_gpu = 0,
         cycle_sum_gauss_batched_gpu = 0,
@@ -151,13 +168,14 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
 #else
     struct timespec ts_start, ts_end,
         ts_sum_lu_blas_cpu = { 0 },
+        ts_sum_lu_blas_omp_cpu = { 0 },
         ts_sum_chol_gpu = { 0 },
         ts_sum_gauss_kernel_gpu = { 0 },
         ts_sum_gauss_batched_gpu = { 0 },
         ts_sum_lu_cuda_batched_gpu = { 0 };
 #endif
 
-    // CPU Benchmark
+    // CPU Benchmark 1
     ////////////////
     for (i = 0; i < numMatrices; ++i) {
         Array current_a = a + (i * M * N);
@@ -182,6 +200,27 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     }
 
     BENCH_CLEANUP(lu_blas_cpu);
+
+    // CPU Benchmark 2
+    ////////////////
+    for (i = 0; i < numMatrices; ++i) {
+        Array current_a = a + (i * M * N);
+        Array current_atra = atra + (i * N * N);
+
+        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
+            N, M, 1, current_a, M, 0, current_atra, N);
+        fill_sym(current_atra, N, N);
+    }
+
+    for (rep = 0; rep < BENCH_REPS; ++rep) {
+        cblas_scopy(numMatrices*N*N, atra, 1, inv, 1);
+
+        TIMER_START()
+        inverse_lu_blas_omp(inv, N, numMatrices);
+        TIMER_STOP(lu_blas_omp_cpu)
+    }
+
+    BENCH_CLEANUP(lu_blas_omp_cpu);
 
     // Create handle after CPU benchmarks to allow testing on non-nvidia host
     cublasErrchk( cublasCreate(&handle) );
@@ -265,40 +304,19 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
 
     BENCH_CLEANUP(lu_cuda_batched_gpu)
 
-    printf("Total error for %d matrices of lu_blas_cpu: %.2e (%.2e average)\n",
-        numMatrices, total_sum_lu_blas_cpu, total_sum_lu_blas_cpu/numMatrices);
-    printf("Total error for %d matrices of chol_gpu: %.2e (%.2e average)\n",
-        numMatrices, total_sum_chol_gpu, total_sum_chol_gpu/numMatrices);
-    printf("Total error for %d matrices of gauss_kernel_gpu: %.2e (%.2e average)\n",
-        numMatrices, total_sum_gauss_kernel_gpu, total_sum_gauss_kernel_gpu/numMatrices);
-    printf("Total error for %d matrices of gauss_batched_gpu: %.2e (%.2e average)\n",
-        numMatrices, total_sum_gauss_batched_gpu, total_sum_gauss_batched_gpu/numMatrices);
-    printf("Total error for %d matrices of lu_cuda_batched_gpu: %.2e (%.2e average)\n",
-        numMatrices, total_sum_lu_cuda_batched_gpu, total_sum_lu_cuda_batched_gpu/numMatrices);
+    BENCH_REPORT_ERROR(lu_blas_cpu);
+    BENCH_REPORT_ERROR(lu_blas_omp_cpu);
+    BENCH_REPORT_ERROR(chol_gpu);
+    BENCH_REPORT_ERROR(gauss_kernel_gpu);
+    BENCH_REPORT_ERROR(gauss_batched_gpu);
+    BENCH_REPORT_ERROR(lu_cuda_batched_gpu);
 
-#ifdef __APPLE__
-    printf("Total execution time for %d matrices and %d replications of lu_blas_cpu: %lu cycles (%lu cycles average)\n",
-        numMatrices, BENCH_REPS, cycle_sum_lu_blas_cpu, cycle_sum_lu_blas_cpu/numMatrices/BENCH_REPS);
-    printf("Total execution time for %d matrices and %d replications of chol_gpu: %lu cycles (%lu cycles average)\n",
-        numMatrices, BENCH_REPS, cycle_sum_chol_gpu, cycle_sum_chol_gpu/numMatrices/BENCH_REPS);
-    printf("Total execution time for %d matrices and %d replications of gauss_kernel_gpu: %lu cycles (%lu cycles average)\n",
-        numMatrices, BENCH_REPS, cycle_sum_gauss_kernel_gpu, cycle_sum_gauss_kernel_gpu/numMatrices/BENCH_REPS);
-    printf("Total execution time for %d matrices and %d replications of gauss_batched_gpu: %lu cycles (%lu cycles average)\n",
-        numMatrices, BENCH_REPS, cycle_sum_gauss_batched_gpu, cycle_sum_gauss_batched_gpu/numMatrices/BENCH_REPS);
-    printf("Total execution time for %d matrices and %d replications of lu_cuda_batched_gpu: %lu cycles (%lu cycles average)\n",
-        numMatrices, BENCH_REPS, cycle_sum_lu_cuda_batched_gpu, cycle_sum_lu_cuda_batched_gpu/numMatrices/BENCH_REPS);
-#else
-    printf("Total execution time for %d matrices and %d replications of lu_blas_cpu: %.4f ms (%.4f ms average)\n",
-        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_lu_blas_cpu), time_to_ms(&ts_sum_lu_blas_cpu)/numMatrices/BENCH_REPS);
-    printf("Total execution time for %d matrices and %d replications of chol_gpu: %.4f ms (%.4f ms average)\n",
-        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_chol_gpu), time_to_ms(&ts_sum_chol_gpu)/numMatrices/BENCH_REPS);
-    printf("Total execution time for %d matrices and %d replications of gauss_kernel_gpu: %.4f ms (%.4f ms average)\n",
-        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_kernel_gpu), time_to_ms(&ts_sum_gauss_kernel_gpu)/numMatrices/BENCH_REPS);
-    printf("Total execution time for %d matrices and %d replications of gauss_batched_gpu: %.4f ms (%.4f ms average)\n",
-        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_gauss_batched_gpu), time_to_ms(&ts_sum_gauss_batched_gpu)/numMatrices/BENCH_REPS);
-    printf("Total execution time for %d matrices and %d replications of lu_cuda_batched_gpu: %.4f ms (%.4f ms average)\n",
-        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_lu_cuda_batched_gpu), time_to_ms(&ts_sum_lu_cuda_batched_gpu)/numMatrices/BENCH_REPS);
-#endif
+    BENCH_REPORT_TIME(lu_blas_cpu);
+    BENCH_REPORT_TIME(lu_blas_omp_cpu);
+    BENCH_REPORT_TIME(chol_gpu);
+    BENCH_REPORT_TIME(gauss_kernel_gpu);
+    BENCH_REPORT_TIME(gauss_batched_gpu);
+    BENCH_REPORT_TIME(lu_cuda_batched_gpu);
 
     cublasErrchk( cublasDestroy(handle) );
 

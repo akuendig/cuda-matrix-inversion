@@ -66,12 +66,21 @@ void inverse_lu_blas(Array a, Array workspace, int N) {
     free(pivot);
 }
 
-void inverse_lu_blas_omp(Array as, Array workspaces, int N, int batchSize) {
+void inverse_lu_blas_omp(Array as, int N, int batchSize) {
     int i;
 
-    #pragma omp parallel for
-    for (i = 0; i < batchSize; ++i) {
+    #pragma omp parallel
+    {
+        const int ArraySize = sizeof(DataType)*N*N;
+        Array workspace = (Array)malloc(ArraySize);
+        ensure(workspace, "Could not allocate workspace for matrix inversion");
 
+        #pragma omp parallel for
+        for (i = 0; i < batchSize; ++i) {
+            inverse_lu_blas(as+(i*ArraySize), workspace, N);
+        }
+
+        free(workspace);
     }
 }
 
