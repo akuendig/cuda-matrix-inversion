@@ -8,12 +8,16 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // __cplusplus
     #include <cblas.h>
+#ifdef __APPLE__
     #include <lapacke.h>
+#else
+    #include <clapack.h>
+#endif // __APPLE__
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
 #include "../include/types.h"
 #include "../include/helper_cpu.h"
