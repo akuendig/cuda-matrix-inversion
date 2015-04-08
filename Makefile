@@ -66,7 +66,7 @@ EXTRA_CCFLAGS     ?=
 # OS-specific build flags
 ifneq ($(DARWIN),)
   LDFLAGS += -rpath $(CUDA_PATH)/lib -framework Accelerate
-  CCFLAGS += -arch $(OS_ARCH)
+  # CCFLAGS += -arch $(OS_ARCH)
 else
   ifeq ($(OS_ARCH),armv7l)
     ifeq ($(abi),androideabi)
@@ -99,10 +99,12 @@ endif
 
 # Debug build flags
 ifeq ($(dbg),1)
-      NVCCFLAGS += -g -G
-      TARGET := debug
+	CCFLAGS += -g
+	NVCCFLAGS += -G
+	TARGET := debug
 else
-      TARGET := release
+	CCFLAGS += -O4
+	TARGET := release
 endif
 
 ALL_CCFLAGS :=
@@ -182,7 +184,7 @@ inverse_gauss_batched.o: src/gauss/batched_invert.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 inverse_cpu.o: src/inverse.c
-	$(EXEC) $(CC) $(INCLUDES) -fopenmp -o $@ -c $<
+	$(EXEC) $(CC) $(INCLUDES) $(CCFLAGS) -fopenmp -o $@ -c $<
 
 inverse_bench.o: src/inverse_bench.c
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<

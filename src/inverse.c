@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <assert.h>
 #include <errno.h>
 #include <time.h>
@@ -71,15 +72,20 @@ void inverse_lu_blas_omp(Array as, int N, int batchSize) {
 
     #pragma omp parallel
     {
+        Array aCopy = (Array)malloc(sizeof(DataType)*N*N);
+        ensure(aCopy, "Could not allocate aCopy for matrix inversion");
         Array workspace = (Array)malloc(sizeof(DataType)*N*N);
         ensure(workspace, "Could not allocate workspace for matrix inversion");
 
         #pragma omp parallel for
         for (i = 0; i < batchSize; ++i) {
-            inverse_lu_blas(as+(i*N*N), workspace, N);
+            memcpy(aCopy, as+(i*N*N), sizeof(DataType)*N*N);
+            inverse_lu_blas(aCopy, workspace, N);
+            memcpy(as+(i*N*N), aCopy, sizeof(DataType)*N*N);
         }
 
         free(workspace);
+        free(aCopy);
     }
 }
 
