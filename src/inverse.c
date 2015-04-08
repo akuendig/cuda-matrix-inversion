@@ -71,13 +71,12 @@ void inverse_lu_blas_omp(Array as, int N, int batchSize) {
 
     #pragma omp parallel
     {
-        const int ArraySize = sizeof(DataType)*N*N;
-        Array workspace = (Array)malloc(ArraySize);
+        Array workspace = (Array)malloc(sizeof(DataType)*N*N);
         ensure(workspace, "Could not allocate workspace for matrix inversion");
 
         #pragma omp parallel for
         for (i = 0; i < batchSize; ++i) {
-            inverse_lu_blas(as+(i*ArraySize), workspace, N);
+            inverse_lu_blas(as+(i*N*N), workspace, N);
         }
 
         free(workspace);
