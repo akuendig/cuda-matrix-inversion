@@ -70,22 +70,17 @@ void inverse_lu_blas(Array a, Array workspace, int N) {
 void inverse_lu_blas_omp(Array as, int N, int batchSize) {
     int i;
 
-    #pragma omp parallel
+    #pragma omp parallel shared(as)
     {
-        Array aCopy = (Array)malloc(sizeof(DataType)*N*N);
-        ensure(aCopy, "Could not allocate aCopy for matrix inversion");
         Array workspace = (Array)malloc(sizeof(DataType)*N*N);
         ensure(workspace, "Could not allocate workspace for matrix inversion");
 
-        #pragma omp parallel for
+        #pragma omp for schedule(dynamic, 8)
         for (i = 0; i < batchSize; ++i) {
-            memcpy(aCopy, as+(i*N*N), sizeof(DataType)*N*N);
-            inverse_lu_blas(aCopy, workspace, N);
-            memcpy(as+(i*N*N), aCopy, sizeof(DataType)*N*N);
+            inverse_lu_blas(as+(i*N*N), workspace, N);
         }
 
         free(workspace);
-        free(aCopy);
     }
 }
 
