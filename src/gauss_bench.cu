@@ -3,9 +3,15 @@
 #include <assert.h>
 #include <errno.h>
 
-#include <iostream>
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
+
+#include <cblas.h>
+#ifdef __APPLE__
+    #include <lapacke.h>
+#else
+    #include <clapack.h>
+#endif // __APPLE__
 
 #include "../include/types.h"
 #include "../include/helper_cpu.h"
@@ -31,7 +37,7 @@ static const DataType ELEMENT_ONE = DataType(1);
 // - Some memory access in the kernels will be missaligned which can hamper performance (needs profiling)
 //      > Seems like this can be avoided with cudaMallocPitch and cudaMemcpy2D
 
-__global__ void add(const DataType alpha, Array devLeft[], Array devRight[], int batchSize, int n)
+__global__ void add(const DataType alpha, const Array devLeft[], Array devRight[], int batchSize, int n)
 {
     for(int i = 0; i < n; i++)
     {
@@ -57,7 +63,7 @@ static void batchedAdd(
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-axpy
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-geam
 
-    add<<<batchSize, n>>> (devLeft, devRight, batchSize, n);
+    add<<<batchSize, n>>> (*alpha, devLeft, devRight, batchSize, n);
 }
 
 // Inverts all matrices in devMatrices and stores the result in devInvMatrices.
@@ -68,7 +74,7 @@ static void batchedAdd(
 static void batchedInverse(
     cublasHandle_t handle,
     int n,
-    const Array devMatrices[],
+    Array devMatrices[],
     Array devInvMatrices[],
     int batchSize) {
     // TODO: implement matrix inversion. Please see how you want to dispatch to the corresponding inversion algorithm.
@@ -89,20 +95,20 @@ static void batchedMul(
     cublasOperation_t transa, cublasOperation_t transb,
     int m, int n, int k,
     const DataType *alpha,
-    const Array devLeft[],
-    const Array devReight[],
+    Array devLeft[],
+    Array devRight[],
     const DataType *beta,
     Array devResult[],
     int batchSize) {
     // TODO: implement matrix multiplication.
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-gemmbatched
-    gpuErrchk( cublasSgemmBatched(handle,
+    cublasErrchk( cublasSgemmBatched(handle,
         transa, transb,
         m, n, k,
-        alpha, Aarray, lda,
-        Barray, ldb,
-        beta, Carray, ldc,
-        batchCount)
+        alpha, const_cast<const float**>(devLeft), m,
+        const_cast<const float**>(devRight), n,
+        beta, devResult, k,
+        batchSize)
     );
 }
 
@@ -141,7 +147,7 @@ static void calcluateMeanDev(
 // Mean = A*(B+C)^{-1}*D
 // As       batchSize x n x 1
 // Bs       batchSize x n x n
-// Cs       batchSize x n x n
+// Cs       batchSize x n x 1
 // Ds       batchSize x n x 1
 // Means    batchSize x n x 1
 // Means is assumed to be already allocated.
@@ -228,21 +234,20 @@ static void calcluateMean(
     gpuErrchk( cudaFreeHost((void*)devDs) );
 }
 
-// Calculates the variance of the matrix set {A, B, C, D, E}.
+// Calculates the variance of the matrix set {A, B, C, E}.
 // Var = E-AT*(B+C)^{-1}*A
 // As       batchSize x n x 1
 // Bs       batchSize x n x n
 // Cs       batchSize x n x n
-// Ds       batchSize x n x 1
-// Means    batchSize x n x 1
-// Means is assumed to be already allocated.
+// Es       batchSize x 1 x 1
+// Variances    batchSize x 1 x 1
+// Variances is assumed to be already allocated.
 static void calcluateVariance(
     cublasHandle_t handle,
     int n,
     Array As,
     Array Bs,
     Array Cs,
-    Array Ds,
     Array Es,
     Array Variances,
     int batchSize) {
@@ -319,13 +324,136 @@ static void calcluateVariance(
     gpuErrchk( cudaFreeHost((void*)devCs) );
 }
 
-void readMeanTest(const char *directory, int *numMatrices, int *n,
-        Array *a, Array *b, Array *c, Array *d) {
+// Calculates the mean of the matrix set {A, B, C, D}.
+// Mean = A*(B+C)^{-1}*D
+// As       batchSize x n x 1
+// Bs       batchSize x n x n
+// Cs       batchSize x n x 1
+// Ds       batchSize x n x 1
+// Means    batchSize x n x 1
+// Means is assumed to be already allocated.
+static void calcluateMeanCPU(
+    const int n,
+    Array As,
+    Array Bs,
+    Array Cs,
+    Array Ds,
+    Array Means,
+    const int batchSize) {
+
+    int i, j;
+
+    Array workspace = (Array)malloc(sizeof(DataType)*n*n);
+    ensure(workspace, "Could not allocate workspace for matrix inversion");
+
+    for (i = 0; i < batchSize; ++i) {
+        Array currentA = As+(i*n);
+        Array currentB = Bs+(i*n*n);
+        Array currentC = Cs+(i*n);
+        Array currentD = Ds+(i*n);
+
+        // Update diagonal
+        for (j = 0; j < n; ++j) {
+            currentB[j + j*n] += currentC[j];
+        }
+
+        // inverse_lu_blas(currentB, workspace, n);
+        inverse_chol_blas(currentB, n);
+
+        cblas_ssymv (CblasColMajor, CblasUpper,
+            n, // rows in A
+            1, // alpha
+            currentB, // A
+            n, // LDA
+            currentD, // x
+            1, // inc x
+            0, // beta
+            currentC, // y
+            1 // inc y
+        );
+
+        Means[i] = cblas_sdot (
+            n, // rows in x
+            currentA, // x
+            1, // inc x
+            currentC, // y
+            1 // inc y
+        );
+    }
+
+    free(workspace);
+}
+
+// Calculates the variance of the matrix set {A, B, C, E}.
+// Var = E-AT*(B+C)^{-1}*A
+// As       batchSize x n x 1
+// Bs       batchSize x n x n
+// Cs       batchSize x n x n
+// Es       batchSize x 1 x 1
+// Variances    batchSize x 1 x 1
+// Variances is assumed to be already allocated.
+//
+// Bs and Cs are destroyed
+static void calcluateVarianceCPU(
+    int n,
+    Array As,
+    Array Bs,
+    Array Cs,
+    Array Es,
+    Array Variances,
+    int batchSize) {
+
+    int i, j;
+
+    Array workspace = (Array)malloc(sizeof(DataType)*n*n);
+    ensure(workspace, "Could not allocate workspace for matrix inversion");
+
+    for (i = 0; i < batchSize; ++i) {
+        Array currentA = As+(i*n);
+        Array currentB = Bs+(i*n*n);
+        Array currentC = Cs+(i*n);
+
+        // Update diagonal
+        for (j = 0; j < n; ++j) {
+            currentB[j + j*n] += currentC[j];
+        }
+
+        // inverse_lu_blas(currentB, workspace, n);
+        inverse_chol_blas(currentB, n);
+
+        cblas_ssymv (CblasColMajor, CblasUpper,
+            n, // rows in A
+            1, // alpha
+            currentB, // A
+            n, // LDA
+            currentA, // x
+            1, // inc x
+            0, // beta
+            currentC, // y
+            1 // inc y
+        );
+
+        Variances[i] = Es[i] + cblas_sdot (
+            n, // rows in x
+            currentA, // x
+            1, // inc x
+            currentC, // y
+            1 // inc y
+        );
+    }
+
+    free(workspace);
+}
+
+
+void readTest(const char *directory, int *numMatrices, int *n,
+        Array *a, Array *b, Array *c, Array *d, Array *e, Array *means, Array *variances) {
     char filePath[1024];
 
-    int numMatricesA, numMatricesB, numMatricesC, numMatricesD;
-    int mA, mB, mC, mD;
-    int nA, nB, nC, nD;
+    int numMatricesA, numMatricesB, numMatricesC, numMatricesD,
+        numMatricesE, numMeans, numVariances;
+    int mA, mB, mC, mD, mE, mMeans, mVariances;
+    int nA, nB, nC, nD, nE, nMeans, nVariances;
 
     snprintf(filePath, 1024, "%s/a.mats", directory);
     readMatricesFile(filePath, &numMatricesA, &mA, &nA, a);
@@ -339,51 +467,212 @@ void readMeanTest(const char *directory, int *numMatrices, int *n,
     snprintf(filePath, 1024, "%s/d.mats", directory);
     readMatricesFile(filePath, &numMatricesD, &mD, &nD, d);
 
+    snprintf(filePath, 1024, "%s/e.mats", directory);
+    readMatricesFile(filePath, &numMatricesE, &mE, &nE, e);
+
+    snprintf(filePath, 1024, "%s/means.mats", directory);
+    readMatricesFile(filePath, &numMeans, &mMeans, &nMeans, means);
+
+    snprintf(filePath, 1024, "%s/variances.mats", directory);
+    readMatricesFile(filePath, &numVariances, &mVariances, &nVariances, variances);
+
     ensure(
-        numMatricesA == numMatricesB && numMatricesB == numMatricesC && numMatricesC == numMatricesD,
+        numMatricesA == numMatricesB && numMatricesB == numMatricesC && numMatricesC == numMatricesD &&
+        numMatricesD == numMatricesE && numMatricesE == numMeans && numMeans == numVariances,
         "test in directory %s invalid, number of matrices in files not matching\r\n"
-        "numMatricesA(%d) numMatricesB(%d) numMatricesC(%d) numMatricesD(%d)\r\n",
+        "numMatricesA(%d) numMatricesB(%d) numMatricesC(%d) numMatricesD(%d)\r\n"
+        "numMatricesE(%d) numMeans(%d) numVariances(%d)\r\n",
         directory,
-        numMatricesA, numMatricesB, numMatricesC, numMatricesD
+        numMatricesA, numMatricesB, numMatricesC, numMatricesD,
+        numMatricesE, numMeans, numVariances
     );
 
     ensure(
-        mA == mB && mB == mC && mC == mD &&
-        nA == 1 && nB == mB && nC == mC && nD == 1,
+        mA == mB && mB == mC && mC == mD && 1 == mE && mMeans == 1 && mVariances == 1 &&
+        nA == 1 && nB == mB && nC == 1 && nD == 1 && nE == 1 && nMeans == 1 && nVariances == 1,
         "test in directory %s invalid, dimensions not matching\r\n"
         "mA(%d) mB(%d) mC(%d) mD(%d)\r\n"
-        "nA(%d) nB(%d) nC(%d) nD(%d)\r\n",
+        "mE(%d) mMeans(%d) mVariances(%d)\r\n"
+        "nA(%d) nB(%d) nC(%d) nD(%d)\r\n"
+        "nE(%d) nMeans(%d) nVariances(%d)\r\n",
         directory,
-        mA, mB, mC, mD, nA, nB, nC, nD
+        mA, mB, mC, mD, mE, mMeans, mVariances,
+        nA, nB, nC, nD, nE, nMeans, nVariances
     );
 
     *numMatrices = numMatricesA;
     *n = mA;
 }
 
-int main(void) {
-    cublasHandle_t handle;
+// b -= a
+static void vec_diff(const Array a, Array b, const int N) {
+    cblas_saxpy(N, -1.f, a, 1, b, N);
+}
 
-    int numMatrices, n;
-    Array a, b, c, d;
-    Array means;
+static DataType vec_sum(Array a, const int N) {
+    return cblas_sasum(N, a, 1);
+}
 
-    readMeanTest("tests/simpleMean", &numMatrices, &n, &a, &b, &c, &d);
+#ifdef __APPLE__
+#define TIMER_START(name) start = clock();
+#define TIMER_STOP(name) \
+    diff = clock() - start; \
+    cycle_sum_##name += diff; \
+    if (detailed) { printf("Execution time of " #name ": %lucycles \n", diff); }
+#else
+#define TIMER_START(name) clock_gettime(CLOCK_MONOTONIC, &ts_start);
+#define TIMER_STOP(name) \
+    clock_gettime(CLOCK_MONOTONIC, &ts_end); \
+    time_sub(&ts_end, &ts_start); \
+    time_add(&ts_sum_##name, &ts_end); \
+    if (detailed) { printf("Execution time of " #name ": %.4fms \n", time_to_ms(&ts_end)); }
 
-    cublasErrchk( cublasCreate(&handle) );
-    gpuErrchk( cudaHostAlloc(&means, sizeof(DataType)*numMatrices, cudaHostAllocDefault) );
+#define BILLION 1000000000
+static void time_add(struct timespec *t1, const struct timespec *t2) {
+    t1->tv_sec += t2->tv_sec;
+    t1->tv_nsec += t2->tv_nsec;
 
-    calcluateMean(handle, n, a, b, c, d, means, numMatrices);
+    if (t1->tv_nsec >= BILLION) {
+        t1->tv_nsec -= BILLION;
+        t1->tv_sec++;
+    }
+}
 
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
+static void time_sub(struct timespec *t1, const struct timespec *t2) {
+    if (t1->tv_nsec < t2->tv_nsec) {
+        ensure(t1->tv_sec >= 1, "No negative time possible");
 
-    for (int i = 0; i < numMatrices; i++) {
-        printf("%f\r\n", means[i]);
+        t1->tv_sec -= 1;
+        t1->tv_nsec += BILLION;
     }
 
-    gpuErrchk( cudaFreeHost(means) );
-    cublasErrchk( cublasDestroy(handle) );
+    ensure(t1->tv_sec >= t2->tv_sec, "No negative time possible");
+    t1->tv_nsec -= t2->tv_nsec;
+    t1->tv_sec -= t2->tv_sec;
+}
+
+static void time_div(struct timespec *t1, double div) {
+    double sec = t1->tv_sec / div;
+    double nsec = (sec - floor(sec))*BILLION + t1->tv_nsec / div;
+
+    t1->tv_sec = floor(sec);
+    t1->tv_nsec = floor(nsec);
+}
+
+static double time_to_ms(struct timespec *t1) {
+    return t1->tv_sec*1000.0 + t1->tv_nsec/1000.0/1000.0;
+}
+
+#endif // __APPLE__
+
+#ifdef __APPLE__
+#define BENCH_VAR(name) \
+    double total_error_means_##name = 0; \
+    double total_error_variances_##name = 0; \
+    clock_t cycle_sum_means_##name = 0; \
+    clock_t cycle_sum_variances_##name = 0;
+#else
+#define BENCH_VAR(name) \
+    struct ts_sum_means_##name = { 0 }; \
+    struct ts_sum_variances_##name = { 0 };
+#endif
+
+#define BENCH_SETUP() \
+    readTest(argv[1], &numMatrices, &n, &a, &b, &c, &d, &e, &means, &variances);
+
+#define BENCH_ERROR_MEAN(name) \
+    vec_diff(means_out, means, n); \
+    total_error_means_##name += vec_sum(means_out, n);
+
+#define BENCH_ERROR_VARIANCE(name) \
+    vec_diff(variances_out, variances, n); \
+    total_error_variances_##name += vec_sum(variances_out, n);
+
+#define BENCH_CLEANUP(name) \
+    free(a); free(b); free(c); free(d); free(e); free(means); free(variances);
+
+#define BENCH_REPORT_ERROR(name) \
+    printf("Total error in means calculation for %d matrices of " #name ": %.2e (%.2e average)\n", \
+        numMatrices, total_error_means_##name, total_error_means_##name/numMatrices); \
+    printf("Total error in variances calculation for %d matrices of " #name ": %.2e (%.2e average)\n", \
+        numMatrices, total_error_variances_##name, total_error_variances_##name/numMatrices);
+
+#ifdef __APPLE__
+#define BENCH_REPORT_TIME(name) \
+    printf("Total execution time in means for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
+        numMatrices, numReps, cycle_sum_means_##name, cycle_sum_means_##name/numMatrices/numReps); \
+    printf("Total execution time in variances for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
+        numMatrices, numReps, cycle_sum_variances_##name, cycle_sum_variances_##name/numMatrices/numReps);
+#else
+#define BENCH_REPORT_TIME(name) \
+    printf("Total execution time in means for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
+        numMatrices, numReps, time_to_ms(&ts_sum_means_##name), time_to_ms(&ts_sum_means_##name)/numMatrices/numReps); \
+    printf("Total execution time in variances for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
+        numMatrices, numReps, time_to_ms(&ts_sum_variances_##name), time_to_ms(&ts_sum_variances_##name)/numMatrices/numReps);
+#endif // __APPLE__
+
+int main(int argc, char const *argv[]) {
+    ensure(argc >= 3, "Usage: gauss_bench TEST_FOLDER NUM_REPLICATIONS [-d]");
+
+    bool detailed = (argc >= 4) && !strncmp("-d", argv[3], 2);
+
+    int numMatrices, n, rep, numReps;
+    Array a, b, c, d, e, means, variances;
+    Array means_out, variances_out;
+
+#ifdef __APPLE__
+    clock_t start, diff;
+#else
+    struct timespec ts_start, ts_end;
+#endif
+
+    numReps = atoi(argv[2]);
+
+    // cublasHandle_t handle;
+
+    // cublasErrchk( cublasCreate(&handle) );
+    // gpuErrchk( cudaHostAlloc(&means, sizeof(DataType)*numMatrices, cudaHostAllocDefault) );
+
+    // Simplest way to read the dimension `n`
+    BENCH_SETUP()
+    BENCH_CLEANUP()
+
+    means_out = (Array)malloc(numMatrices*sizeof(DataType));
+    ensure(means, "Could not allocate memory for calculated means");
+    variances_out = (Array)malloc(numMatrices*sizeof(DataType));
+    ensure(means, "Could not allocate memory for calculated variances");
+
+    BENCH_VAR(cpu)
+
+    for (rep = 0; rep < numReps; ++rep) {
+        BENCH_SETUP()
+        TIMER_START()
+        calcluateMeanCPU(n, a, b, c, d, means_out, numMatrices);
+        TIMER_STOP(means_cpu)
+        BENCH_ERROR_MEAN(cpu)
+        BENCH_CLEANUP()
+
+
+        BENCH_SETUP()
+        TIMER_START()
+        calcluateVarianceCPU(n, a, b, c, d, variances_out, numMatrices);
+        TIMER_STOP(variances_cpu)
+        BENCH_ERROR_VARIANCE(cpu)
+        BENCH_CLEANUP()
+    }
+
+    BENCH_REPORT_ERROR(cpu)
+    BENCH_REPORT_TIME(cpu)
+
+    // gpuErrchk( cudaPeekAtLastError() );
+    // gpuErrchk( cudaDeviceSynchronize() );
+
+    free(means_out); free(variances_out);
+
+    // gpuErrchk( cudaFreeHost(means) );
+    // cublasErrchk( cublasDestroy(handle) );
+
+    // cudaDeviceReset();
 
     return 0;
 }

@@ -55,9 +55,12 @@ static void covariance(Array a, Array cov, Array mu, int M, int N) {
  */
 
 void inverse_lu_blas(Array a, Array workspace, int N) {
-    int *pivot = (int*)malloc(N*sizeof(int));
+    int *pivot;
     int workspace_size = N*N;
     int error;
+
+    pivot = (int*)malloc((N+1)*sizeof(int));
+    ensure(pivot, "Could not allocate pivot array for matrix inversion");
 
     sgetrf_(&N, &N, a, &N, pivot, &error);
     ensure(!error, "Error code %d in LU-decomposition", error);

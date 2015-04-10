@@ -103,7 +103,7 @@ ifeq ($(dbg),1)
 	NVCCFLAGS += -G
 	TARGET := debug
 else
-	CCFLAGS += -O4
+	CCFLAGS += -O3
 	TARGET := release
 endif
 
@@ -139,16 +139,6 @@ endif
 # Target rules
 all: build
 
-build: gaussian
-
-gaussian.o: src/gaussian.cu
-	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-
-gaussian: gaussian.o
-	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-	$(EXEC) mkdir -p bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
-	$(EXEC) cp $@ bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
-
 run: build
 	$(EXEC) ./gaussian
 
@@ -167,6 +157,7 @@ c-test: src/inverse.c
 	18  19  20  21  3\n\
 	22  23  24  25  26\n" | ./inverse
 
+build: gaussian
 
 bench.o: src/bench.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
@@ -190,6 +181,12 @@ inverse_bench.o: src/inverse_bench.c
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 inverse_bench: inverse_bench.o inverse_cpu.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+
+gauss_bench.o: src/gauss_bench.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+gauss_bench: gauss_bench.o inverse_cpu.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 bench-all: bench
