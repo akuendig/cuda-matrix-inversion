@@ -14,6 +14,7 @@
 #endif // __APPLE__
 
 #include "../include/types.h"
+#include "../include/timer.h"
 #include "../include/helper_cpu.h"
 #include "../include/helper_gpu.h"
 #include "../include/inverse_cpu.h"
@@ -388,7 +389,7 @@ static void calcluateMeanCPU(
 // Var = E-AT*(B+C)^{-1}*A
 // As       batchSize x n x 1
 // Bs       batchSize x n x n
-// Cs       batchSize x n x n
+// Cs       batchSize x n x 1
 // Es       batchSize x 1 x 1
 // Variances    batchSize x 1 x 1
 // Variances is assumed to be already allocated.
@@ -513,150 +514,102 @@ static DataType vec_sum(Array a, const int N) {
     return cblas_sasum(N, a, 1);
 }
 
-#ifdef __APPLE__
-#define TIMER_START(name) start = clock();
-#define TIMER_STOP(name) \
-    diff = clock() - start; \
-    cycle_sum_##name += diff; \
-    if (detailed) { printf("Execution time of " #name ": %lucycles \n", diff); }
-#else
-#define TIMER_START(name) clock_gettime(CLOCK_MONOTONIC, &ts_start);
-#define TIMER_STOP(name) \
-    clock_gettime(CLOCK_MONOTONIC, &ts_end); \
-    time_sub(&ts_end, &ts_start); \
-    time_add(&ts_sum_##name, &ts_end); \
-    if (detailed) { printf("Execution time of " #name ": %.4fms \n", time_to_ms(&ts_end)); }
-
-#define BILLION 1000000000
-static void time_add(struct timespec *t1, const struct timespec *t2) {
-    t1->tv_sec += t2->tv_sec;
-    t1->tv_nsec += t2->tv_nsec;
-
-    if (t1->tv_nsec >= BILLION) {
-        t1->tv_nsec -= BILLION;
-        t1->tv_sec++;
-    }
-}
-
-static void time_sub(struct timespec *t1, const struct timespec *t2) {
-    if (t1->tv_nsec < t2->tv_nsec) {
-        ensure(t1->tv_sec >= 1, "No negative time possible");
-
-        t1->tv_sec -= 1;
-        t1->tv_nsec += BILLION;
-    }
-
-    ensure(t1->tv_sec >= t2->tv_sec, "No negative time possible");
-    t1->tv_nsec -= t2->tv_nsec;
-    t1->tv_sec -= t2->tv_sec;
-}
-
-static void time_div(struct timespec *t1, double div) {
-    double sec = t1->tv_sec / div;
-    double nsec = (sec - floor(sec))*BILLION + t1->tv_nsec / div;
-
-    t1->tv_sec = floor(sec);
-    t1->tv_nsec = floor(nsec);
-}
-
-static double time_to_ms(struct timespec *t1) {
-    return t1->tv_sec*1000.0 + t1->tv_nsec/1000.0/1000.0;
-}
-
-#endif // __APPLE__
-
-#ifdef __APPLE__
 #define BENCH_VAR(name) \
     double total_error_means_##name = 0; \
     double total_error_variances_##name = 0; \
-    clock_t cycle_sum_means_##name = 0; \
-    clock_t cycle_sum_variances_##name = 0;
-#else
-#define BENCH_VAR(name) \
-    struct ts_sum_means_##name = { 0 }; \
-    struct ts_sum_variances_##name = { 0 };
-#endif
+    TIMER_INIT(means_##name) \
+    TIMER_INIT(variances_##name)
 
 #define BENCH_SETUP() \
-    readTest(argv[1], &numMatrices, &n, &a, &b, &c, &d, &e, &means, &variances);
+    cblas_scopy(numMatrices*n, _a, 1, a, 1); \
+    cblas_scopy(numMatrices*n*n, _b, 1, b, 1); \
+    cblas_scopy(numMatrices*n, _c, 1, c, 1); \
+    cblas_scopy(numMatrices*n, _d, 1, d, 1); \
+    cblas_scopy(numMatrices, _e, 1, e, 1);
 
 #define BENCH_ERROR_MEAN(name) \
-    vec_diff(means_out, means, n); \
+    vec_diff(means_out, _means, n); \
     total_error_means_##name += vec_sum(means_out, n);
 
 #define BENCH_ERROR_VARIANCE(name) \
-    vec_diff(variances_out, variances, n); \
+    vec_diff(variances_out, _variances, n); \
     total_error_variances_##name += vec_sum(variances_out, n);
 
-#define BENCH_CLEANUP(name) \
-    free(a); free(b); free(c); free(d); free(e); free(means); free(variances);
+#define BENCH_CLEANUP(name)
 
 #define BENCH_REPORT_ERROR(name) \
     printf("Total error in means calculation for %d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, total_error_means_##name, total_error_means_##name/numMatrices); \
+        numMatrices, total_error_means_##name, total_error_means_##name/numMatrices/numReps); \
     printf("Total error in variances calculation for %d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, total_error_variances_##name, total_error_variances_##name/numMatrices);
+        numMatrices, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps);
 
 #ifdef __APPLE__
 #define BENCH_REPORT_TIME(name) \
     printf("Total execution time in means for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
-        numMatrices, numReps, cycle_sum_means_##name, cycle_sum_means_##name/numMatrices/numReps); \
+        numMatrices, numReps, timer_total_means_##name, timer_total_means_##name/numMatrices/numReps); \
     printf("Total execution time in variances for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
-        numMatrices, numReps, cycle_sum_variances_##name, cycle_sum_variances_##name/numMatrices/numReps);
+        numMatrices, numReps, timer_total_variances_##name, timer_total_variances_##name/numMatrices/numReps);
 #else
 #define BENCH_REPORT_TIME(name) \
     printf("Total execution time in means for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
-        numMatrices, numReps, time_to_ms(&ts_sum_means_##name), time_to_ms(&ts_sum_means_##name)/numMatrices/numReps); \
+        numMatrices, numReps, time_to_ms(&timer_total_means_##name), time_to_ms(&timer_total_means_##name)/numMatrices/numReps); \
     printf("Total execution time in variances for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
-        numMatrices, numReps, time_to_ms(&ts_sum_variances_##name), time_to_ms(&ts_sum_variances_##name)/numMatrices/numReps);
+        numMatrices, numReps, time_to_ms(&timer_total_variances_##name), time_to_ms(&timer_total_variances_##name)/numMatrices/numReps);
 #endif // __APPLE__
 
 int main(int argc, char const *argv[]) {
+    int numMatrices, n, rep, numReps;
+    Array a, b, c, d, e,
+        _a, _b, _c, _d, _e, _means, _variances;
+    Array means_out, variances_out;
+
     ensure(argc >= 3, "Usage: gauss_bench TEST_FOLDER NUM_REPLICATIONS [-d]");
 
     bool detailed = (argc >= 4) && !strncmp("-d", argv[3], 2);
-
-    int numMatrices, n, rep, numReps;
-    Array a, b, c, d, e, means, variances;
-    Array means_out, variances_out;
-
-#ifdef __APPLE__
-    clock_t start, diff;
-#else
-    struct timespec ts_start, ts_end;
-#endif
 
     numReps = atoi(argv[2]);
 
     // cublasHandle_t handle;
 
     // cublasErrchk( cublasCreate(&handle) );
-    // gpuErrchk( cudaHostAlloc(&means, sizeof(DataType)*numMatrices, cudaHostAllocDefault) );
+    // gpuErrchk( cudaHostAlloc(&means, sizeof(DataType)*numMatrices, cudaHostAllocDefault) ); \
 
-    // Simplest way to read the dimension `n`
-    BENCH_SETUP()
-    BENCH_CLEANUP()
+    readTest(argv[1], &numMatrices, &n, &_a, &_b, &_c, &_d, &_e, &_means, &_variances);
 
+    a = (Array)malloc(numMatrices*n*sizeof(DataType));
+    ensure(a, "Could not allocate memory for A");
+    b = (Array)malloc(numMatrices*n*n*sizeof(DataType));
+    ensure(b, "Could not allocate memory for B");
+    c = (Array)malloc(numMatrices*n*sizeof(DataType));
+    ensure(c, "Could not allocate memory for C");
+    d = (Array)malloc(numMatrices*n*sizeof(DataType));
+    ensure(d, "Could not allocate memory for D");
+    e = (Array)malloc(numMatrices*sizeof(DataType));
+    ensure(e, "Could not allocate memory for E");
     means_out = (Array)malloc(numMatrices*sizeof(DataType));
-    ensure(means, "Could not allocate memory for calculated means");
+    ensure(means_out, "Could not allocate memory for calculated means");
     variances_out = (Array)malloc(numMatrices*sizeof(DataType));
-    ensure(means, "Could not allocate memory for calculated variances");
+    ensure(variances_out, "Could not allocate memory for calculated variances");
 
     BENCH_VAR(cpu)
 
     for (rep = 0; rep < numReps; ++rep) {
         BENCH_SETUP()
-        TIMER_START()
+        TIMER_START(means_cpu)
         calcluateMeanCPU(n, a, b, c, d, means_out, numMatrices);
         TIMER_STOP(means_cpu)
+        TIMER_ACC(means_cpu)
+        TIMER_LOG(means_cpu)
         BENCH_ERROR_MEAN(cpu)
         BENCH_CLEANUP()
 
 
         BENCH_SETUP()
-        TIMER_START()
-        calcluateVarianceCPU(n, a, b, c, d, variances_out, numMatrices);
+        TIMER_START(variances_cpu)
+        calcluateVarianceCPU(n, a, b, c, e, variances_out, numMatrices);
         TIMER_STOP(variances_cpu)
+        TIMER_ACC(variances_cpu)
+        TIMER_LOG(variances_cpu)
         BENCH_ERROR_VARIANCE(cpu)
         BENCH_CLEANUP()
     }
@@ -667,6 +620,8 @@ int main(int argc, char const *argv[]) {
     // gpuErrchk( cudaPeekAtLastError() );
     // gpuErrchk( cudaDeviceSynchronize() );
 
+    free(a); free(b); free(c); free(d); free(e);
+    free(_a); free(_b); free(_c); free(_d); free(_e); free(_means); free(_variances);
     free(means_out); free(variances_out);
 
     // gpuErrchk( cudaFreeHost(means) );
