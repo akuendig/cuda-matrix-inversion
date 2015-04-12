@@ -23,6 +23,7 @@ extern "C" {
 #endif // __cplusplus
 
 #include "../include/types.h"
+#include "../include/timer.h"
 #include "../include/helper_cpu.h"
 #include "../include/helper_gpu.h"
 #include "../include/inverse_cpu.h"
@@ -45,58 +46,13 @@ static void mat_sum(Array a, int M, int N, DataType *total) {
     *total = cblas_sasum(M*N, a, 1);
 }
 
-#define BILLION 1000000000
-static void time_add(struct timespec *t1, const struct timespec *t2) {
-    t1->tv_sec += t2->tv_sec;
-    t1->tv_nsec += t2->tv_nsec;
 
-    if (t1->tv_nsec >= BILLION) {
-        t1->tv_nsec -= BILLION;
-        t1->tv_sec++;
-    }
-}
+#define BENCH_VAR(name) \
+    float error_##name = 0; \
+    double total_error_##name = 0; \
+    TIMER_INIT(name)
 
-static void time_sub(struct timespec *t1, const struct timespec *t2) {
-    if (t1->tv_nsec < t2->tv_nsec) {
-        ensure(t1->tv_sec >= 1, "No negative time possible");
-
-        t1->tv_sec -= 1;
-        t1->tv_nsec += BILLION;
-    }
-
-    ensure(t1->tv_sec >= t2->tv_sec, "No negative time possible");
-    t1->tv_nsec -= t2->tv_nsec;
-    t1->tv_sec -= t2->tv_sec;
-}
-
-static void time_div(struct timespec *t1, double div) {
-    double sec = t1->tv_sec / div;
-    double nsec = (sec - floor(sec))*BILLION + t1->tv_nsec / div;
-
-    t1->tv_sec = floor(sec);
-    t1->tv_nsec = floor(nsec);
-}
-
-static double time_to_ms(struct timespec *t1) {
-    return t1->tv_sec*1000.0 + t1->tv_nsec/1000.0/1000.0;
-}
-
-#ifdef __APPLE__
-#define TIMER_START(name) start = clock();
-#define TIMER_STOP(name) \
-    diff = clock() - start; \
-    cycle_sum_##name += diff; \
-    if (detailed) { printf("Execution time of " #name ": %lucycles \n", diff); }
-#else
-#define TIMER_START(name) clock_gettime(CLOCK_MONOTONIC, &ts_start);
-#define TIMER_STOP(name) \
-    clock_gettime(CLOCK_MONOTONIC, &ts_end); \
-    time_sub(&ts_end, &ts_start); \
-    time_add(&ts_sum_##name, &ts_end); \
-    if (detailed) { printf("Execution time of " #name ": %.4fms \n", time_to_ms(&ts_end)); }
-#endif
-
-#define BENCH_PREPARE(name) \
+#define BENCH_SETUP(name) \
     for (i = 0; i < numMatrices; ++i) { \
         Array current_a = a + (i * M * N); \
         Array current_atra = atra + (i * N * N); \
@@ -114,25 +70,26 @@ static double time_to_ms(struct timespec *t1) {
 \
         cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, \
             M, N, 1.f, current_inv, N, current_atra, N, 0, current_rec, N); \
-        mat_sum(current_rec, M, N, &total_##name); \
+        mat_sum(current_rec, M, N, &error_##name); \
 \
-        total_sum_##name += total_##name; \
-        if (detailed) { printf("L1 error for " #name  ": %f\n", total_##name); } \
+        total_error_##name += error_##name; \
+        if (detailed) { printf("L1 error for " #name  ": %f\n", error_##name); } \
     }
 
 #define BENCH_REPORT_ERROR(name) \
     printf("Total error for %d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, total_sum_##name, total_sum_##name/numMatrices)
+        numMatrices, total_error_##name, total_error_##name/numMatrices)
 
 #ifdef __APPLE__
 #define BENCH_REPORT_TIME(name) \
     printf("Total execution time for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
-        numMatrices, BENCH_REPS, cycle_sum_##name, cycle_sum_##name/numMatrices/BENCH_REPS)
+        numMatrices, BENCH_REPS, timer_total_##name, timer_total_##name/numMatrices/BENCH_REPS)
 #else
 #define BENCH_REPORT_TIME(name) \
     printf("Total execution time for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
-        numMatrices, BENCH_REPS, time_to_ms(&ts_sum_##name), time_to_ms(&ts_sum_##name)/numMatrices/BENCH_REPS)
+        numMatrices, BENCH_REPS, time_to_ms(&timer_total_##name), time_to_ms(&timer_total_##name)/numMatrices/BENCH_REPS)
 #endif // __APPLE__
+
 
 void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     cublasHandle_t handle;
@@ -142,54 +99,23 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     Array reconstr = (Array)malloc(numMatrices*N*N*sizeof(DataType));
     Array workspace = (Array)malloc(N*N*sizeof(DataType));
 
-    DataType
-        total_lu_blas_cpu,
-        total_lu_blas_omp_cpu,
-        total_chol_gpu,
-        total_gauss_kernel_gpu,
-        total_gauss_batched_gpu,
-        total_lu_cuda_batched_gpu,
-
-        total_sum_lu_blas_cpu = 0,
-        total_sum_lu_blas_omp_cpu = 0,
-        total_sum_chol_gpu = 0,
-        total_sum_gauss_kernel_gpu = 0,
-        total_sum_gauss_batched_gpu = 0,
-        total_sum_lu_cuda_batched_gpu = 0;
     int i, rep;
-#ifdef __APPLE__
-    clock_t start, diff,
-        cycle_sum_lu_blas_cpu = 0,
-        cycle_sum_lu_blas_omp_cpu = 0,
-        cycle_sum_chol_gpu = 0,
-        cycle_sum_gauss_kernel_gpu = 0,
-        cycle_sum_gauss_batched_gpu = 0,
-        cycle_sum_lu_cuda_batched_gpu = 0;
-#else
-    struct timespec ts_start, ts_end,
-        ts_sum_lu_blas_cpu = { 0 },
-        ts_sum_lu_blas_omp_cpu = { 0 },
-        ts_sum_chol_gpu = { 0 },
-        ts_sum_gauss_kernel_gpu = { 0 },
-        ts_sum_gauss_batched_gpu = { 0 },
-        ts_sum_lu_cuda_batched_gpu = { 0 };
-#endif
+
+    BENCH_VAR(lu_blas_cpu)
+    BENCH_VAR(lu_blas_omp_cpu)
+    BENCH_VAR(chol_gpu)
+    BENCH_VAR(gauss_kernel_gpu)
+    BENCH_VAR(gauss_batched_gpu)
+    BENCH_VAR(lu_cuda_batched_gpu)
 
     // CPU Benchmark 1
     ////////////////
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_a = a + (i * M * N);
-        Array current_atra = atra + (i * N * N);
-
-        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, current_atra, N);
-        fill_sym(current_atra, N, N);
-    }
+    BENCH_SETUP(lu_blas_cpu)
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
         cblas_scopy(numMatrices*N*N, atra, 1, inv, 1);
 
-        TIMER_START()
+        TIMER_START(lu_blas_cpu)
         for (i = 0; i < numMatrices; ++i) {
             Array current_atra = atra + (i * N * N);
             Array current_inv = inv + (i * N * N);
@@ -197,27 +123,22 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
             inverse_lu_blas(current_inv, workspace, N);
         }
         TIMER_STOP(lu_blas_cpu)
+        TIMER_ACC(lu_blas_cpu)
     }
 
     BENCH_CLEANUP(lu_blas_cpu);
 
     // CPU Benchmark 2
     ////////////////
-    for (i = 0; i < numMatrices; ++i) {
-        Array current_a = a + (i * M * N);
-        Array current_atra = atra + (i * N * N);
-
-        cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans,
-            N, M, 1, current_a, M, 0, current_atra, N);
-        fill_sym(current_atra, N, N);
-    }
+    BENCH_SETUP(lu_blas_omp_cpu)
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
         cblas_scopy(numMatrices*N*N, atra, 1, inv, 1);
 
-        TIMER_START()
+        TIMER_START(lu_blas_omp_cpu)
         inverse_lu_blas_omp(inv, N, numMatrices);
         TIMER_STOP(lu_blas_omp_cpu)
+        TIMER_ACC(lu_blas_omp_cpu)
     }
 
     BENCH_CLEANUP(lu_blas_omp_cpu);
@@ -228,15 +149,16 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     // GPU Benchmark 1
     //////////////////
     // Build benchmark data
-    BENCH_PREPARE(chol_gpu)
+    BENCH_SETUP(chol_gpu)
 
     // Compute inverses
     for (rep = 0; rep < BENCH_REPS; ++rep) {
         cblas_scopy(numMatrices*N*N, atra, 1, inv, 1);
 
-        TIMER_START()
+        TIMER_START(chol_gpu)
         // inverse_chol_gpu(inv, N, numMatrices);
         TIMER_STOP(chol_gpu)
+        TIMER_ACC(chol_gpu)
 
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
@@ -248,16 +170,17 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     // GPU Benchmark 2
     //////////////////
     // Build benchmark data
-    BENCH_PREPARE(gauss_kernel_gpu)
+    BENCH_SETUP(gauss_kernel_gpu)
 
     // Compute inverses
     //gpuErrchk( cudaProfilerStart() );
     for (rep = 0; rep < BENCH_REPS; ++rep) {
         cblas_scopy(numMatrices*N*N, atra, 1, reconstr, 1);
 
-        TIMER_START()
+        TIMER_START(gauss_kernel_gpu)
         inverse_gauss_kernel_gpu(handle, N, reconstr, inv, numMatrices);
         TIMER_STOP(gauss_kernel_gpu)
+        TIMER_ACC(gauss_kernel_gpu)
 
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
@@ -270,14 +193,15 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     // GPU Benchmark 3
     //////////////////
     // Build benchmark data
-    BENCH_PREPARE(gauss_batched_gpu)
+    BENCH_SETUP(gauss_batched_gpu)
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
         cblas_scopy(numMatrices*N*N, atra, 1, reconstr, 1);
 
-        TIMER_START()
+        TIMER_START(gauss_batched_gpu)
         inverse_gauss_batched_gpu(handle, N, reconstr, inv, numMatrices);
         TIMER_STOP(gauss_batched_gpu)
+        TIMER_ACC(gauss_batched_gpu)
 
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
@@ -289,14 +213,15 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
     // GPU Benchmark 4
     //////////////////
     // Build benchmark data
-    BENCH_PREPARE(lu_cuda_batched_gpu)
+    BENCH_SETUP(lu_cuda_batched_gpu)
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
         cblas_scopy(numMatrices*N*N, atra, 1, reconstr, 1);
 
-        TIMER_START()
+        TIMER_START(lu_cuda_batched_gpu)
         inverse_lu_cuda_batched_gpu(handle, N, reconstr, inv, numMatrices);
         TIMER_STOP(lu_cuda_batched_gpu)
+        TIMER_ACC(lu_cuda_batched_gpu)
 
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
