@@ -19,6 +19,7 @@
 #include "../include/helper_gpu.h"
 #include "../include/inverse_cpu.h"
 #include "../include/inverse_gpu.h"
+#include "../include/gauss_cpu.h"
 
 static const DataType ELEMENT_ZERO = DataType(0);
 static const DataType ELEMENT_ONE = DataType(1);
@@ -323,127 +324,6 @@ static void calcluateVariance(
     gpuErrchk( cudaFreeHost((void*)devAs) );
     gpuErrchk( cudaFreeHost((void*)devBs) );
     gpuErrchk( cudaFreeHost((void*)devCs) );
-}
-
-// Calculates the mean of the matrix set {A, B, C, D}.
-// Mean = A*(B+C)^{-1}*D
-// As       batchSize x n x 1
-// Bs       batchSize x n x n
-// Cs       batchSize x n x 1
-// Ds       batchSize x n x 1
-// Means    batchSize x n x 1
-// Means is assumed to be already allocated.
-static void calcluateMeanCPU(
-    const int n,
-    Array As,
-    Array Bs,
-    Array Cs,
-    Array Ds,
-    Array Means,
-    const int batchSize) {
-
-    int i, j;
-
-    Array workspace = (Array)malloc(sizeof(DataType)*n*n);
-    ensure(workspace, "Could not allocate workspace for matrix inversion");
-
-    for (i = 0; i < batchSize; ++i) {
-        Array currentA = As+(i*n);
-        Array currentB = Bs+(i*n*n);
-        Array currentC = Cs+(i*n);
-        Array currentD = Ds+(i*n);
-
-        // Update diagonal
-        for (j = 0; j < n; ++j) {
-            currentB[j + j*n] += currentC[j];
-        }
-
-        // inverse_lu_blas(currentB, workspace, n);
-        inverse_chol_blas(currentB, n);
-
-        cblas_ssymv (CblasColMajor, CblasUpper,
-            n, // rows in A
-            1, // alpha
-            currentB, // A
-            n, // LDA
-            currentD, // x
-            1, // inc x
-            0, // beta
-            currentC, // y
-            1 // inc y
-        );
-
-        Means[i] = cblas_sdot (
-            n, // rows in x
-            currentA, // x
-            1, // inc x
-            currentC, // y
-            1 // inc y
-        );
-    }
-
-    free(workspace);
-}
-
-// Calculates the variance of the matrix set {A, B, C, E}.
-// Var = E-AT*(B+C)^{-1}*A
-// As       batchSize x n x 1
-// Bs       batchSize x n x n
-// Cs       batchSize x n x 1
-// Es       batchSize x 1 x 1
-// Variances    batchSize x 1 x 1
-// Variances is assumed to be already allocated.
-//
-// Bs and Cs are destroyed
-static void calcluateVarianceCPU(
-    int n,
-    Array As,
-    Array Bs,
-    Array Cs,
-    Array Es,
-    Array Variances,
-    int batchSize) {
-
-    int i, j;
-
-    Array workspace = (Array)malloc(sizeof(DataType)*n*n);
-    ensure(workspace, "Could not allocate workspace for matrix inversion");
-
-    for (i = 0; i < batchSize; ++i) {
-        Array currentA = As+(i*n);
-        Array currentB = Bs+(i*n*n);
-        Array currentC = Cs+(i*n);
-
-        // Update diagonal
-        for (j = 0; j < n; ++j) {
-            currentB[j + j*n] += currentC[j];
-        }
-
-        // inverse_lu_blas(currentB, workspace, n);
-        inverse_chol_blas(currentB, n);
-
-        cblas_ssymv (CblasColMajor, CblasUpper,
-            n, // rows in A
-            1, // alpha
-            currentB, // A
-            n, // LDA
-            currentA, // x
-            1, // inc x
-            0, // beta
-            currentC, // y
-            1 // inc y
-        );
-
-        Variances[i] = Es[i] + cblas_sdot (
-            n, // rows in x
-            currentA, // x
-            1, // inc x
-            currentC, // y
-            1 // inc y
-        );
-    }
-
-    free(workspace);
 }
 
 
