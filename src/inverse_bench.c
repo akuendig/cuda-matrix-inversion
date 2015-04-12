@@ -46,11 +46,11 @@ static void mat_sum(Array a, int M, int N, DataType *total) {
     *total = cblas_sasum(M*N, a, 1);
 }
 
-
 #define BENCH_VAR(name) \
     float error_##name = 0; \
     double total_error_##name = 0; \
-    TIMER_INIT(name)
+    TIMER_INIT(name) \
+    TIMER_ACC_INIT(name)
 
 #define BENCH_SETUP(name) \
     for (i = 0; i < numMatrices; ++i) { \

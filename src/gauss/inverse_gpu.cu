@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <cuda.h>
 #include "cublas_v2.h"
 
 #include "../../include/types.h"
+#include "../../include/timer.h"
 #include "../../include/helper_cpu.h"
 #include "../../include/helper_gpu.h"
 #include "../../include/inverse_cpu.h"
@@ -168,6 +170,12 @@ extern "C" void inverse_gauss_kernel_gpu(
     Array *devAInvs;
     size_t pitchAInvs;
 
+#ifdef DETAILED_LOGGING
+    TIMER_INIT(inverse_gauss_kernel_gpu_mem_htod)
+    TIMER_INIT(inverse_gauss_kernel_gpu_ker)
+    TIMER_INIT(inverse_gauss_kernel_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
     const size_t ArraySize = sizeof(DataType) * n * n;
 
     gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
@@ -176,13 +184,39 @@ extern "C" void inverse_gauss_kernel_gpu(
     gpuErrchk( batchedCudaMalloc(devAs, &pitchAs, ArraySize, batchSize) );
     gpuErrchk( batchedCudaMalloc(devAInvs, &pitchAInvs, ArraySize, batchSize) );
 
+#ifdef DETAILED_LOGGING
+    TIMER_START(inverse_gauss_kernel_gpu_mem_htod)
+#endif // DETAILED_LOGGING
+
     gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
                 cudaMemcpyHostToDevice) );
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(inverse_gauss_kernel_gpu_mem_htod)
+    TIMER_START(inverse_gauss_kernel_gpu_ker)
+#endif // DETAILED_LOGGING
+
     inverse_gauss_kernel_device(handle, n, devAs, devAInvs, batchSize);
+
+#ifdef DETAILED_LOGGING
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+
+    TIMER_STOP(inverse_gauss_kernel_gpu_ker)
+    TIMER_START(inverse_gauss_kernel_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
 
     gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
                 cudaMemcpyDeviceToHost) );
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(inverse_gauss_kernel_gpu_mem_dtoh)
+
+    TIMER_LOG(inverse_gauss_kernel_gpu_mem_htod)
+    TIMER_LOG(inverse_gauss_kernel_gpu_ker)
+    TIMER_LOG(inverse_gauss_kernel_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
     gpuErrchk( cudaFree((void*)devAs[0]) );
     gpuErrchk( cudaFree((void*)devAInvs[0]) );
     gpuErrchk( cudaFreeHost((void*)devAs) );
@@ -201,6 +235,12 @@ extern "C" void inverse_lu_cuda_batched_gpu(
     Array *devAInvs;
     size_t pitchAInvs;
 
+#ifdef DETAILED_LOGGING
+    TIMER_INIT(inverse_lu_cuda_batched_gpu_mem_htod)
+    TIMER_INIT(inverse_lu_cuda_batched_gpu_ker)
+    TIMER_INIT(inverse_lu_cuda_batched_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
     const size_t ArraySize = sizeof(DataType) * n * n;
 
     gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
@@ -209,13 +249,38 @@ extern "C" void inverse_lu_cuda_batched_gpu(
     gpuErrchk( batchedCudaMalloc(devAs, &pitchAs, ArraySize, batchSize) );
     gpuErrchk( batchedCudaMalloc(devAInvs, &pitchAInvs, ArraySize, batchSize) );
 
+#ifdef DETAILED_LOGGING
+    TIMER_START(inverse_lu_cuda_batched_gpu_mem_htod)
+#endif // DETAILED_LOGGING
+
     gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
                 cudaMemcpyHostToDevice) );
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(inverse_lu_cuda_batched_gpu_mem_htod)
+    TIMER_START(inverse_lu_cuda_batched_gpu_ker)
+#endif // DETAILED_LOGGING
+
     inverse_lu_cuda_batched_device(handle, n, devAs, devAInvs, batchSize);
+
+#ifdef DETAILED_LOGGING
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+
+    TIMER_STOP(inverse_lu_cuda_batched_gpu_ker)
+    TIMER_START(inverse_lu_cuda_batched_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
 
     gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
                 cudaMemcpyDeviceToHost) );
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(inverse_lu_cuda_batched_gpu_mem_dtoh)
+
+    TIMER_LOG(inverse_lu_cuda_batched_gpu_mem_htod)
+    TIMER_LOG(inverse_lu_cuda_batched_gpu_ker)
+    TIMER_LOG(inverse_lu_cuda_batched_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
 
     gpuErrchk( cudaFree((void*)devAs[0]) );
     gpuErrchk( cudaFree((void*)devAInvs[0]) );

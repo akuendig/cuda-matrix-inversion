@@ -4,7 +4,9 @@
 #ifdef __APPLE__
 #define TIMER_INIT(name) \
     clock_t timer_start_##name = 0; \
-    clock_t timer_time_##name = 0; \
+    clock_t timer_time_##name = 0;
+
+#define TIMER_ACC_INIT(name) \
     clock_t timer_total_##name = 0;
 
 #define TIMER_START(name) \
@@ -20,13 +22,15 @@
     timer_total_##name = 0;
 
 #define TIMER_LOG(name) \
-    if (detailed) { printf("Timer " #name ": %lucycles\n", timer_total_##name); }
+    printf("Timer " #name ": %lucycles\n", timer_time_##name);
 
 #else
 
 #define TIMER_INIT(name) \
     struct timespec timer_start_##name = { 0 }; \
-    struct timespec timer_time_##name = { 0 }; \
+    struct timespec timer_time_##name = { 0 };
+
+#define TIMER_ACC_INIT(name) \
     struct timespec timer_total_##name = { 0 };
 
 #define TIMER_START(name) \
@@ -43,7 +47,7 @@
     timer_total_##name = { 0 };
 
 #define TIMER_LOG(name) \
-    if (detailed) { printf("Timer " #name ": %.4fms \n", time_to_ms(&timer_time_##name)); }
+    printf("Timer " #name ": %.4fms \n", time_to_ms(&timer_time_##name));
 
 #define TIMER_BILLION 1000000000
 

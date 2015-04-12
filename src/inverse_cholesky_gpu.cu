@@ -164,7 +164,7 @@ void multiplyLowerGPU(Array a, int N) {
 extern "C" void inverse_chol_gpu(Array a, int n) {
     Array a_dev;
 
-    size_t matrixSize = n*n * sizeof(ELEMENT_TYPE);
+    size_t matrixSize = n*n * sizeof(DataType);
     gpuErrchk( cudaMalloc(&a_dev, matrixSize) );
     gpuErrchk( cudaMemcpy(a_dev, a, matrixSize, cudaMemcpyHostToDevice) );
 
@@ -186,7 +186,7 @@ extern "C" void inverse_chol_gpu(Array a, int n) {
 //     readMatricesFile(filePath, &numMatrices, &m, &n, &a);
 //     printMatrix(a, m, n);
 
-//     matrixSize = m * n * sizeof(ELEMENT_TYPE);
+//     matrixSize = m * n * sizeof(DataType);
 //     gpuErrchk( cudaMalloc(&a_dev, matrixSize) );
 //     gpuErrchk( cudaMemcpy(a_dev, a, matrixSize, cudaMemcpyHostToDevice) );
 

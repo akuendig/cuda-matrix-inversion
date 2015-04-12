@@ -26,7 +26,7 @@ extern "C" void readMatricesFile(const char *path, int *numMatrices, int *m, int
     *m = _m;
     *n = _n;
 
-    size_t arraySize = sizeof(ELEMENT_TYPE) * (_numMatrices) * (_m) * (_n);
+    size_t arraySize = sizeof(DataType) * (_numMatrices) * (_m) * (_n);
     ensure(arraySize <= MAX_MATRIX_BYTE_READ, "cannot read file %s because "
         "the allocated array would be bigger than 0x%lX bytes", path, arraySize);
 
@@ -49,6 +49,26 @@ extern "C" void readMatricesFile(const char *path, int *numMatrices, int *m, int
     }
 
     fclose(fp);
+}
+
+extern "C" void replicateMatrices(Array *matrices, const int M, const int N, const int numMatrices, const int numReplications) {
+    const size_t ArraySize = M*N*sizeof(DataType);
+    const size_t ArrayListSize = ArraySize*numMatrices;
+    const size_t ArrayFinalSize = ArrayListSize*numReplications;
+
+    char *replicated = (char*)malloc(ArrayFinalSize);
+    ensure(replicated, "Could not allocate memory for the replicated array (%lu bytes).", ArrayFinalSize);
+
+    int i;
+    char *currentHead = replicated;
+
+    for (i = 0; i < numReplications; ++i, currentHead += ArrayListSize) {
+        memcpy(currentHead, *matrices, ArrayListSize);
+    }
+
+    free(*matrices);
+
+    *matrices = (Array)replicated;
 }
 
 extern "C" void printMatrix(Array a, int M, int N) {

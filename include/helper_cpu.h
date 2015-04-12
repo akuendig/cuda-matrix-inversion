@@ -33,6 +33,7 @@ extern "C" {
 void printMatrix(Array a, int M, int N);
 void printMatrixList(Array a, int N, int batchSize);
 void readMatricesFile(const char *path, int *numMatrices, int *m, int *n, Array *matrices);
+void replicateMatrices(Array *matrices, const int M, const int N, const int numMatrices, const int numReplications);
 #ifdef __cplusplus
 }
 #endif

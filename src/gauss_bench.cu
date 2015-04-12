@@ -507,7 +507,7 @@ void readTest(const char *directory, int *numMatrices, int *n,
 
 // b -= a
 static void vec_diff(const Array a, Array b, const int N) {
-    cblas_saxpy(N, -1.f, a, 1, b, N);
+    cblas_saxpy(N, -1.f, a, 1, b, 1);
 }
 
 static DataType vec_sum(Array a, const int N) {
@@ -518,7 +518,9 @@ static DataType vec_sum(Array a, const int N) {
     double total_error_means_##name = 0; \
     double total_error_variances_##name = 0; \
     TIMER_INIT(means_##name) \
-    TIMER_INIT(variances_##name)
+    TIMER_ACC_INIT(means_##name) \
+    TIMER_INIT(variances_##name) \
+    TIMER_ACC_INIT(variances_##name)
 
 #define BENCH_SETUP() \
     cblas_scopy(numMatrices*n, _a, 1, a, 1); \
@@ -528,12 +530,12 @@ static DataType vec_sum(Array a, const int N) {
     cblas_scopy(numMatrices, _e, 1, e, 1);
 
 #define BENCH_ERROR_MEAN(name) \
-    vec_diff(means_out, _means, n); \
-    total_error_means_##name += vec_sum(means_out, n);
+    vec_diff(means_out, _means, numMatrices); \
+    total_error_means_##name += vec_sum(means_out, numMatrices);
 
 #define BENCH_ERROR_VARIANCE(name) \
-    vec_diff(variances_out, _variances, n); \
-    total_error_variances_##name += vec_sum(variances_out, n);
+    vec_diff(variances_out, _variances, numMatrices); \
+    total_error_variances_##name += vec_sum(variances_out, numMatrices);
 
 #define BENCH_CLEANUP(name)
 
@@ -558,16 +560,17 @@ static DataType vec_sum(Array a, const int N) {
 #endif // __APPLE__
 
 int main(int argc, char const *argv[]) {
-    int numMatrices, n, rep, numReps;
+    int numMatrices, n, rep, numReps, numDuplicates;
     Array a, b, c, d, e,
         _a, _b, _c, _d, _e, _means, _variances;
     Array means_out, variances_out;
 
-    ensure(argc >= 3, "Usage: gauss_bench TEST_FOLDER NUM_REPLICATIONS [-d]");
+    ensure(argc >= 4, "Usage: gauss_bench TEST_FOLDER TEST_REPLICATIONS MATRIX_DUPLICATES [-d]");
 
-    bool detailed = (argc >= 4) && !strncmp("-d", argv[3], 2);
+    bool detailed = (argc >= 5) && !strncmp("-d", argv[4], 2);
 
     numReps = atoi(argv[2]);
+    numDuplicates = atoi(argv[3]);
 
     // cublasHandle_t handle;
 
@@ -575,6 +578,15 @@ int main(int argc, char const *argv[]) {
     // gpuErrchk( cudaHostAlloc(&means, sizeof(DataType)*numMatrices, cudaHostAllocDefault) ); \
 
     readTest(argv[1], &numMatrices, &n, &_a, &_b, &_c, &_d, &_e, &_means, &_variances);
+    replicateMatrices(&_a, n, 1, numMatrices, numDuplicates);
+    replicateMatrices(&_b, n, n, numMatrices, numDuplicates);
+    replicateMatrices(&_c, n, 1, numMatrices, numDuplicates);
+    replicateMatrices(&_d, n, 1, numMatrices, numDuplicates);
+    replicateMatrices(&_e, 1, 1, numMatrices, numDuplicates);
+    replicateMatrices(&_means, 1, 1, numMatrices, numDuplicates);
+    replicateMatrices(&_variances, 1, 1, numMatrices, numDuplicates);
+
+    numMatrices *= numDuplicates;
 
     a = (Array)malloc(numMatrices*n*sizeof(DataType));
     ensure(a, "Could not allocate memory for A");
@@ -599,7 +611,7 @@ int main(int argc, char const *argv[]) {
         calcluateMeanCPU(n, a, b, c, d, means_out, numMatrices);
         TIMER_STOP(means_cpu)
         TIMER_ACC(means_cpu)
-        TIMER_LOG(means_cpu)
+        if (detailed) { TIMER_LOG(means_cpu) }
         BENCH_ERROR_MEAN(cpu)
         BENCH_CLEANUP()
 
@@ -609,7 +621,7 @@ int main(int argc, char const *argv[]) {
         calcluateVarianceCPU(n, a, b, c, e, variances_out, numMatrices);
         TIMER_STOP(variances_cpu)
         TIMER_ACC(variances_cpu)
-        TIMER_LOG(variances_cpu)
+        if (detailed) { TIMER_LOG(variances_cpu) }
         BENCH_ERROR_VARIANCE(cpu)
         BENCH_CLEANUP()
     }
@@ -620,9 +632,8 @@ int main(int argc, char const *argv[]) {
     // gpuErrchk( cudaPeekAtLastError() );
     // gpuErrchk( cudaDeviceSynchronize() );
 
-    free(a); free(b); free(c); free(d); free(e);
+    free(a); free(b); free(c); free(d); free(e); free(means_out); free(variances_out);
     free(_a); free(_b); free(_c); free(_d); free(_e); free(_means); free(_variances);
-    free(means_out); free(variances_out);
 
     // gpuErrchk( cudaFreeHost(means) );
     // cublasErrchk( cublasDestroy(handle) );

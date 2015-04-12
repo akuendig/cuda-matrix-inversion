@@ -98,3 +98,12 @@ void inverse_chol_blas(Array a, int N) {
     // printMatrix(a, N, N);
     ensure(!error, "Error code %d in cholesky inversion", error);
 }
+
+void inverse_chol_blas_omp(Array as, int N, int batchSize) {
+    int i;
+
+    #pragma omp parallel for schedule(dynamic, 8)
+    for (i = 0; i < batchSize; ++i) {
+        inverse_chol_blas(as+(i*N*N), N);
+    }
+}

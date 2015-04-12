@@ -107,6 +107,11 @@ else
 	TARGET := release
 endif
 
+# Logging build flags
+ifeq ($(log),1)
+	CCFLAGS += -DDETAILED_LOGGING
+endif
+
 ALL_CCFLAGS :=
 ALL_CCFLAGS += $(NVCCFLAGS)
 ALL_CCFLAGS += $(EXTRA_NVCCFLAGS)
@@ -126,12 +131,6 @@ ifneq ($(DARWIN),)
   LIBRARIES += -L/usr/local/opt/openblas/lib -L/usr/local/opt/lapack/lib -L/usr/local/opt/gcc/lib/gcc/4.9
 else
   LIBRARIES += -L/usr/lib64/atlas
-endif
-
-################################################################################
-
-ifeq ($(SAMPLE_ENABLED),0)
-EXEC ?= @echo "[@]"
 endif
 
 ################################################################################
