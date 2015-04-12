@@ -182,10 +182,13 @@ inverse_bench.o: src/inverse_bench.c
 inverse_bench: inverse_bench.o inverse_cpu.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
+gauss_cpu.o: src/gauss_cpu.c
+	$(EXEC) $(CC) $(INCLUDES) $(CCFLAGS) -fopenmp -o $@ -c $<
+
 gauss_bench.o: src/gauss_bench.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-gauss_bench: gauss_bench.o inverse_cpu.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
+gauss_bench: gauss_bench.o gauss_cpu.o inverse_cpu.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 bench-all: bench
