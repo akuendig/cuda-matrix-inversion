@@ -14,6 +14,9 @@ OS_SIZE    = $(shell uname -m | sed -e "s/x86_64/64/" -e "s/armv7l/32/" -e "s/aa
 OS_ARCH    = $(shell uname -m)
 ARCH_FLAGS =
 
+BENCH_REPS ?= 50
+BENCH_NUM_THREADS ?= 1
+
 DARWIN = $(strip $(findstring DARWIN, $(OSUPPER)))
 ifneq ($(DARWIN),)
 	XCODE_GE_5 = $(shell expr `xcodebuild -version | grep -i xcode | awk '{print $$2}' | cut -d'.' -f1` \>= 5)
@@ -69,18 +72,18 @@ ifneq ($(DARWIN),)
   # CCFLAGS += -arch $(OS_ARCH)
 else
   ifeq ($(OS_ARCH),armv7l)
-    ifeq ($(abi),androideabi)
-      NVCCFLAGS += -target-os-variant Android
-    else
-      ifeq ($(abi),gnueabi)
-        CCFLAGS += -mfloat-abi=softfp
-      else
-        # default to gnueabihf
-        override abi := gnueabihf
-        LDFLAGS += --dynamic-linker=/lib/ld-linux-armhf.so.3
-        CCFLAGS += -mfloat-abi=hard
-      endif
-    endif
+	ifeq ($(abi),androideabi)
+	  NVCCFLAGS += -target-os-variant Android
+	else
+	  ifeq ($(abi),gnueabi)
+		CCFLAGS += -mfloat-abi=softfp
+	  else
+		# default to gnueabihf
+		override abi := gnueabihf
+		LDFLAGS += --dynamic-linker=/lib/ld-linux-armhf.so.3
+		CCFLAGS += -mfloat-abi=hard
+	  endif
+	endif
   endif
 endif
 
@@ -191,8 +194,12 @@ gauss_bench.o: src/gauss_bench.cu
 gauss_bench: gauss_bench.o gauss_cpu.o inverse_cpu.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
-bench-all: bench
-	./bench 10 134217728 10
+bench-all: gauss_bench
+	for i in 8 16 32 64 128; do \
+		for (( j = 1; j <= 10; j++ )); do \
+			OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./gauss_bench ./tests/gaussian_100_$$((i))x$$((i)) $(BENCH_REPS) $$j; \
+		done \
+	done \
 
 cholesky_gpu.o: src/inverse_cholesky_gpu.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
