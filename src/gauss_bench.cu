@@ -425,19 +425,18 @@ static DataType vec_sum(Array a, const int N) {
     printf("Total error in variances calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
         numMatrices, n, n, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps);
 
-#ifdef __APPLE__
 #define BENCH_REPORT_TIME(name) \
-    printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
-        numMatrices, n, n, numReps, timer_total_means_##name, timer_total_means_##name/numMatrices/numReps); \
-    printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
-        numMatrices, n, n, numReps, timer_total_variances_##name, timer_total_variances_##name/numMatrices/numReps);
-#else
-#define BENCH_REPORT_TIME(name) \
-    printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
-        numMatrices, n, n, numReps, time_to_ms(&timer_total_means_##name), time_to_ms(&timer_total_means_##name)/numMatrices/numReps); \
-    printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
-        numMatrices, n, n, numReps, time_to_ms(&timer_total_variances_##name), time_to_ms(&timer_total_variances_##name)/numMatrices/numReps);
-#endif // __APPLE__
+    if (numReps > 1) { \
+        printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
+            numMatrices, n, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name)); \
+        printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
+            numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name)); \
+    } else { \
+        printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
+            numMatrices, n, n, numReps, TIMER_TOTAL(means_##name)); \
+        printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
+            numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name)); \
+    }
 
 int main(int argc, char const *argv[]) {
     int numMatrices, n, rep, numReps, numDuplicates;
