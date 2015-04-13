@@ -77,17 +77,17 @@ static void mat_sum(Array a, int M, int N, DataType *total) {
     }
 
 #define BENCH_REPORT_ERROR(name) \
-    printf("Total error for %d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, total_error_##name, total_error_##name/numMatrices)
+    printf("Total error for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
+        numMatrices, N, N, total_error_##name, total_error_##name/numMatrices)
 
 #ifdef __APPLE__
 #define BENCH_REPORT_TIME(name) \
-    printf("Total execution time for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
-        numMatrices, BENCH_REPS, timer_total_##name, timer_total_##name/numMatrices/BENCH_REPS)
+    printf("Total execution time for %d %dx%d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
+        numMatrices, N, N, BENCH_REPS, timer_total_##name, timer_total_##name/numMatrices/BENCH_REPS)
 #else
 #define BENCH_REPORT_TIME(name) \
-    printf("Total execution time for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
-        numMatrices, BENCH_REPS, time_to_ms(&timer_total_##name), time_to_ms(&timer_total_##name)/numMatrices/BENCH_REPS)
+    printf("Total execution time for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
+        numMatrices, N, N, BENCH_REPS, time_to_ms(&timer_total_##name), time_to_ms(&timer_total_##name)/numMatrices/BENCH_REPS)
 #endif // __APPLE__
 
 

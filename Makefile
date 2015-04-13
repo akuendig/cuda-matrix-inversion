@@ -15,6 +15,7 @@ OS_ARCH    = $(shell uname -m)
 ARCH_FLAGS =
 
 BENCH_REPS ?= 50
+BENCH_MAX_DUPS ?= 10
 BENCH_NUM_THREADS ?= 1
 
 DARWIN = $(strip $(findstring DARWIN, $(OSUPPER)))
@@ -115,6 +116,10 @@ ifeq ($(log),1)
 	CCFLAGS += -DDETAILED_LOGGING
 endif
 
+ifeq ($(solve),1)
+	CCFLAGS += -DGAUSS_SOLVE
+endif
+
 ALL_CCFLAGS :=
 ALL_CCFLAGS += $(NVCCFLAGS)
 ALL_CCFLAGS += $(EXTRA_NVCCFLAGS)
@@ -196,10 +201,10 @@ gauss_bench: gauss_bench.o gauss_cpu.o inverse_cpu.o cholesky_gpu.o inverse_gaus
 
 bench-all: gauss_bench
 	for i in 8 16 32 64 128; do \
-		for (( j = 1; j <= 10; j++ )); do \
+		for (( j = 1; j <= $(BENCH_MAX_DUPS); j++ )); do \
 			OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./gauss_bench ./tests/gaussian_100_$$((i))x$$((i)) $(BENCH_REPS) $$j; \
 		done \
-	done \
+	done
 
 cholesky_gpu.o: src/inverse_cholesky_gpu.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<

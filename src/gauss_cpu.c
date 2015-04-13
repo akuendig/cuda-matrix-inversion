@@ -25,13 +25,13 @@
 // Means    batchSize x n x 1
 // Means is assumed to be already allocated.
 void calcluateMeanCPU(
-    const int n,
+    int n,
     Array As,
     Array Bs,
     Array Cs,
     Array Ds,
     Array Means,
-    const int batchSize) {
+    int batchSize) {
 
     int i, j;
 
@@ -80,6 +80,73 @@ void calcluateMeanCPU(
     }
 }
 
+// Calculates the mean of the matrix set {A, B, C, D}.
+// Mean = A*(B+C)^{-1}*D
+// As       batchSize x n x 1
+// Bs       batchSize x n x n
+// Cs       batchSize x n x 1
+// Ds       batchSize x n x 1
+// Means    batchSize x n x 1
+// Means is assumed to be already allocated.
+void calcluateMeanSolveCPU(
+    int n,
+    Array As,
+    Array Bs,
+    Array Cs,
+    Array Ds,
+    Array Means,
+    int batchSize) {
+
+    int i, j;
+
+    #pragma omp parallel shared(As, Bs, Cs, Ds, Means) private(j)
+    {
+        Array workspace = (Array)malloc(sizeof(DataType)*n*n);
+        ensure(workspace, "Could not allocate workspace for matrix inversion");
+
+        #pragma omp for schedule(dynamic, 8)
+        for (i = 0; i < batchSize; ++i) {
+            Array currentA = As+(i*n);
+            Array currentB = Bs+(i*n*n);
+            Array currentC = Cs+(i*n);
+            Array currentD = Ds+(i*n);
+
+            // Update diagonal
+            for (j = 0; j < n; ++j) {
+                currentB[j + j*n] += currentC[j];
+            }
+
+            int error;
+            int one = 1;
+
+            spotrf_("U", &n, currentB, &n, &error);
+            // printMatrix(a, N, N);
+            ensure(!error, "Error code %d in cholesky factorization", error);
+
+            spotrs_("U",
+                &n, // rows in A
+                &one, // NRHS
+                currentB, // A
+                &n, // LDA
+                currentD, // x
+                &n, // LDB
+                &error
+            );
+            ensure(!error, "Error code %d while solving linear system of equations", error);
+
+            Means[i] = cblas_sdot (
+                n, // rows in x
+                currentA, // x
+                1, // inc x
+                currentC, // y
+                1 // inc y
+            );
+        }
+
+        free(workspace);
+    }
+}
+
 // Calculates the variance of the matrix set {A, B, C, E}.
 // Var = E-AT*(B+C)^{-1}*A
 // As       batchSize x n x 1
@@ -91,13 +158,13 @@ void calcluateMeanCPU(
 //
 // Bs and Cs are destroyed
 void calcluateVarianceCPU(
-    const int n,
+    int n,
     Array As,
     Array Bs,
     Array Cs,
     Array Es,
     Array Variances,
-    const int batchSize) {
+    int batchSize) {
 
     int i, j;
 
@@ -131,6 +198,74 @@ void calcluateVarianceCPU(
                 currentC, // y
                 1 // inc y
             );
+
+            Variances[i] = Es[i] + cblas_sdot (
+                n, // rows in x
+                currentA, // x
+                1, // inc x
+                currentC, // y
+                1 // inc y
+            );
+        }
+
+        free(workspace);
+    }
+}
+
+// Calculates the variance of the matrix set {A, B, C, E}.
+// Var = E-AT*(B+C)^{-1}*A
+// As       batchSize x n x 1
+// Bs       batchSize x n x n
+// Cs       batchSize x n x 1
+// Es       batchSize x 1 x 1
+// Variances    batchSize x 1 x 1
+// Variances is assumed to be already allocated.
+//
+// Bs and Cs are destroyed
+void calcluateVarianceSolveCPU(
+    int n,
+    Array As,
+    Array Bs,
+    Array Cs,
+    Array Es,
+    Array Variances,
+    int batchSize) {
+
+    int i, j;
+
+    #pragma omp parallel shared(As, Bs, Cs, Es, Variances) private(j)
+    {
+        Array workspace = (Array)malloc(sizeof(DataType)*n*n);
+        ensure(workspace, "Could not allocate workspace for matrix inversion");
+
+        #pragma omp for schedule(dynamic, 16)
+        for (i = 0; i < batchSize; ++i) {
+            Array currentA = As+(i*n);
+            Array currentB = Bs+(i*n*n);
+            Array currentC = Cs+(i*n);
+
+            // Update diagonal
+            for (j = 0; j < n; ++j) {
+                currentB[j + j*n] += currentC[j];
+            }
+
+            int error;
+            int one = 1;
+
+            spotrf_("U", &n, currentB, &n, &error);
+            // printMatrix(a, N, N);
+            ensure(!error, "Error code %d in cholesky factorization", error);
+
+            spotrs_("U",
+                &n, // rows in A
+                &one, // NRHS
+                currentB, // A
+                &n, // LDA
+                currentA, // x
+                &n, // LDB
+                &error
+            );
+            ensure(!error, "Error code %d while solving linear system of equations", error);
 
             Variances[i] = Es[i] + cblas_sdot (
                 n, // rows in x

@@ -14,13 +14,21 @@ extern "C" {
 // Means    batchSize x n x 1
 // Means is assumed to be already allocated.
 void calcluateMeanCPU(
-    const int n,
+    int n,
     Array As,
     Array Bs,
     Array Cs,
     Array Ds,
     Array Means,
-    const int batchSize);
+    int batchSize);
+void calcluateMeanSolveCPU(
+    int n,
+    Array As,
+    Array Bs,
+    Array Cs,
+    Array Ds,
+    Array Means,
+    int batchSize);
 
 // Calculates the variance of the matrix set {A, B, C, E}.
 // Var = E-AT*(B+C)^{-1}*A
@@ -33,13 +41,21 @@ void calcluateMeanCPU(
 //
 // Bs and Cs are destroyed
 void calcluateVarianceCPU(
-    const int n,
+    int n,
     Array As,
     Array Bs,
     Array Cs,
     Array Es,
     Array Variances,
-    const int batchSize);
+    int batchSize);
+void calcluateVarianceSolveCPU(
+    int n,
+    Array As,
+    Array Bs,
+    Array Cs,
+    Array Es,
+    Array Variances,
+    int batchSize);
 
 #ifdef __cplusplus
 }

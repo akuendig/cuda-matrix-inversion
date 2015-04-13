@@ -420,23 +420,23 @@ static DataType vec_sum(Array a, const int N) {
 #define BENCH_CLEANUP(name)
 
 #define BENCH_REPORT_ERROR(name) \
-    printf("Total error in means calculation for %d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, total_error_means_##name, total_error_means_##name/numMatrices/numReps); \
-    printf("Total error in variances calculation for %d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps);
+    printf("Total error in means calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
+        numMatrices, n, n, total_error_means_##name, total_error_means_##name/numMatrices/numReps); \
+    printf("Total error in variances calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
+        numMatrices, n, n, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps);
 
 #ifdef __APPLE__
 #define BENCH_REPORT_TIME(name) \
-    printf("Total execution time in means for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
-        numMatrices, numReps, timer_total_means_##name, timer_total_means_##name/numMatrices/numReps); \
-    printf("Total execution time in variances for %d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
-        numMatrices, numReps, timer_total_variances_##name, timer_total_variances_##name/numMatrices/numReps);
+    printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
+        numMatrices, n, n, numReps, timer_total_means_##name, timer_total_means_##name/numMatrices/numReps); \
+    printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %lu cycles (%lu cycles average)\n", \
+        numMatrices, n, n, numReps, timer_total_variances_##name, timer_total_variances_##name/numMatrices/numReps);
 #else
 #define BENCH_REPORT_TIME(name) \
-    printf("Total execution time in means for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
-        numMatrices, numReps, time_to_ms(&timer_total_means_##name), time_to_ms(&timer_total_means_##name)/numMatrices/numReps); \
-    printf("Total execution time in variances for %d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
-        numMatrices, numReps, time_to_ms(&timer_total_variances_##name), time_to_ms(&timer_total_variances_##name)/numMatrices/numReps);
+    printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
+        numMatrices, n, n, numReps, time_to_ms(&timer_total_means_##name), time_to_ms(&timer_total_means_##name)/numMatrices/numReps); \
+    printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average)\n", \
+        numMatrices, n, n, numReps, time_to_ms(&timer_total_variances_##name), time_to_ms(&timer_total_variances_##name)/numMatrices/numReps);
 #endif // __APPLE__
 
 int main(int argc, char const *argv[]) {
@@ -488,7 +488,11 @@ int main(int argc, char const *argv[]) {
     for (rep = 0; rep < numReps; ++rep) {
         BENCH_SETUP()
         TIMER_START(means_cpu)
+#ifdef GAUSS_SOLVE
+        calcluateMeanSolveCPU(n, a, b, c, d, means_out, numMatrices);
+#else
         calcluateMeanCPU(n, a, b, c, d, means_out, numMatrices);
+#endif
         TIMER_STOP(means_cpu)
         TIMER_ACC(means_cpu)
         if (detailed) { TIMER_LOG(means_cpu) }
@@ -498,7 +502,11 @@ int main(int argc, char const *argv[]) {
 
         BENCH_SETUP()
         TIMER_START(variances_cpu)
+#ifdef GAUSS_SOLVE
+        calcluateVarianceSolveCPU(n, a, b, c, e, variances_out, numMatrices);
+#else
         calcluateVarianceCPU(n, a, b, c, e, variances_out, numMatrices);
+#endif
         TIMER_STOP(variances_cpu)
         TIMER_ACC(variances_cpu)
         if (detailed) { TIMER_LOG(variances_cpu) }
