@@ -1,0 +1,66 @@
+\title{\textbf{\Huge Matrix Batch Processing using CUDA}}
+
+\author{{\Large Nguyen Duy Hoang, Harry (A0048242L)} \\
+	{\Large Dandekar, Ashish (A0123873A)}\\
+	{\Large Ku\"endig, Adrian (A0134824H)} \\
+	{\Large Ranade, Ketki (A0119950B)}\\
+	{\Large Pham Thanh Tung, Terry (A0120113J)} \\\\
+	National University of Singapore,\\
+	Singapore
+}
+\date{\today}
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[english]{babel}
+% \usepackage{listingstyle}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+% \usepackage{coz}
+\usepackage{url}
+\usepackage{array}
+\usepackage{multirow}
+% \usepackage[autolanguage]{numprint}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\newpage
+\section{Introduction}
+Many modern applications such as multi-sensor networks require batch processing of large array of small-scale matrices. Leveraging on the massive multi-core architecture, our projects aim to explore the use of GPU to perform various matrix operations effectively and simultaneously. Unlike available libraries, the emphasis is not only on the efficient implementation of the primitives but also on batching the multiple matrices on GPUs. It embarks on first steps of numerous optimization problems like Gaussian Process Model where we conjecture that the massive parallelism of GPU will have cutting edge over CPU.
+\subsection{Matrix Computation and CUDA}
+\subsection{Gaussian Process Optimization}
+
+\section{Related Work}
+% Write about papers and existing libraries
+
+Addition, multiplication and inversion are the primitive operations on the matrix, out of which inversion is far more non-trivial than other operations. Different papers have proposed solution to this problem. For example, Sharma et al. (2013) have implemented a fast parallel Gauss Jordan algorithm for matrix inversion on GPU. Benner et al. (2011) have shown that using the GPU only provides a speedup if the matrix exceeds a certain dimension. \\\\
+The Gauss-Jordan algorithm discussed by Sharma et al. (2013) works with any invertible matrix. But the implementation is constrained by the limitations of CUDA (e.g., maximum of threads that can be launched and the size of the shared memory).\\\\
+On the other hand, Benner et al. (2011) have focused on the SPD matrix inversion problem. The paper talks about two different ways to invert the SPD matrices namely, via Cholesky decomposition and using Gauss Jordan transformation. There is one remarkable result one gets from the paper that inverting the large matrices on GPU is profitable compared to inverting small matrices since the massive parallelism pays off the cost of data transfer.\\\\
+Along with addition and multiplication, we aim to implement inversion of the matrices catered to the requirements enlisted above. Although Benner et al. (2011) have shown that inverting a small matrix on the GPU is not economical, they have not explored the possible performance gains, if any, achievable by batching inversion of multiple matrices. We will study these works and implement matrix operations by utilizing primitives provided by CUDA.
+
+
+\section{Problem Description}
+
+% Do mention the assumptions related to data (for instance: SPD, same matrix size within a batch)
+
+\section{Algorithms}
+% No need to write about addition/Multiplication
+% If there is any need, do add the subsections
+\subsection{Gauss-Jordan Method of Inversion}
+\subsection{Matrix Inversion using Cholesky Decomposition}
+
+\section{Experimental Evaluation}
+\subsection{System Specification}
+\subsection{Data Generation}
+\subsection{Benchmarking}
+
+\section{Conclusion and Future Work}
+
+\newpage
+
+\bibliographystyle{abbrv}
+\bibliography{references}
+\end{document}
