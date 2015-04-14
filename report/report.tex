@@ -53,9 +53,30 @@ Along with addition and multiplication, we aim to implement inversion of the mat
 \subsection{Matrix Inversion using Cholesky Decomposition}
 
 \section{Experimental Evaluation}
+
+In this section we study the performance of the different inversion algorithms. For the experiments we compared the different inversion algorithms with a baseline algorithm implemented in C.
+
 \subsection{System Specification}
+
+All experiments were conducted on a CentOS 6.6 server machine with XXX hyperthreads XXX GHz each XXX kB L3/L2/L1 cache, XXX GB of memory and a NVIDIA XXX graphics card. The GPU contained XXX blocks, XXX warps, XXX threads per block, XXX kB of shared memory and 6 GB of global memory. The measured memory bandwidth between main memory and GPU memory was a bit more than 3 GB/s. All calculations were executed with single precision floating point math.
+
 \subsection{Data Generation}
+
+We used a synthetic dataset throughout our experiments. The dataset was generated using MATLAB and consists of multiple sets of square matrices. Each set contains exactly 100 matrices. To benchmark higher numbers of matrices we duplicated the matrices in the set until we got the required number of matrices. The sets of square matrices had dimension of the power of two starting from $8 \times 8$ until $256 \times 256$.
+
+\subsection{Baseline Algorithms}
+
+The baseline algorithm is implemented in C using the LAPACK library and it consists of only two calls to the library functions spotrf and spotri. We chose this algorithm as the sequential (in the sense of thread parallelism) baseline algorithm because it is straightforward to implement and efficient. We also conducted experiments with rudimentary parallelization using OpenMP to see the performance achievable on today's multicore processors. In this parallel algorithm we inverted multiple matrices in parallel using the OpenMP \textit{parallel for} statement.
+
+In addition to the two algorithms implemented in this study we also implemented an inversion algorithm using the two cuda library functions getrfBatched and getriBatched.
+
 \subsection{Benchmarking}
+
+Our benchmarks consisted of 10 replicated calculations on the generated dataset. We increased the number of matrices starting from 100 in steps of 100 until 1’000. We included the memory transfer time to and from the device into the runtime of each algorithm. Naturally the baseline algorithm did not contain any memory transfer. Still, we argue that memory transfer plays a major role in the decision to offload computation to the GPU since it is a non-negligible time overhead.
+
+In addition to the total runtime of each algorithm, we also report the total working memory required to calculate the inverse for each method. Finally, we also evaluated the numerical stability of the different algorithms. We did this by computing inverses using MATLAB and storing them along the initial matrices. The error we report is the sum of the absolute pairwise distances between the reference and the computed inverse matrix. We also thought about calculating the measuring the distance of the identity matrix and the result of multiplying the inverse matrix with the initial matrix. We discarded this idea because it would also include the error of the final matrix-matrix multiplication.
+
+As a second evaluation method we implemented a mean and variance calculation as used in Gaussian Process Optimization (GPO). We again implemented the baseline algorithm in C as a sequential and as a parallel version using OpenMP. We expected the performance of the GPU to be better in this experiment than in the raw inversion experiment, since there are more operations involved in the mean and variance computation. As with the inversion benchmarks we report the runtime of each algorithm, the used working memory, and the absolute error to the solution obtained from MATLAB.
 
 \section{Conclusion and Future Work}
 
