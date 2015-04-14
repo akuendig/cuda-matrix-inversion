@@ -15,23 +15,25 @@
 
 __global__
 void pivotRow(Array *a, Array *a_inv, int n, int col) {
-	__shared__ int row;
+	int row;
 
 	if(a[blockIdx.x][col * n + col] != 0)
 		return;
 
+	for(int i = 1; i < (n - col); ++i) {
+		if((a[blockIdx.x][(col * n) + col + i)] != 0)
+			break;
+	}
+	if(i == (n - col)) {
+		//Handle Error: Matrix is not invertible
+		// Do something, maybe quit the code
+	} else {
+		row = i + col;
+	}
+	
 	// You can not add cublas error check here. Raises error
-	cublasHandle_t handle;
-	int pivot;
-
+	cublasHandle_t handle;	
 	cublasCreate(&handle);
-	cublasIsamax(handle,
-		n - col,						// Number of elements to be searched
-		a[blockIdx.x] + (col * n) + col,// Starting position
-		1,								// Increment in words (NOT BYTES)
-		&pivot);						// Maximum element in the col
-	row = pivot - 1 + col;
-
 	cublasSswap(handle, n, a[blockIdx.x] + col, n, a[blockIdx.x] + row, n);
 	cublasSswap(handle, n, a_inv[blockIdx.x] + col, n, a_inv[blockIdx.x] + row, n);
 	cublasDestroy(handle);
@@ -77,7 +79,7 @@ void transform_matrix(Array *a, Array *a_inv, int n, int row) {
 void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize) {
 	for(int i = 0; i < n; i++) {
 		// Pivot the matrix
-		pivotRow<<<batchSize, n>>>(a, a_inv, n, i);
+		pivotRow<<<batchSize, 1>>>(a, a_inv, n, i);
 
 		// Make column entry to be one
 		normalizeRow<<<batchSize, n>>>(a, a_inv, n, i);
