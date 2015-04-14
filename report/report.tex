@@ -50,6 +50,14 @@ Along with addition and multiplication, we aim to implement inversion of the mat
 % No need to write about addition/Multiplication
 % If there is any need, do add the subsections
 \subsection{Gauss-Jordan Method of Inversion}
+Gauss-Jordan method is the traditional method to invert any kind of matrix. The method makes use of elementary row operations namely multiplication by scalar, linear combination of rows and row shuffling to invert the matrix. In this method, the original matrix(say $\mathcal{A}$) is augmented with identity matrix($\mathcal{I}$) of the same dimension. Row operations are performed so as to convert $\mathcal{A}$ to $\mathcal{I}$. The same set of operations are simultaneously applied to $\mathcal{I}$ which reduced it to $\mathcal{A}^{-1}$. \\\\
+Gauss-Jordan method is an algorithmic way of finding inverse of the matrix since there is deterministic sequence of operations which yields the inverse of matrix. Let $A_i$ denotes the $i^{th}$ row of the matrix $\mathcal{A}$ and $a_{ij}$. Following is the set of row operations performed on each row $A_i$ sequentially.
+\begin{description}
+	\item[Pivoting] For a given row $\mathcal{A}_i$, the element on the principal diagonal of the matrix serves as the pivot element. If $a_{ii}$ is not zero then the control proceeds to the next step. If the $\mathcal{a}_{ii}$ is zero then we need to shuffle the rows so as to make $a_{ii}$ non-zero. To do this, we search for the row $j$($> i$) such that $a_{ji}$ is not zero. If such a $j$ is found then $\mathcal{A}_{i}$ is swapped with $\mathcal{j}$. Failure at finding such a $j$ value implies that the matrix $\mathcal{A}$ is not invertible.
+	\item[Normalization] Once a non-zero pivot is found, we divide $A_i$ by $a_{ii}$ to make the diagonal entry $1$.
+	\item[Matrix Transformation] After the row $A_i$ has been normalized, we want to make elements $a_{ji}$ for all $j$ but for $i$. This is achieved by transforming $j^{th}$ row as $A_j \leftarrow A_j - a_{ji}A_i$.
+\end{description}
+Same operations are applied to $\mathcal{I}$ with the same scaars. When above procedure is applied to $\mathcal{A}$ for every row, the transformed $\mathcal{I}$ reflects the $\mathcal{A}^{-1}$.
 \subsection{Matrix Inversion using Cholesky Decomposition}
 
 \section{Experimental Evaluation}
@@ -66,9 +74,9 @@ We used a synthetic dataset throughout our experiments. The dataset was generate
 
 \subsection{Baseline Algorithms}
 
-The baseline algorithm is implemented in C using the LAPACK library and it consists of only two calls to the library functions spotrf and spotri. We chose this algorithm as the sequential (in the sense of thread parallelism) baseline algorithm because it is straightforward to implement and efficient. We also conducted experiments with rudimentary parallelization using OpenMP to see the performance achievable on today's multicore processors. In this parallel algorithm we inverted multiple matrices in parallel using the OpenMP \textit{parallel for} statement.
+The baseline algorithm is implemented in C using the LAPACK library and it consists of only two calls to the library functions {\it spotrf} and {\it spotri}. We chose this algorithm as the sequential (in the sense of thread parallelism) baseline algorithm because it is straightforward to implement and efficient. We also conducted experiments with rudimentary parallelization using OpenMP to see the performance achievable on today's multicore processors. In this parallel algorithm we inverted multiple matrices in parallel using the OpenMP \textit{parallel for} statement.
 
-In addition to the two algorithms implemented in this study we also implemented an inversion algorithm using the two cuda library functions getrfBatched and getriBatched.
+In addition to the two algorithms implemented in this study we also implemented an inversion algorithm using the two cuda library functions {\it getrfBatched} and {\it getriBatched{.
 
 \subsection{Benchmarking}
 
