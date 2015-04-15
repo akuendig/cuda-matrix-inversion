@@ -4,6 +4,8 @@ To build in debug mode ```make dbg=1```
 
 To run ```./gauss_bench TEST_FOLDER NUM_REPLICATIONS [-d]```
 
+export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+
 
 ### Notes on execution
 

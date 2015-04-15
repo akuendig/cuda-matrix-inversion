@@ -177,8 +177,8 @@ static double timer_to_ms(struct timespec ts) {
 static struct timespec ms_to_time(double ms) {
     struct timespec ts = { 0 };
 
-    ts->tv_sec = floor(ms/1000.0);
-    ts->tv_nsec = floor((ms - ts.tv_sec*1000)*1000.0*1000.0);
+    ts.tv_sec = floor(ms/1000.0);
+    ts.tv_nsec = floor((ms - ts.tv_sec*1000)*1000.0*1000.0);
 
     return ts;
 }

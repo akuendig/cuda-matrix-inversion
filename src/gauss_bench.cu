@@ -322,8 +322,7 @@ static void calcluateVariance(
     gpuErrchk( cudaFreeHost((void*)devCs) );
 }
 
-
-void readTest(const char *directory, int *numMatrices, int *n,
+static void readTest(const char *directory, int *numMatrices, int *n,
         Array *a, Array *b, Array *c, Array *d, Array *e, Array *means, Array *variances) {
     char filePath[1024];
 
@@ -493,7 +492,7 @@ int main(int argc, char const *argv[]) {
     numDuplicates = atoi(argv[3]);
 
     if (!csv) {
-        printDeviceInfo();
+        // printDeviceInfo();
     }
 
     // cublasHandle_t handle;
