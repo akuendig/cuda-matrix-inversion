@@ -209,7 +209,7 @@ bench-all: gauss_bench
 cholesky_gpu.o: src/inverse_cholesky_gpu.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-cholesky_gpu: cholesky_gpu.o
+cholesky_gpu: cholesky_gpu.o helper.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 	./cholesky_gpu
 
