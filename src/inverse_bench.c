@@ -134,7 +134,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
         cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
 
         TIMER_START(chol_gpu)
-        // inverse_chol_gpu(inv, N, numMatrices);
+        inverse_chol_gpu(inv, N, numMatrices);
         TIMER_STOP(chol_gpu)
 #ifdef DETAILED_LOGGING
         TIMER_LOG(chol_gpu, numMatrices, n)
