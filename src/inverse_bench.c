@@ -53,7 +53,7 @@ static DataType vec_sum(const Array a, const int N) {
 
 #define BENCH_REPORT_ERROR(name) \
     printf("Total error for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, N, N, total_error_##name, total_error_##name/numMatrices)
+        numMatrices, N, N, total_error_##name, total_error_##name/numMatrices/numReps)
 
 #define BENCH_REPORT_TIME(name) \
     if (!csv) { \
@@ -134,7 +134,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
         cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
 
         TIMER_START(chol_gpu)
-        inverse_chol_gpu(inv, N, numMatrices);
+        // inverse_chol_gpu(inv, N, numMatrices);
         TIMER_STOP(chol_gpu)
 #ifdef DETAILED_LOGGING
         TIMER_LOG(chol_gpu, numMatrices, n)

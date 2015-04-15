@@ -151,7 +151,7 @@ run: build
 
 clean:
 	rm -f *.o
-	rm -f bench gaussian inverse inverse_bench cholesky_gpu
+	rm -f bench gauss_bench inverse inverse_bench cholesky_gpu
 	rm -rf inverse.dSYM
 	rm -rf bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/gaussian
 
