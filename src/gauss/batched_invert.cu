@@ -15,29 +15,32 @@
 
 __global__
 void pivotRow(Array *a, Array *a_inv, int n, int col) {
-	int i, row;
-
 	if (a[blockIdx.x][col * n + col] != 0)
 		return;
-
-	for (i = 1; i < (n - col); ++i) {
-		if (a[blockIdx.x][(col * n) + col + i] != 0)
-			break;
+	int i;
+	__shared__ int row;
+	if(threadIdx.x == 0) {
+		for (i = 1; i < (n - col); ++i) {
+			if (a[blockIdx.x][(col * n) + col + i] != 0)
+				break;
+		}
+	
+		if (i == (n - col)) {
+			//Handle Error: Matrix is not invertible
+			// Do something, maybe quit the code
+		} else {
+			row = i + col;
+		}
 	}
+	__syncthreads();
+	
+	float temp1 = a[blockIdx.x][threadIdx.x * n + col];
+        a[blockIdx.x][threadIdx.x * n + col] = a[blockIdx.x][threadIdx.x * n + row];
+        a[blockIdx.x][threadIdx.x * n + row] = temp1;
 
-	if (i == (n - col)) {
-		//Handle Error: Matrix is not invertible
-		// Do something, maybe quit the code
-	} else {
-		row = i + col;
-	}
-
-	// You can not add cublas error check here. Raises error
-	cublasHandle_t handle;
-	cublasCreate(&handle);
-	cublasSswap(handle, n, a[blockIdx.x] + col, n, a[blockIdx.x] + row, n);
-	cublasSswap(handle, n, a_inv[blockIdx.x] + col, n, a_inv[blockIdx.x] + row, n);
-	cublasDestroy(handle);
+        temp1 = a_inv[blockIdx.x][threadIdx.x * n + col];
+        a_inv[blockIdx.x][threadIdx.x * n + col] = a_inv[blockIdx.x][threadIdx.x * n + row];
+        a_inv[blockIdx.x][threadIdx.x * n + row] = temp1;
 }
 
 __global__
@@ -80,7 +83,7 @@ void transform_matrix(Array *a, Array *a_inv, int n, int row) {
 void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize) {
 	for(int i = 0; i < n; i++) {
 		// Pivot the matrix
-		pivotRow<<<batchSize, 1>>>(a, a_inv, n, i);
+		pivotRow<<<batchSize, n>>>(a, a_inv, n, i);
 
 		// Make column entry to be one
 		normalizeRow<<<batchSize, n>>>(a, a_inv, n, i);
