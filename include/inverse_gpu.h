@@ -30,8 +30,6 @@ void inverse_cholesky_batched_gpu(cublasHandle_t handle, int n, Array As, Array 
 void inverse_cholesky_mm_batched_gpu(cublasHandle_t handle, int n, Array As, Array aInvs, int batchSize);
 
 
-
-
 #ifdef __cplusplus
 }
 #endif // __cplusplus

@@ -25,7 +25,6 @@
 #define MMIDX(i,j,N) (i < j ? (i * N - (i - 1) * i / 2 + j - i) : (j * N - (j - 1) * j / 2 + i - j))
 
 
-
 #ifdef __MACH__
 #include <mach/clock.h>
 #include <mach/mach.h>
