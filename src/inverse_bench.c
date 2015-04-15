@@ -153,10 +153,10 @@ void bench_parallel(int numMatrices, int M, int N, Array a, bool detailed) {
 
     // Compute inverses
     for (rep = 0; rep < BENCH_REPS; ++rep) {
-        cblas_scopy(numMatrices*N*N, atra, 1, inv, 1);
+        cblas_scopy(numMatrices*N*N, atra, 1, reconstr, 1);
 
         TIMER_START(chol_gpu)
-        // inverse_chol_gpu(inv, N, numMatrices);
+        inverse_cholesky_batched_gpu(handle, N, reconstr, inv, numMatrices);
         TIMER_STOP(chol_gpu)
         TIMER_ACC(chol_gpu)
 
