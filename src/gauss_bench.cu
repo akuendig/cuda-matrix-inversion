@@ -7,16 +7,12 @@
 #include "cublas_v2.h"
 
 #include <cblas.h>
-#ifdef __APPLE__
-    #include <lapacke.h>
-#else
-    #include <clapack.h>
-#endif // __APPLE__
+#include <lapacke.h>
 
 #include "../include/types.h"
-#include "../include/timer.h"
 #include "../include/helper_cpu.h"
 #include "../include/helper_gpu.h"
+#include "../include/timer.h"
 #include "../include/inverse_cpu.h"
 #include "../include/inverse_gpu.h"
 #include "../include/gauss_cpu.h"
@@ -426,17 +422,62 @@ static DataType vec_sum(Array a, const int N) {
         numMatrices, n, n, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps);
 
 #define BENCH_REPORT_TIME(name) \
-    if (numReps > 1) { \
-        printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
-            numMatrices, n, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name)); \
-        printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
-            numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name)); \
-    } else { \
-        printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
-            numMatrices, n, n, numReps, TIMER_TOTAL(means_##name)); \
-        printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
-            numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name)); \
+    if (!csv) { \
+        if (numReps > 1) { \
+            printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name)); \
+            printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name)); \
+        } else { \
+            printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(means_##name)); \
+            printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name)); \
+        } \
     }
+
+// Print device properties
+void printDevProp(cudaDeviceProp devProp) {
+    // Source: https://www.cac.cornell.edu/vw/gpu/example_submit.aspx
+    printf("Major revision number:         %d\n",  devProp.major);
+    printf("Minor revision number:         %d\n",  devProp.minor);
+    printf("Name:                          %s\n",  devProp.name);
+    printf("Total global memory:           %lu\n",  devProp.totalGlobalMem);
+    printf("Total shared memory per block: %lu\n",  devProp.sharedMemPerBlock);
+    printf("Total registers per block:     %d\n",  devProp.regsPerBlock);
+    printf("Warp size:                     %d\n",  devProp.warpSize);
+    printf("Maximum memory pitch:          %lu\n",  devProp.memPitch);
+    printf("Maximum threads per block:     %d\n",  devProp.maxThreadsPerBlock);
+    for (int i = 0; i < 3; ++i)
+        printf("Maximum dimension %d of block:  %d\n", i, devProp.maxThreadsDim[i]);
+    for (int i = 0; i < 3; ++i)
+        printf("Maximum dimension %d of grid:   %d\n", i, devProp.maxGridSize[i]);
+    printf("Clock rate:                    %d\n",  devProp.clockRate);
+    printf("Total constant memory:         %lu\n",  devProp.totalConstMem);
+    printf("Texture alignment:             %lu\n",  devProp.textureAlignment);
+    printf("Concurrent copy and execution: %s\n",  (devProp.deviceOverlap ? "Yes" : "No"));
+    printf("Number of multiprocessors:     %d\n",  devProp.multiProcessorCount);
+    printf("Kernel execution timeout:      %s\n",  (devProp.kernelExecTimeoutEnabled ?"Yes" : "No"));
+}
+
+void printDeviceInfo() {
+    // Source: https://www.cac.cornell.edu/vw/gpu/example_submit.aspx
+    int devCount;
+
+    cudaGetDeviceCount(&devCount);
+
+    printf("CUDA Device Query...\n");
+    printf("There are %d CUDA devices.\n", devCount);
+
+    for (int i = 0; i < devCount; ++i)
+    {
+        // Get device properties
+        printf("\nCUDA Device #%d\n", i);
+        cudaDeviceProp devProp;
+        cudaGetDeviceProperties(&devProp, i);
+        printDevProp(devProp);
+    }
+}
 
 int main(int argc, char const *argv[]) {
     int numMatrices, n, rep, numReps, numDuplicates;
@@ -444,12 +485,16 @@ int main(int argc, char const *argv[]) {
         _a, _b, _c, _d, _e, _means, _variances;
     Array means_out, variances_out;
 
-    ensure(argc >= 4, "Usage: gauss_bench TEST_FOLDER TEST_REPLICATIONS MATRIX_DUPLICATES [-d]");
+    ensure(argc >= 4, "Usage: gauss_bench TEST_FOLDER TEST_REPLICATIONS MATRIX_DUPLICATES [-csv]");
 
-    bool detailed = (argc >= 5) && !strncmp("-d", argv[4], 2);
+    bool csv = (argc >= 5) && !strncmp("-csv", argv[4], 4);
 
     numReps = atoi(argv[2]);
     numDuplicates = atoi(argv[3]);
+
+    if (!csv) {
+        printDeviceInfo();
+    }
 
     // cublasHandle_t handle;
 
@@ -491,10 +536,12 @@ int main(int argc, char const *argv[]) {
         calcluateMeanSolveCPU(n, a, b, c, d, means_out, numMatrices);
 #else
         calcluateMeanCPU(n, a, b, c, d, means_out, numMatrices);
-#endif
+#endif // GAUSS_SOLVE
         TIMER_STOP(means_cpu)
         TIMER_ACC(means_cpu)
-        if (detailed) { TIMER_LOG(means_cpu) }
+#ifdef DETAILED_LOGGING
+        TIMER_LOG(means_cpu, numMatrices, n)
+#endif // DETAILED_LOGGING
         BENCH_ERROR_MEAN(cpu)
         BENCH_CLEANUP()
 
@@ -505,10 +552,12 @@ int main(int argc, char const *argv[]) {
         calcluateVarianceSolveCPU(n, a, b, c, e, variances_out, numMatrices);
 #else
         calcluateVarianceCPU(n, a, b, c, e, variances_out, numMatrices);
-#endif
+#endif // GAUSS_SOLVE
         TIMER_STOP(variances_cpu)
         TIMER_ACC(variances_cpu)
-        if (detailed) { TIMER_LOG(variances_cpu) }
+#ifdef DETAILED_LOGGING
+        TIMER_LOG(variances_cpu, numMatrices, n)
+#endif // DETAILED_LOGGING
         BENCH_ERROR_VARIANCE(cpu)
         BENCH_CLEANUP()
     }

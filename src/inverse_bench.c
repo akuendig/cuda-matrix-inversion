@@ -12,12 +12,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
-    #include <cblas.h>
-#ifdef __APPLE__
-    #include <lapacke.h>
-#else
-    #include <clapack.h>
-#endif // __APPLE__
+
+#include <cblas.h>
+#include <lapacke.h>
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

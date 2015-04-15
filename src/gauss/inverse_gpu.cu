@@ -6,9 +6,9 @@
 #include "cublas_v2.h"
 
 #include "../../include/types.h"
-#include "../../include/timer.h"
 #include "../../include/helper_cpu.h"
 #include "../../include/helper_gpu.h"
+#include "../../include/timer.h"
 #include "../../include/inverse_cpu.h"
 #include "../../include/inverse_gpu.h"
 
@@ -63,10 +63,10 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N, int batchSize) {
 
     dim3 threadsPerBlock(min(16, N), min(16, N), 1);
     dim3 numBlocks(div_ceil(N, threadsPerBlock.x), div_ceil(N, threadsPerBlock.y));
-    identity<<<numBlocks, threadsPerBlock>>>(aInv[blockIdx.x], N, N);
+    // identity<<<numBlocks, threadsPerBlock>>>(aInv[blockIdx.x], N, N);
 
     for (row = 0; row < N; ++row) {
-	if (a[blockIdx.x][(row * N) + row] == 0) {
+    	if (a[blockIdx.x][(row * N) + row] == 0) {
             /*cublasErrchk*/( cublasIsamax(handle,
                 N - row,            // Number of elements to be searched
                 &a[blockIdx.x][(row * N) + row],        // Starting position
@@ -103,7 +103,7 @@ void inverse_gauss_kernel(Array *a, Array *aInv, int N, int batchSize) {
 
         threadsPerBlock = dim3(min(N, 16*16), 1, 1);
         numBlocks = dim3(div_ceil(N, threadsPerBlock.x));
-        transform_matrix<<<numBlocks, threadsPerBlock, 3*N*sizeof(DataType)>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
+        // transform_matrix<<<numBlocks, threadsPerBlock, 3*N*sizeof(DataType)>>>(a[blockIdx.x], aInv[blockIdx.x], row, N);
     }
 
     cublasDestroy(handle);
@@ -212,9 +212,9 @@ extern "C" void inverse_gauss_kernel_gpu(
 #ifdef DETAILED_LOGGING
     TIMER_STOP(inverse_gauss_kernel_gpu_mem_dtoh)
 
-    TIMER_LOG(inverse_gauss_kernel_gpu_mem_htod)
-    TIMER_LOG(inverse_gauss_kernel_gpu_ker)
-    TIMER_LOG(inverse_gauss_kernel_gpu_mem_dtoh)
+    TIMER_LOG(inverse_gauss_kernel_gpu_mem_htod, batchSize, n)
+    TIMER_LOG(inverse_gauss_kernel_gpu_ker, batchSize, n)
+    TIMER_LOG(inverse_gauss_kernel_gpu_mem_dtoh, batchSize, n)
 #endif // DETAILED_LOGGING
 
     gpuErrchk( cudaFree((void*)devAs[0]) );
@@ -277,9 +277,9 @@ extern "C" void inverse_lu_cuda_batched_gpu(
 #ifdef DETAILED_LOGGING
     TIMER_STOP(inverse_lu_cuda_batched_gpu_mem_dtoh)
 
-    TIMER_LOG(inverse_lu_cuda_batched_gpu_mem_htod)
-    TIMER_LOG(inverse_lu_cuda_batched_gpu_ker)
-    TIMER_LOG(inverse_lu_cuda_batched_gpu_mem_dtoh)
+    TIMER_LOG(inverse_lu_cuda_batched_gpu_mem_htod, batchSize, n)
+    TIMER_LOG(inverse_lu_cuda_batched_gpu_ker, batchSize, n)
+    TIMER_LOG(inverse_lu_cuda_batched_gpu_mem_dtoh, batchSize, n)
 #endif // DETAILED_LOGGING
 
     gpuErrchk( cudaFree((void*)devAs[0]) );

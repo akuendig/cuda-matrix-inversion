@@ -15,24 +15,25 @@
 
 __global__
 void pivotRow(Array *a, Array *a_inv, int n, int col) {
-	int row;
+	int i, row;
 
-	if(a[blockIdx.x][col * n + col] != 0)
+	if (a[blockIdx.x][col * n + col] != 0)
 		return;
 
-	for(int i = 1; i < (n - col); ++i) {
-		if((a[blockIdx.x][(col * n) + col + i)] != 0)
+	for (i = 1; i < (n - col); ++i) {
+		if (a[blockIdx.x][(col * n) + col + i] != 0)
 			break;
 	}
-	if(i == (n - col)) {
+
+	if (i == (n - col)) {
 		//Handle Error: Matrix is not invertible
 		// Do something, maybe quit the code
 	} else {
 		row = i + col;
 	}
-	
+
 	// You can not add cublas error check here. Raises error
-	cublasHandle_t handle;	
+	cublasHandle_t handle;
 	cublasCreate(&handle);
 	cublasSswap(handle, n, a[blockIdx.x] + col, n, a[blockIdx.x] + row, n);
 	cublasSswap(handle, n, a_inv[blockIdx.x] + col, n, a_inv[blockIdx.x] + row, n);
