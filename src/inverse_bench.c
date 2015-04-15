@@ -30,18 +30,13 @@ extern "C" {
 #define MAX_MATRIX_BYTE_READ 67108864
 #define BENCH_REPS 10
 
-static void fill_sym(Array a, int M, int N) {
-    int i, j;
-
-    for (i = 0; i < N-1; ++i) {
-        for (j = i+1; j < M; ++j) {
-            a[i*M + j] = a[j*M + i];
-        }
-    }
+// b -= a
+static void vec_diff(const Array a, Array b, const int N) {
+    cblas_saxpy(N, -1.f, a, 1, b, 1);
 }
 
-static void mat_sum(Array a, int M, int N, DataType *total) {
-    *total = cblas_sasum(M*N, a, 1);
+static DataType vec_sum(const Array a, const int N) {
+    return cblas_sasum(N, a, 1);
 }
 
 #define BENCH_VAR(name) \
@@ -53,17 +48,8 @@ static void mat_sum(Array a, int M, int N, DataType *total) {
 #define BENCH_SETUP(name)
 
 #define BENCH_CLEANUP(name) \
-    for (i = 0; i < numMatrices; ++i) { \
-        Array current_a = a + (i * N * N); \
-        Array current_inv = inv + (i * N * N); \
-        Array current_rec = reconstr + (i * N * N);\
-\
-        cblas_ssymm(CblasColMajor, CblasLeft, CblasUpper, \
-            N, N, 1.f, current_inv, N, current_a, N, 0, current_rec, N); \
-        mat_sum(current_rec, N, N, &error_##name); \
-\
-        total_error_##name += error_##name; \
-    }
+    vec_diff(inv, aInv, N*N*numMatrices); \
+    total_error_##name += vec_sum(aInv, N*N*numMatrices);
 
 #define BENCH_REPORT_ERROR(name) \
     printf("Total error for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
@@ -81,19 +67,17 @@ static void mat_sum(Array a, int M, int N, DataType *total) {
     }
 
 
-void bench_parallel(int numMatrices, int numReps, int N, Array a, bool csv) {
+void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aInv, bool csv) {
     cublasHandle_t handle;
 
     Array inv = (Array)malloc(numMatrices*N*N*sizeof(DataType));
-    Array reconstr = (Array)malloc(numMatrices*N*N*sizeof(DataType));
-    Array workspace = (Array)malloc(N*N*sizeof(DataType));
+    Array workspace = (Array)malloc(numMatrices*N*N*sizeof(DataType));
 
     int i, rep;
 
     BENCH_VAR(lu_blas_cpu)
     BENCH_VAR(lu_blas_omp_cpu)
     BENCH_VAR(chol_gpu)
-    BENCH_VAR(gauss_kernel_gpu)
     BENCH_VAR(gauss_batched_gpu)
     BENCH_VAR(lu_cuda_batched_gpu)
 
@@ -164,42 +148,16 @@ void bench_parallel(int numMatrices, int numReps, int N, Array a, bool csv) {
     // calculate error
     BENCH_CLEANUP(chol_gpu)
 
-    // GPU Benchmark 2
-    //////////////////
-    // Build benchmark data
-    BENCH_SETUP(gauss_kernel_gpu)
-
-    // Compute inverses
-    //gpuErrchk( cudaProfilerStart() );
-    for (rep = 0; rep < BENCH_REPS; ++rep) {
-        cblas_scopy(numMatrices*N*N, a, 1, reconstr, 1);
-
-        TIMER_START(gauss_kernel_gpu)
-        inverse_gauss_kernel_gpu(handle, N, reconstr, inv, numMatrices);
-        TIMER_STOP(gauss_kernel_gpu)
-#ifdef DETAILED_LOGGING
-        TIMER_LOG(gauss_kernel_gpu, numMatrices, n)
-#endif // DETAILED_LOGGING
-        TIMER_ACC(gauss_kernel_gpu)
-
-        gpuErrchk( cudaPeekAtLastError() );
-        gpuErrchk( cudaDeviceSynchronize() );
-    }
-    //gpuErrchk( cudaProfilerStop() );
-
-    // calculate error
-    BENCH_CLEANUP(gauss_kernel_gpu)
-
     // GPU Benchmark 3
     //////////////////
     // Build benchmark data
     BENCH_SETUP(gauss_batched_gpu)
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
-        cblas_scopy(numMatrices*N*N, a, 1, reconstr, 1);
+        cblas_scopy(numMatrices*N*N, a, 1, workspace, 1);
 
         TIMER_START(gauss_batched_gpu)
-        inverse_gauss_batched_gpu(handle, N, reconstr, inv, numMatrices);
+        inverse_gauss_batched_gpu(handle, N, workspace, inv, numMatrices);
         TIMER_STOP(gauss_batched_gpu)
 #ifdef DETAILED_LOGGING
         TIMER_LOG(gauss_batched_gpu, numMatrices, n)
@@ -219,10 +177,10 @@ void bench_parallel(int numMatrices, int numReps, int N, Array a, bool csv) {
     BENCH_SETUP(lu_cuda_batched_gpu)
 
     for (rep = 0; rep < BENCH_REPS; ++rep) {
-        cblas_scopy(numMatrices*N*N, a, 1, reconstr, 1);
+        cblas_scopy(numMatrices*N*N, a, 1, workspace, 1);
 
         TIMER_START(lu_cuda_batched_gpu)
-        inverse_lu_cuda_batched_gpu(handle, N, reconstr, inv, numMatrices);
+        inverse_lu_cuda_batched_gpu(handle, N, workspace, inv, numMatrices);
         TIMER_STOP(lu_cuda_batched_gpu)
 #ifdef DETAILED_LOGGING
         TIMER_LOG(lu_cuda_batched_gpu, numMatrices, n)
@@ -238,23 +196,19 @@ void bench_parallel(int numMatrices, int numReps, int N, Array a, bool csv) {
     BENCH_REPORT_ERROR(lu_blas_cpu);
     BENCH_REPORT_ERROR(lu_blas_omp_cpu);
     BENCH_REPORT_ERROR(chol_gpu);
-    BENCH_REPORT_ERROR(gauss_kernel_gpu);
     BENCH_REPORT_ERROR(gauss_batched_gpu);
     BENCH_REPORT_ERROR(lu_cuda_batched_gpu);
 
     BENCH_REPORT_TIME(lu_blas_cpu);
     BENCH_REPORT_TIME(lu_blas_omp_cpu);
     BENCH_REPORT_TIME(chol_gpu);
-    BENCH_REPORT_TIME(gauss_kernel_gpu);
     BENCH_REPORT_TIME(gauss_batched_gpu);
     BENCH_REPORT_TIME(lu_cuda_batched_gpu);
 
     cublasErrchk( cublasDestroy(handle) );
 
     free(workspace);
-    free(reconstr);
     free(inv);
-    free(a);
 }
 
 static void readTest(const char *directory, int *numMatrices, int *n,
@@ -311,7 +265,9 @@ int main(int argc, char const *argv[]) {
     replicateMatrices(&a, n, n, numMatrices, numDuplicates);
     replicateMatrices(&aInv, n, n, numMatrices, numDuplicates);
 
-    bench_parallel(numMatrices, numReps, n, a, csv);
+    numMatrices *= numDuplicates;
+
+    bench_parallel(numMatrices, numReps, n, a, aInv, csv);
 
     free(a); free(aInv);
 
