@@ -199,12 +199,23 @@ gauss_bench.o: src/gauss_bench.cu
 gauss_bench: gauss_bench.o gauss_cpu.o inverse_cpu.o cholesky_gpu.o inverse_gauss.o inverse_gauss_batched.o helper.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
-bench-all: gauss_bench
+run-gauss-bench: gauss_bench
 	for i in 8 16 32 64 128; do \
 		for (( j = 1; j <= $(BENCH_MAX_DUPS); j++ )); do \
-			OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./gauss_bench ./tests/gaussian_100_$$((i))x$$((i)) $(BENCH_REPS) $$j; \
+			echo "Running OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./gauss_bench ./tests/gaussian_100_$$((i))x$$((i)) $(BENCH_REPS) $$j"; \
+			OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./gauss_bench ./tests/gaussian_100_$$((i))x$$((i)) $(BENCH_REPS) $$j > ./results/gaussian_$$((j*100))_$$((i))x$$((i)); \
 		done \
-	done
+	done; \
+	cat ./results/gaussian_* > ./results/gauss-bench.txt;
+
+run-inverse-bench: inverse_bench
+	for i in 8 16 32 64 128; do \
+		for (( j = 1; j <= $(BENCH_MAX_DUPS); j++ )); do \
+			echo "Running OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./inverse_bench ./tests/inverse_100_$$((i))x$$((i)) $(BENCH_REPS) $$j"; \
+			OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./inverse_bench ./tests/inverse_100_$$((i))x$$((i)) $(BENCH_REPS) $$j > ./results/inverse_$$((j*100))_$$((i))x$$((i)); \
+		done \
+	done; \
+	cat ./results/inverse_* > ./results/inverse-bench.txt;
 
 cholesky_gpu.o: src/inverse_cholesky_gpu.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
