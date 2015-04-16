@@ -51,33 +51,27 @@ static DataType vec_sum(const Array a, const int N) {
     vec_diff(inv, aInv, N*N*numMatrices); \
     total_error_##name += vec_sum(aInv, N*N*numMatrices);
 
-#define BENCH_REPORT_ERROR(name) \
-    if (!csv) { \
-        printf("Total error for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
-            numMatrices, N, N, total_error_##name, total_error_##name/numMatrices/numReps); \
-    }
-
 #ifndef DETAILED_LOGGING
-#define BENCH_REPORT_TIME(name) \
+#define BENCH_REPORT(name) \
     if (csv) { \
         if (numReps > 1) { \
-            printf("%d %d %d " #name " %.4f %.4f %.4f\n", \
-                numMatrices, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name)); \
+            printf("%d %d %d " #name " %e %e %e %e\n", \
+                numMatrices, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name), total_error_##name/numMatrices/numReps); \
         } else { \
-            printf("%d %d %d " #name " %.4f\n", \
-                numMatrices, N, numReps, TIMER_TOTAL(name)); \
+            printf("%d %d %d " #name " %e %e\n", \
+                numMatrices, N, numReps, TIMER_TOTAL(name), total_error_##name/numMatrices/numReps); \
         } \
     } else { \
         if (numReps > 1) { \
-            printf("Total execution time for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
-                numMatrices, N, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name)); \
+            printf(#name " - %d %dx%d matrices, replicated %d times, runtime %.4f ms (%.4f ms average, %.4f ms variance), average error %.4e\n", \
+                numMatrices, N, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name), total_error_##name/numMatrices/numReps); \
         } else { \
-            printf("Total execution time for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
-                numMatrices, N, N, numReps, TIMER_TOTAL(name)); \
+            printf(#name " - %d %dx%d matrices, replicated %d times, runtime %.4f ms, average error %.4e\n", \
+                numMatrices, N, N, numReps, TIMER_TOTAL(name), total_error_##name/numMatrices/numReps); \
         } \
     }
 #else
-#define BENCH_REPORT_TIME(name)
+#define BENCH_REPORT(name)
 #endif
 
 void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aInv, bool csv) {
@@ -206,17 +200,11 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
 
     BENCH_CLEANUP(lu_cuda_batched_gpu)
 
-    BENCH_REPORT_ERROR(lu_blas_cpu);
-    BENCH_REPORT_ERROR(lu_blas_omp_cpu);
-    BENCH_REPORT_ERROR(chol_gpu);
-    BENCH_REPORT_ERROR(gauss_batched_gpu);
-    BENCH_REPORT_ERROR(lu_cuda_batched_gpu);
-
-    BENCH_REPORT_TIME(lu_blas_cpu);
-    BENCH_REPORT_TIME(lu_blas_omp_cpu);
-    BENCH_REPORT_TIME(chol_gpu);
-    BENCH_REPORT_TIME(gauss_batched_gpu);
-    BENCH_REPORT_TIME(lu_cuda_batched_gpu);
+    BENCH_REPORT(lu_blas_cpu);
+    BENCH_REPORT(lu_blas_omp_cpu);
+    BENCH_REPORT(chol_gpu);
+    BENCH_REPORT(gauss_batched_gpu);
+    BENCH_REPORT(lu_cuda_batched_gpu);
 
     cublasErrchk( cublasDestroy(handle) );
 

@@ -414,39 +414,31 @@ static DataType vec_sum(Array a, const int N) {
 
 #define BENCH_CLEANUP(name)
 
-#define BENCH_REPORT_ERROR(name) \
-    if (!csv) { \
-        printf("Total error in means calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
-            numMatrices, n, n, total_error_means_##name, total_error_means_##name/numMatrices/numReps); \
-        printf("Total error in variances calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
-            numMatrices, n, n, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps); \
-    }
-
 #ifndef DETAILED_LOGGING
 #define BENCH_REPORT_TIME(name) \
     if (csv) { \
         if (numReps > 1) { \
-            printf("%d %d %d " #name " %.4f %.4f %.4f\n", \
-                numMatrices, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name)); \
-            printf("%d %d %d " #name " %.4f %.4f %.4f\n", \
-                numMatrices, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name)); \
+            printf("%d %d %d means_" #name " %e %e %e %e\n", \
+                numMatrices, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name), total_error_means_##name/numMatrices/numReps); \
+            printf("%d %d %d variances_" #name " %e %e %e %e\n", \
+                numMatrices, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name), total_error_variances_##name/numMatrices/numReps); \
         } else { \
-            printf("%d %d %d " #name " %.4f\n", \
-                numMatrices, n, numReps, TIMER_TOTAL(means_##name)); \
-            printf("%d %d %d " #name " %.4f\n", \
-                numMatrices, n, numReps, TIMER_TOTAL(variances_##name)); \
+            printf("%d %d %d means_" #name " %e %e\n", \
+                numMatrices, n, numReps, TIMER_TOTAL(means_##name), total_error_means_##name/numMatrices/numReps); \
+            printf("%d %d %d variances_" #name " %e %e\n", \
+                numMatrices, n, numReps, TIMER_TOTAL(variances_##name), total_error_variances_##name/numMatrices/numReps); \
         } \
     } else { \
         if (numReps > 1) { \
-            printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
-                numMatrices, n, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name)); \
-            printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
-                numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name)); \
+            printf("means_"#name " - %d %dx%d matrices, replicated %d times, runtime %.4f ms (%.4f ms average, %.4f ms variance), average error %.4e\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name), total_error_means_##name/numMatrices/numReps); \
+            printf("variances_"#name " - %d %dx%d matrices, replicated %d times, runtime %.4f ms (%.4f ms average, %.4f ms variance), average error %.4e\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name), total_error_variances_##name/numMatrices/numReps); \
         } else { \
-            printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
-                numMatrices, n, n, numReps, TIMER_TOTAL(means_##name)); \
-            printf("Total execution time in variances for %d %dx%d matrices and %d replications of " #name ": %.4f ms\n", \
-                numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name)); \
+            printf("means_"#name " - %d %dx%d matrices, replicated %d times, runtime %.4f ms, average error %.4e\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(means_##name), total_error_means_##name/numMatrices/numReps); \
+            printf("variances_"#name " - %d %dx%d matrices, replicated %d times, runtime %.4f ms, average error %.4e\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name), total_error_variances_##name/numMatrices/numReps); \
         } \
     }
 #else
@@ -579,7 +571,6 @@ int main(int argc, char const *argv[]) {
         BENCH_CLEANUP()
     }
 
-    BENCH_REPORT_ERROR(cpu)
     BENCH_REPORT_TIME(cpu)
 
     // gpuErrchk( cudaPeekAtLastError() );
