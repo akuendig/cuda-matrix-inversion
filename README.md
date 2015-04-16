@@ -6,7 +6,7 @@ To run ```./gauss_bench TEST_FOLDER NUM_REPLICATIONS [-d]```
 
 export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
 make clean inverse_bench gauss_bench log=0 solve=0 dbg=0
-BENCH_REPS=10 BENCH_MAX_DUPS=10 BENCH_NUM_THREADS=4 make run-gauss-bench
+BENCH_REPS=20 BENCH_MAX_DUPS=10 BENCH_NUM_THREADS=8 make run-inverse-bench
 
 ### Notes on execution
 
