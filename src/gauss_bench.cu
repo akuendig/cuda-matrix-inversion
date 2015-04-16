@@ -430,9 +430,9 @@ static DataType vec_sum(Array a, const int N) {
                 numMatrices, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name)); \
         } else { \
             printf("%d %d %d " #name " %.4f\n", \
-                numMatrices, n, n, numReps, TIMER_TOTAL(means_##name)); \
+                numMatrices, n, numReps, TIMER_TOTAL(means_##name)); \
             printf("%d %d %d " #name " %.4f\n", \
-                numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name)); \
+                numMatrices, n, numReps, TIMER_TOTAL(variances_##name)); \
         } \
     } else { \
         if (numReps > 1) { \

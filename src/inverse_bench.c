@@ -63,7 +63,7 @@ static DataType vec_sum(const Array a, const int N) {
                 numMatrices, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name)); \
         } else { \
             printf("%d %d %d " #name " %.4f\n", \
-                numMatrices, N, N, numReps, TIMER_TOTAL(name)); \
+                numMatrices, N, numReps, TIMER_TOTAL(name)); \
         } \
     } else { \
         if (numReps > 1) { \
