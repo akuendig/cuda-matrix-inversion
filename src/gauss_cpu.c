@@ -5,11 +5,7 @@
 #include <omp.h>
 
 #include <cblas.h>
-#ifdef __APPLE__
-    #include <lapacke.h>
-#else
-    #include <clapack.h>
-#endif // __APPLE__
+#include <lapacke.h>
 
 #include "../include/types.h"
 #include "../include/helper_cpu.h"
