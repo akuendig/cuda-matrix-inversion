@@ -1,500 +1,250 @@
-Total error for 1000 128x128 matrices of lu_blas_cpu: 3.92e-01 (1.96e-05 average)
-Total error for 1000 128x128 matrices of lu_blas_omp_cpu: 1.53e+03 (7.65e-02 average)
-Total error for 1000 128x128 matrices of chol_gpu: 1.96e+05 (9.79e+00 average)
-Total error for 1000 128x128 matrices of gauss_batched_gpu: 1.01e+08 (5.07e+03 average)
-Total error for 1000 128x128 matrices of lu_cuda_batched_gpu: 2.03e+08 (1.01e+04 average)
-Total execution time for 1000 128x128 matrices and 20 replications of lu_blas_cpu: 5245.5951 ms (524.5595 ms average, 1.3822 ms variance)
-Total execution time for 1000 128x128 matrices and 20 replications of lu_blas_omp_cpu: 1263.4336 ms (126.3434 ms average, 7.0977 ms variance)
-Total execution time for 1000 128x128 matrices and 20 replications of chol_gpu: 266236.5161 ms (26623.6516 ms average, 4293.8638 ms variance)
-Total execution time for 1000 128x128 matrices and 20 replications of gauss_batched_gpu: 39892.5718 ms (3989.2572 ms average, 63950.5522 ms variance)
-Total execution time for 1000 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 1172.5719 ms (117.2572 ms average, 0.2076 ms variance)
-Total error for 1000 16x16 matrices of lu_blas_cpu: 3.31e-01 (1.66e-05 average)
-Total error for 1000 16x16 matrices of lu_blas_omp_cpu: 1.49e+03 (7.44e-02 average)
-Total error for 1000 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 1000 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 1000 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 1000 16x16 matrices and 20 replications of lu_blas_cpu: 55.8975 ms (5.5898 ms average, 0.0043 ms variance)
-Total execution time for 1000 16x16 matrices and 20 replications of lu_blas_omp_cpu: 35.4280 ms (3.5428 ms average, 8.6200 ms variance)
-Total execution time for 1000 16x16 matrices and 20 replications of chol_gpu: 197.0092 ms (19.7009 ms average, 4.6930 ms variance)
-Total execution time for 1000 16x16 matrices and 20 replications of gauss_batched_gpu: 190.4686 ms (19.0469 ms average, 0.6364 ms variance)
-Total execution time for 1000 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 53.2202 ms (5.3220 ms average, 0.0053 ms variance)
-Total error for 1000 32x32 matrices of lu_blas_cpu: 2.66e-01 (1.33e-05 average)
-Total error for 1000 32x32 matrices of lu_blas_omp_cpu: 1.52e+03 (7.58e-02 average)
-Total error for 1000 32x32 matrices of chol_gpu: 5.05e+04 (2.53e+00 average)
-Total error for 1000 32x32 matrices of gauss_batched_gpu: 7.24e+06 (3.62e+02 average)
-Total error for 1000 32x32 matrices of lu_cuda_batched_gpu: 1.45e+07 (7.23e+02 average)
-Total execution time for 1000 32x32 matrices and 20 replications of lu_blas_cpu: 195.3584 ms (19.5358 ms average, 0.0089 ms variance)
-Total execution time for 1000 32x32 matrices and 20 replications of lu_blas_omp_cpu: 57.3972 ms (5.7397 ms average, 1.9319 ms variance)
-Total execution time for 1000 32x32 matrices and 20 replications of chol_gpu: 713.6850 ms (71.3685 ms average, 11.4654 ms variance)
-Total execution time for 1000 32x32 matrices and 20 replications of gauss_batched_gpu: 596.2922 ms (59.6292 ms average, 41.3408 ms variance)
-Total execution time for 1000 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 111.2361 ms (11.1236 ms average, 0.0146 ms variance)
-Total error for 1000 64x64 matrices of lu_blas_cpu: 3.20e-01 (1.60e-05 average)
-Total error for 1000 64x64 matrices of lu_blas_omp_cpu: 1.53e+03 (7.64e-02 average)
-Total error for 1000 64x64 matrices of chol_gpu: 1.06e+05 (5.30e+00 average)
-Total error for 1000 64x64 matrices of gauss_batched_gpu: 3.67e+07 (1.83e+03 average)
-Total error for 1000 64x64 matrices of lu_cuda_batched_gpu: 7.35e+07 (3.68e+03 average)
-Total execution time for 1000 64x64 matrices and 20 replications of lu_blas_cpu: 1033.0770 ms (103.3077 ms average, 0.0283 ms variance)
-Total execution time for 1000 64x64 matrices and 20 replications of lu_blas_omp_cpu: 262.6365 ms (26.2637 ms average, 9.4037 ms variance)
-Total execution time for 1000 64x64 matrices and 20 replications of chol_gpu: 12754.4975 ms (1275.4497 ms average, 7.4748 ms variance)
-Total execution time for 1000 64x64 matrices and 20 replications of gauss_batched_gpu: 4826.5654 ms (482.6565 ms average, 2860.2934 ms variance)
-Total execution time for 1000 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 307.5497 ms (30.7550 ms average, 0.0508 ms variance)
-Total error for 1000 8x8 matrices of lu_blas_cpu: 3.41e-01 (1.71e-05 average)
-Total error for 1000 8x8 matrices of lu_blas_omp_cpu: 1.43e+03 (7.16e-02 average)
-Total error for 1000 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 1000 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 1000 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 1000 8x8 matrices and 20 replications of lu_blas_cpu: 19.1368 ms (1.9137 ms average, 0.7706 ms variance)
-Total execution time for 1000 8x8 matrices and 20 replications of lu_blas_omp_cpu: 15.3538 ms (1.5354 ms average, 9.2252 ms variance)
-Total execution time for 1000 8x8 matrices and 20 replications of chol_gpu: 70.3618 ms (7.0362 ms average, 4.4411 ms variance)
-Total execution time for 1000 8x8 matrices and 20 replications of gauss_batched_gpu: 64.2411 ms (6.4241 ms average, 0.0463 ms variance)
-Total execution time for 1000 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 29.1186 ms (2.9119 ms average, 0.0002 ms variance)
-Total error for 100 128x128 matrices of lu_blas_cpu: 3.94e-02 (1.97e-05 average)
-Total error for 100 128x128 matrices of lu_blas_omp_cpu: 1.54e+02 (7.68e-02 average)
-Total error for 100 128x128 matrices of chol_gpu: 1.96e+04 (9.82e+00 average)
-Total error for 100 128x128 matrices of gauss_batched_gpu: 1.02e+07 (5.11e+03 average)
-Total error for 100 128x128 matrices of lu_cuda_batched_gpu: 2.04e+07 (1.02e+04 average)
-Total execution time for 100 128x128 matrices and 20 replications of lu_blas_cpu: 523.1889 ms (52.3189 ms average, 0.0193 ms variance)
-Total execution time for 100 128x128 matrices and 20 replications of lu_blas_omp_cpu: 168.4908 ms (16.8491 ms average, 3.9890 ms variance)
-Total execution time for 100 128x128 matrices and 20 replications of chol_gpu: 26403.7932 ms (2640.3793 ms average, 174.8052 ms variance)
-Total execution time for 100 128x128 matrices and 20 replications of gauss_batched_gpu: 5276.2024 ms (527.6202 ms average, 0.3639 ms variance)
-Total execution time for 100 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 154.3579 ms (15.4358 ms average, 0.0089 ms variance)
-Total error for 100 16x16 matrices of lu_blas_cpu: 3.31e-02 (1.66e-05 average)
-Total error for 100 16x16 matrices of lu_blas_omp_cpu: 1.49e+02 (7.44e-02 average)
-Total error for 100 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 100 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 100 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 100 16x16 matrices and 20 replications of lu_blas_cpu: 5.3149 ms (0.5315 ms average, 0.0007 ms variance)
-Total execution time for 100 16x16 matrices and 20 replications of lu_blas_omp_cpu: 5.4825 ms (0.5483 ms average, 1.4288 ms variance)
-Total execution time for 100 16x16 matrices and 20 replications of chol_gpu: 42.3518 ms (4.2352 ms average, 4.5228 ms variance)
-Total execution time for 100 16x16 matrices and 20 replications of gauss_batched_gpu: 35.6654 ms (3.5665 ms average, 0.0004 ms variance)
-Total execution time for 100 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 23.2630 ms (2.3263 ms average, 0.0020 ms variance)
-Total error for 100 32x32 matrices of lu_blas_cpu: 2.66e-02 (1.33e-05 average)
-Total error for 100 32x32 matrices of lu_blas_omp_cpu: 1.52e+02 (7.58e-02 average)
-Total error for 100 32x32 matrices of chol_gpu: 5.79e+03 (2.90e+00 average)
-Total error for 100 32x32 matrices of gauss_batched_gpu: 7.25e+05 (3.62e+02 average)
-Total error for 100 32x32 matrices of lu_cuda_batched_gpu: 1.45e+06 (7.23e+02 average)
-Total execution time for 100 32x32 matrices and 20 replications of lu_blas_cpu: 19.8871 ms (1.9887 ms average, 0.0014 ms variance)
-Total execution time for 100 32x32 matrices and 20 replications of lu_blas_omp_cpu: 13.6746 ms (1.3675 ms average, 5.6152 ms variance)
-Total execution time for 100 32x32 matrices and 20 replications of chol_gpu: 105.0949 ms (10.5095 ms average, 4.2864 ms variance)
-Total execution time for 100 32x32 matrices and 20 replications of gauss_batched_gpu: 92.8807 ms (9.2881 ms average, 0.0102 ms variance)
-Total execution time for 100 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 28.2322 ms (2.8232 ms average, 0.0071 ms variance)
-Total error for 100 64x64 matrices of lu_blas_cpu: 3.20e-02 (1.60e-05 average)
-Total error for 100 64x64 matrices of lu_blas_omp_cpu: 1.53e+02 (7.64e-02 average)
-Total error for 100 64x64 matrices of chol_gpu: 9.85e+03 (4.92e+00 average)
-Total error for 100 64x64 matrices of gauss_batched_gpu: 3.67e+06 (1.84e+03 average)
-Total error for 100 64x64 matrices of lu_cuda_batched_gpu: 7.36e+06 (3.68e+03 average)
-Total execution time for 100 64x64 matrices and 20 replications of lu_blas_cpu: 104.9532 ms (10.4953 ms average, 0.5589 ms variance)
-Total execution time for 100 64x64 matrices and 20 replications of lu_blas_omp_cpu: 45.1277 ms (4.5128 ms average, 3.6384 ms variance)
-Total execution time for 100 64x64 matrices and 20 replications of chol_gpu: 1335.9374 ms (133.5937 ms average, 11.1037 ms variance)
-Total execution time for 100 64x64 matrices and 20 replications of gauss_batched_gpu: 625.5376 ms (62.5538 ms average, 1.9271 ms variance)
-Total execution time for 100 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 52.8113 ms (5.2811 ms average, 0.0068 ms variance)
-Total error for 100 8x8 matrices of lu_blas_cpu: 3.41e-02 (1.71e-05 average)
-Total error for 100 8x8 matrices of lu_blas_omp_cpu: 1.43e+02 (7.16e-02 average)
-Total error for 100 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 100 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 100 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 100 8x8 matrices and 20 replications of lu_blas_cpu: 2.0427 ms (0.2043 ms average, 0.0007 ms variance)
-Total execution time for 100 8x8 matrices and 20 replications of lu_blas_omp_cpu: 5.2222 ms (0.5222 ms average, 2.1115 ms variance)
-Total execution time for 100 8x8 matrices and 20 replications of chol_gpu: 22.6171 ms (2.2617 ms average, 5.3589 ms variance)
-Total execution time for 100 8x8 matrices and 20 replications of gauss_batched_gpu: 15.9263 ms (1.5926 ms average, 0.0002 ms variance)
-Total execution time for 100 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 16.5418 ms (1.6542 ms average, 0.0011 ms variance)
-Total error for 200 128x128 matrices of lu_blas_cpu: 7.88e-02 (1.97e-05 average)
-Total error for 200 128x128 matrices of lu_blas_omp_cpu: 3.07e+02 (7.68e-02 average)
-Total error for 200 128x128 matrices of chol_gpu: 3.93e+04 (9.82e+00 average)
-Total error for 200 128x128 matrices of gauss_batched_gpu: 2.04e+07 (5.10e+03 average)
-Total error for 200 128x128 matrices of lu_cuda_batched_gpu: 4.08e+07 (1.02e+04 average)
-Total execution time for 200 128x128 matrices and 20 replications of lu_blas_cpu: 1043.2462 ms (104.3246 ms average, 0.0299 ms variance)
-Total execution time for 200 128x128 matrices and 20 replications of lu_blas_omp_cpu: 302.4429 ms (30.2443 ms average, 2.4617 ms variance)
-Total execution time for 200 128x128 matrices and 20 replications of chol_gpu: 53353.0618 ms (5335.3062 ms average, 334.8267 ms variance)
-Total execution time for 200 128x128 matrices and 20 replications of gauss_batched_gpu: 10356.6496 ms (1035.6650 ms average, 0.6458 ms variance)
-Total execution time for 200 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 280.7953 ms (28.0795 ms average, 0.0095 ms variance)
-Total error for 200 16x16 matrices of lu_blas_cpu: 6.63e-02 (1.66e-05 average)
-Total error for 200 16x16 matrices of lu_blas_omp_cpu: 2.98e+02 (7.44e-02 average)
-Total error for 200 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 200 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 200 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 200 16x16 matrices and 20 replications of lu_blas_cpu: 11.1325 ms (1.1132 ms average, 0.0008 ms variance)
-Total execution time for 200 16x16 matrices and 20 replications of lu_blas_omp_cpu: 6.6565 ms (0.6657 ms average, 1.1373 ms variance)
-Total execution time for 200 16x16 matrices and 20 replications of chol_gpu: 62.2578 ms (6.2258 ms average, 4.3321 ms variance)
-Total execution time for 200 16x16 matrices and 20 replications of gauss_batched_gpu: 55.5691 ms (5.5569 ms average, 0.0016 ms variance)
-Total execution time for 200 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 31.7327 ms (3.1733 ms average, 0.0018 ms variance)
-Total error for 200 32x32 matrices of lu_blas_cpu: 5.32e-02 (1.33e-05 average)
-Total error for 200 32x32 matrices of lu_blas_omp_cpu: 3.03e+02 (7.58e-02 average)
-Total error for 200 32x32 matrices of chol_gpu: 1.13e+04 (2.82e+00 average)
-Total error for 200 32x32 matrices of gauss_batched_gpu: 1.45e+06 (3.62e+02 average)
-Total error for 200 32x32 matrices of lu_cuda_batched_gpu: 2.89e+06 (7.23e+02 average)
-Total execution time for 200 32x32 matrices and 20 replications of lu_blas_cpu: 39.6932 ms (3.9693 ms average, 0.0353 ms variance)
-Total execution time for 200 32x32 matrices and 20 replications of lu_blas_omp_cpu: 19.4777 ms (1.9478 ms average, 3.7761 ms variance)
-Total execution time for 200 32x32 matrices and 20 replications of chol_gpu: 187.7753 ms (18.7775 ms average, 4.1255 ms variance)
-Total execution time for 200 32x32 matrices and 20 replications of gauss_batched_gpu: 165.6385 ms (16.5638 ms average, 0.0026 ms variance)
-Total execution time for 200 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 47.2909 ms (4.7291 ms average, 0.0474 ms variance)
-Total error for 200 64x64 matrices of lu_blas_cpu: 6.39e-02 (1.60e-05 average)
-Total error for 200 64x64 matrices of lu_blas_omp_cpu: 3.06e+02 (7.64e-02 average)
-Total error for 200 64x64 matrices of chol_gpu: 1.88e+04 (4.71e+00 average)
-Total error for 200 64x64 matrices of gauss_batched_gpu: 7.35e+06 (1.84e+03 average)
-Total error for 200 64x64 matrices of lu_cuda_batched_gpu: 1.47e+07 (3.68e+03 average)
-Total execution time for 200 64x64 matrices and 20 replications of lu_blas_cpu: 204.5216 ms (20.4522 ms average, 0.0065 ms variance)
-Total execution time for 200 64x64 matrices and 20 replications of lu_blas_omp_cpu: 70.4604 ms (7.0460 ms average, 2.2054 ms variance)
-Total execution time for 200 64x64 matrices and 20 replications of chol_gpu: 2435.2274 ms (243.5227 ms average, 20.0461 ms variance)
-Total execution time for 200 64x64 matrices and 20 replications of gauss_batched_gpu: 1267.5310 ms (126.7531 ms average, 4.9119 ms variance)
-Total execution time for 200 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 87.5764 ms (8.7576 ms average, 0.0156 ms variance)
-Total error for 200 8x8 matrices of lu_blas_cpu: 6.83e-02 (1.71e-05 average)
-Total error for 200 8x8 matrices of lu_blas_omp_cpu: 2.86e+02 (7.16e-02 average)
-Total error for 200 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 200 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 200 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 200 8x8 matrices and 20 replications of lu_blas_cpu: 3.7804 ms (0.3780 ms average, 0.0006 ms variance)
-Total execution time for 200 8x8 matrices and 20 replications of lu_blas_omp_cpu: 5.6229 ms (0.5623 ms average, 2.0009 ms variance)
-Total execution time for 200 8x8 matrices and 20 replications of chol_gpu: 31.1454 ms (3.1145 ms average, 4.1332 ms variance)
-Total execution time for 200 8x8 matrices and 20 replications of gauss_batched_gpu: 25.6809 ms (2.5681 ms average, 0.0002 ms variance)
-Total execution time for 200 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 27.0637 ms (2.7064 ms average, 0.0015 ms variance)
-Total error for 300 128x128 matrices of lu_blas_cpu: 1.18e-01 (1.97e-05 average)
-Total error for 300 128x128 matrices of lu_blas_omp_cpu: 4.61e+02 (7.68e-02 average)
-Total error for 300 128x128 matrices of chol_gpu: 5.89e+04 (9.82e+00 average)
-Total error for 300 128x128 matrices of gauss_batched_gpu: 3.06e+07 (5.10e+03 average)
-Total error for 300 128x128 matrices of lu_cuda_batched_gpu: 6.12e+07 (1.02e+04 average)
-Total execution time for 300 128x128 matrices and 20 replications of lu_blas_cpu: 1622.2897 ms (162.2290 ms average, 105.5403 ms variance)
-Total execution time for 300 128x128 matrices and 20 replications of lu_blas_omp_cpu: 518.7180 ms (51.8718 ms average, 18.1771 ms variance)
-Total execution time for 300 128x128 matrices and 20 replications of chol_gpu: 80257.6350 ms (8025.7635 ms average, 399.0822 ms variance)
-Total execution time for 300 128x128 matrices and 20 replications of gauss_batched_gpu: 14013.6614 ms (1401.3661 ms average, 2206.6208 ms variance)
-Total execution time for 300 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 390.5340 ms (39.0534 ms average, 0.0136 ms variance)
-Total error for 300 16x16 matrices of lu_blas_cpu: 9.94e-02 (1.66e-05 average)
-Total error for 300 16x16 matrices of lu_blas_omp_cpu: 4.46e+02 (7.44e-02 average)
-Total error for 300 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 300 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 300 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 300 16x16 matrices and 20 replications of lu_blas_cpu: 16.6993 ms (1.6699 ms average, 0.0010 ms variance)
-Total execution time for 300 16x16 matrices and 20 replications of lu_blas_omp_cpu: 25.6562 ms (2.5656 ms average, 8.2698 ms variance)
-Total execution time for 300 16x16 matrices and 20 replications of chol_gpu: 80.2226 ms (8.0223 ms average, 4.3871 ms variance)
-Total execution time for 300 16x16 matrices and 20 replications of gauss_batched_gpu: 73.6625 ms (7.3663 ms average, 0.0247 ms variance)
-Total execution time for 300 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 29.3634 ms (2.9363 ms average, 0.0004 ms variance)
-Total error for 300 32x32 matrices of lu_blas_cpu: 7.99e-02 (1.33e-05 average)
-Total error for 300 32x32 matrices of lu_blas_omp_cpu: 4.55e+02 (7.58e-02 average)
-Total error for 300 32x32 matrices of chol_gpu: 1.64e+04 (2.74e+00 average)
-Total error for 300 32x32 matrices of gauss_batched_gpu: 2.17e+06 (3.62e+02 average)
-Total error for 300 32x32 matrices of lu_cuda_batched_gpu: 4.34e+06 (7.23e+02 average)
-Total execution time for 300 32x32 matrices and 20 replications of lu_blas_cpu: 58.6560 ms (5.8656 ms average, 0.0019 ms variance)
-Total execution time for 300 32x32 matrices and 20 replications of lu_blas_omp_cpu: 20.0699 ms (2.0070 ms average, 1.1950 ms variance)
-Total execution time for 300 32x32 matrices and 20 replications of chol_gpu: 262.7336 ms (26.2734 ms average, 4.6307 ms variance)
-Total execution time for 300 32x32 matrices and 20 replications of gauss_batched_gpu: 224.1000 ms (22.4100 ms average, 0.8413 ms variance)
-Total execution time for 300 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 46.3348 ms (4.6335 ms average, 0.0057 ms variance)
-Total error for 300 64x64 matrices of lu_blas_cpu: 9.59e-02 (1.60e-05 average)
-Total error for 300 64x64 matrices of lu_blas_omp_cpu: 4.58e+02 (7.64e-02 average)
-Total error for 300 64x64 matrices of chol_gpu: 2.89e+04 (4.82e+00 average)
-Total error for 300 64x64 matrices of gauss_batched_gpu: 1.10e+07 (1.84e+03 average)
-Total error for 300 64x64 matrices of lu_cuda_batched_gpu: 2.21e+07 (3.68e+03 average)
-Total execution time for 300 64x64 matrices and 20 replications of lu_blas_cpu: 308.1376 ms (30.8138 ms average, 0.0089 ms variance)
-Total execution time for 300 64x64 matrices and 20 replications of lu_blas_omp_cpu: 80.5357 ms (8.0536 ms average, 1.1342 ms variance)
-Total execution time for 300 64x64 matrices and 20 replications of chol_gpu: 3851.9726 ms (385.1973 ms average, 4.0764 ms variance)
-Total execution time for 300 64x64 matrices and 20 replications of gauss_batched_gpu: 1762.7849 ms (176.2785 ms average, 0.1060 ms variance)
-Total execution time for 300 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 106.2404 ms (10.6240 ms average, 0.0051 ms variance)
-Total error for 300 8x8 matrices of lu_blas_cpu: 1.02e-01 (1.71e-05 average)
-Total error for 300 8x8 matrices of lu_blas_omp_cpu: 4.29e+02 (7.16e-02 average)
-Total error for 300 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 300 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 300 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 300 8x8 matrices and 20 replications of lu_blas_cpu: 6.8298 ms (0.6830 ms average, 0.1632 ms variance)
-Total execution time for 300 8x8 matrices and 20 replications of lu_blas_omp_cpu: 8.6763 ms (0.8676 ms average, 5.4852 ms variance)
-Total execution time for 300 8x8 matrices and 20 replications of chol_gpu: 36.4486 ms (3.6449 ms average, 4.2292 ms variance)
-Total execution time for 300 8x8 matrices and 20 replications of gauss_batched_gpu: 29.9104 ms (2.9910 ms average, 0.0112 ms variance)
-Total execution time for 300 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 20.3061 ms (2.0306 ms average, 0.0009 ms variance)
-Total error for 400 128x128 matrices of lu_blas_cpu: 1.58e-01 (1.97e-05 average)
-Total error for 400 128x128 matrices of lu_blas_omp_cpu: 6.14e+02 (7.67e-02 average)
-Total error for 400 128x128 matrices of chol_gpu: 7.85e+04 (9.82e+00 average)
-Total error for 400 128x128 matrices of gauss_batched_gpu: 4.08e+07 (5.10e+03 average)
-Total error for 400 128x128 matrices of lu_cuda_batched_gpu: 8.15e+07 (1.02e+04 average)
-Total execution time for 400 128x128 matrices and 20 replications of lu_blas_cpu: 2091.9076 ms (209.1908 ms average, 0.1959 ms variance)
-Total execution time for 400 128x128 matrices and 20 replications of lu_blas_omp_cpu: 721.5369 ms (72.1537 ms average, 22.2231 ms variance)
-Total execution time for 400 128x128 matrices and 20 replications of chol_gpu: 107054.6922 ms (10705.4692 ms average, 4048.0301 ms variance)
-Total execution time for 400 128x128 matrices and 20 replications of gauss_batched_gpu: 17682.8928 ms (1768.2893 ms average, 6807.8457 ms variance)
-Total execution time for 400 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 498.3836 ms (49.8384 ms average, 0.0576 ms variance)
-Total error for 400 16x16 matrices of lu_blas_cpu: 1.33e-01 (1.66e-05 average)
-Total error for 400 16x16 matrices of lu_blas_omp_cpu: 5.95e+02 (7.44e-02 average)
-Total error for 400 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 400 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 400 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 400 16x16 matrices and 20 replications of lu_blas_cpu: 22.2161 ms (2.2216 ms average, 0.0005 ms variance)
-Total execution time for 400 16x16 matrices and 20 replications of lu_blas_omp_cpu: 18.0987 ms (1.8099 ms average, 10.7957 ms variance)
-Total execution time for 400 16x16 matrices and 20 replications of chol_gpu: 97.0109 ms (9.7011 ms average, 4.6160 ms variance)
-Total execution time for 400 16x16 matrices and 20 replications of gauss_batched_gpu: 89.1592 ms (8.9159 ms average, 0.1492 ms variance)
-Total execution time for 400 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 30.5393 ms (3.0539 ms average, 0.0024 ms variance)
-Total error for 400 32x32 matrices of lu_blas_cpu: 1.06e-01 (1.33e-05 average)
-Total error for 400 32x32 matrices of lu_blas_omp_cpu: 6.06e+02 (7.58e-02 average)
-Total error for 400 32x32 matrices of chol_gpu: 2.15e+04 (2.69e+00 average)
-Total error for 400 32x32 matrices of gauss_batched_gpu: 2.90e+06 (3.62e+02 average)
-Total error for 400 32x32 matrices of lu_cuda_batched_gpu: 5.79e+06 (7.23e+02 average)
-Total execution time for 400 32x32 matrices and 20 replications of lu_blas_cpu: 77.9320 ms (7.7932 ms average, 0.0033 ms variance)
-Total execution time for 400 32x32 matrices and 20 replications of lu_blas_omp_cpu: 35.0077 ms (3.5008 ms average, 15.4545 ms variance)
-Total execution time for 400 32x32 matrices and 20 replications of chol_gpu: 337.6205 ms (33.7621 ms average, 4.3729 ms variance)
-Total execution time for 400 32x32 matrices and 20 replications of gauss_batched_gpu: 252.4126 ms (25.2413 ms average, 0.4769 ms variance)
-Total execution time for 400 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 54.7431 ms (5.4743 ms average, 0.0044 ms variance)
-Total error for 400 64x64 matrices of lu_blas_cpu: 1.28e-01 (1.60e-05 average)
-Total error for 400 64x64 matrices of lu_blas_omp_cpu: 6.11e+02 (7.64e-02 average)
-Total error for 400 64x64 matrices of chol_gpu: 3.92e+04 (4.90e+00 average)
-Total error for 400 64x64 matrices of gauss_batched_gpu: 1.47e+07 (1.84e+03 average)
-Total error for 400 64x64 matrices of lu_cuda_batched_gpu: 2.94e+07 (3.68e+03 average)
-Total execution time for 400 64x64 matrices and 20 replications of lu_blas_cpu: 411.9049 ms (41.1905 ms average, 0.0083 ms variance)
-Total execution time for 400 64x64 matrices and 20 replications of lu_blas_omp_cpu: 115.9154 ms (11.5915 ms average, 2.2866 ms variance)
-Total execution time for 400 64x64 matrices and 20 replications of chol_gpu: 5052.2519 ms (505.2252 ms average, 19.4781 ms variance)
-Total execution time for 400 64x64 matrices and 20 replications of gauss_batched_gpu: 2250.9219 ms (225.0922 ms average, 144.8756 ms variance)
-Total execution time for 400 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 134.5767 ms (13.4577 ms average, 0.0178 ms variance)
-Total error for 400 8x8 matrices of lu_blas_cpu: 1.37e-01 (1.71e-05 average)
-Total error for 400 8x8 matrices of lu_blas_omp_cpu: 5.73e+02 (7.16e-02 average)
-Total error for 400 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 400 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 400 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 400 8x8 matrices and 20 replications of lu_blas_cpu: 6.7299 ms (0.6730 ms average, 0.0005 ms variance)
-Total execution time for 400 8x8 matrices and 20 replications of lu_blas_omp_cpu: 10.6305 ms (1.0631 ms average, 3.9510 ms variance)
-Total execution time for 400 8x8 matrices and 20 replications of chol_gpu: 41.5243 ms (4.1524 ms average, 4.4450 ms variance)
-Total execution time for 400 8x8 matrices and 20 replications of gauss_batched_gpu: 33.3157 ms (3.3316 ms average, 0.0003 ms variance)
-Total execution time for 400 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 20.6083 ms (2.0608 ms average, 0.0004 ms variance)
-Total error for 500 128x128 matrices of lu_blas_cpu: 1.97e-01 (1.97e-05 average)
-Total error for 500 128x128 matrices of lu_blas_omp_cpu: 7.67e+02 (7.67e-02 average)
-Total error for 500 128x128 matrices of chol_gpu: 9.81e+04 (9.81e+00 average)
-Total error for 500 128x128 matrices of gauss_batched_gpu: 5.09e+07 (5.09e+03 average)
-Total error for 500 128x128 matrices of lu_cuda_batched_gpu: 1.02e+08 (1.02e+04 average)
-Total execution time for 500 128x128 matrices and 20 replications of lu_blas_cpu: 2617.4759 ms (261.7476 ms average, 0.7906 ms variance)
-Total execution time for 500 128x128 matrices and 20 replications of lu_blas_omp_cpu: 642.8339 ms (64.2834 ms average, 3.4695 ms variance)
-Total execution time for 500 128x128 matrices and 20 replications of chol_gpu: 134006.5828 ms (13400.6583 ms average, 1401.9525 ms variance)
-Total execution time for 500 128x128 matrices and 20 replications of gauss_batched_gpu: 20743.7754 ms (2074.3775 ms average, 49803.9713 ms variance)
-Total execution time for 500 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 599.5074 ms (59.9507 ms average, 0.2211 ms variance)
-Total error for 500 16x16 matrices of lu_blas_cpu: 1.66e-01 (1.66e-05 average)
-Total error for 500 16x16 matrices of lu_blas_omp_cpu: 7.44e+02 (7.44e-02 average)
-Total error for 500 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 500 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 500 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 500 16x16 matrices and 20 replications of lu_blas_cpu: 28.0614 ms (2.8061 ms average, 0.0020 ms variance)
-Total execution time for 500 16x16 matrices and 20 replications of lu_blas_omp_cpu: 13.1261 ms (1.3126 ms average, 4.0950 ms variance)
-Total execution time for 500 16x16 matrices and 20 replications of chol_gpu: 109.6833 ms (10.9683 ms average, 4.4578 ms variance)
-Total execution time for 500 16x16 matrices and 20 replications of gauss_batched_gpu: 89.3651 ms (8.9365 ms average, 0.2029 ms variance)
-Total execution time for 500 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 31.0998 ms (3.1100 ms average, 0.0011 ms variance)
-Total error for 500 32x32 matrices of lu_blas_cpu: 1.33e-01 (1.33e-05 average)
-Total error for 500 32x32 matrices of lu_blas_omp_cpu: 7.58e+02 (7.58e-02 average)
-Total error for 500 32x32 matrices of chol_gpu: 2.65e+04 (2.65e+00 average)
-Total error for 500 32x32 matrices of gauss_batched_gpu: 3.62e+06 (3.62e+02 average)
-Total error for 500 32x32 matrices of lu_cuda_batched_gpu: 7.23e+06 (7.23e+02 average)
-Total execution time for 500 32x32 matrices and 20 replications of lu_blas_cpu: 97.9633 ms (9.7963 ms average, 0.0037 ms variance)
-Total execution time for 500 32x32 matrices and 20 replications of lu_blas_omp_cpu: 35.8278 ms (3.5828 ms average, 3.5607 ms variance)
-Total execution time for 500 32x32 matrices and 20 replications of chol_gpu: 364.1647 ms (36.4165 ms average, 3.9502 ms variance)
-Total execution time for 500 32x32 matrices and 20 replications of gauss_batched_gpu: 273.5495 ms (27.3549 ms average, 2.6381 ms variance)
-Total execution time for 500 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 63.7891 ms (6.3789 ms average, 0.0146 ms variance)
-Total error for 500 64x64 matrices of lu_blas_cpu: 1.60e-01 (1.60e-05 average)
-Total error for 500 64x64 matrices of lu_blas_omp_cpu: 7.64e+02 (7.64e-02 average)
-Total error for 500 64x64 matrices of chol_gpu: 5.03e+04 (5.03e+00 average)
-Total error for 500 64x64 matrices of gauss_batched_gpu: 1.84e+07 (1.84e+03 average)
-Total error for 500 64x64 matrices of lu_cuda_batched_gpu: 3.68e+07 (3.68e+03 average)
-Total execution time for 500 64x64 matrices and 20 replications of lu_blas_cpu: 515.7715 ms (51.5771 ms average, 0.0089 ms variance)
-Total execution time for 500 64x64 matrices and 20 replications of lu_blas_omp_cpu: 139.0277 ms (13.9028 ms average, 6.4082 ms variance)
-Total execution time for 500 64x64 matrices and 20 replications of chol_gpu: 6407.6929 ms (640.7693 ms average, 5.7415 ms variance)
-Total execution time for 500 64x64 matrices and 20 replications of gauss_batched_gpu: 2053.5132 ms (205.3513 ms average, 0.0082 ms variance)
-Total execution time for 500 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 158.7137 ms (15.8714 ms average, 0.0195 ms variance)
-Total error for 500 8x8 matrices of lu_blas_cpu: 1.71e-01 (1.71e-05 average)
-Total error for 500 8x8 matrices of lu_blas_omp_cpu: 7.16e+02 (7.16e-02 average)
-Total error for 500 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 500 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 500 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 500 8x8 matrices and 20 replications of lu_blas_cpu: 16.5798 ms (1.6580 ms average, 0.8485 ms variance)
-Total execution time for 500 8x8 matrices and 20 replications of lu_blas_omp_cpu: 5.9675 ms (0.5968 ms average, 1.5588 ms variance)
-Total execution time for 500 8x8 matrices and 20 replications of chol_gpu: 45.1910 ms (4.5191 ms average, 4.3117 ms variance)
-Total execution time for 500 8x8 matrices and 20 replications of gauss_batched_gpu: 36.7752 ms (3.6775 ms average, 0.0110 ms variance)
-Total execution time for 500 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 20.8378 ms (2.0838 ms average, 0.0007 ms variance)
-Total error for 600 128x128 matrices of lu_blas_cpu: 2.36e-01 (1.97e-05 average)
-Total error for 600 128x128 matrices of lu_blas_omp_cpu: 9.20e+02 (7.67e-02 average)
-Total error for 600 128x128 matrices of chol_gpu: 1.18e+05 (9.81e+00 average)
-Total error for 600 128x128 matrices of gauss_batched_gpu: 6.11e+07 (5.09e+03 average)
-Total error for 600 128x128 matrices of lu_cuda_batched_gpu: 1.22e+08 (1.02e+04 average)
-Total execution time for 600 128x128 matrices and 20 replications of lu_blas_cpu: 3133.2208 ms (313.3221 ms average, 0.5312 ms variance)
-Total execution time for 600 128x128 matrices and 20 replications of lu_blas_omp_cpu: 781.9447 ms (78.1945 ms average, 5.0042 ms variance)
-Total execution time for 600 128x128 matrices and 20 replications of chol_gpu: 160460.1491 ms (16046.0149 ms average, 7085.9441 ms variance)
-Total execution time for 600 128x128 matrices and 20 replications of gauss_batched_gpu: 25190.3750 ms (2519.0375 ms average, 23384.7743 ms variance)
-Total execution time for 600 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 734.9266 ms (73.4927 ms average, 0.6125 ms variance)
-Total error for 600 16x16 matrices of lu_blas_cpu: 1.99e-01 (1.66e-05 average)
-Total error for 600 16x16 matrices of lu_blas_omp_cpu: 8.93e+02 (7.44e-02 average)
-Total error for 600 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 600 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 600 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 600 16x16 matrices and 20 replications of lu_blas_cpu: 33.7259 ms (3.3726 ms average, 0.0011 ms variance)
-Total execution time for 600 16x16 matrices and 20 replications of lu_blas_omp_cpu: 16.5548 ms (1.6555 ms average, 6.6135 ms variance)
-Total execution time for 600 16x16 matrices and 20 replications of chol_gpu: 128.3345 ms (12.8334 ms average, 4.5715 ms variance)
-Total execution time for 600 16x16 matrices and 20 replications of gauss_batched_gpu: 117.0233 ms (11.7023 ms average, 0.2510 ms variance)
-Total execution time for 600 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 45.6900 ms (4.5690 ms average, 0.0108 ms variance)
-Total error for 600 32x32 matrices of lu_blas_cpu: 1.60e-01 (1.33e-05 average)
-Total error for 600 32x32 matrices of lu_blas_omp_cpu: 9.09e+02 (7.58e-02 average)
-Total error for 600 32x32 matrices of chol_gpu: 3.11e+04 (2.59e+00 average)
-Total error for 600 32x32 matrices of gauss_batched_gpu: 4.35e+06 (3.62e+02 average)
-Total error for 600 32x32 matrices of lu_cuda_batched_gpu: 8.68e+06 (7.23e+02 average)
-Total execution time for 600 32x32 matrices and 20 replications of lu_blas_cpu: 133.1996 ms (13.3200 ms average, 5.7171 ms variance)
-Total execution time for 600 32x32 matrices and 20 replications of lu_blas_omp_cpu: 46.4220 ms (4.6422 ms average, 7.4676 ms variance)
-Total execution time for 600 32x32 matrices and 20 replications of chol_gpu: 439.4464 ms (43.9446 ms average, 4.6760 ms variance)
-Total execution time for 600 32x32 matrices and 20 replications of gauss_batched_gpu: 358.0233 ms (35.8023 ms average, 2.9368 ms variance)
-Total execution time for 600 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 80.0079 ms (8.0008 ms average, 0.0467 ms variance)
-Total error for 600 64x64 matrices of lu_blas_cpu: 1.92e-01 (1.60e-05 average)
-Total error for 600 64x64 matrices of lu_blas_omp_cpu: 9.17e+02 (7.64e-02 average)
-Total error for 600 64x64 matrices of chol_gpu: 6.04e+04 (5.03e+00 average)
-Total error for 600 64x64 matrices of gauss_batched_gpu: 2.20e+07 (1.84e+03 average)
-Total error for 600 64x64 matrices of lu_cuda_batched_gpu: 4.42e+07 (3.68e+03 average)
-Total execution time for 600 64x64 matrices and 20 replications of lu_blas_cpu: 619.7294 ms (61.9729 ms average, 0.0135 ms variance)
-Total execution time for 600 64x64 matrices and 20 replications of lu_blas_omp_cpu: 165.7537 ms (16.5754 ms average, 3.8929 ms variance)
-Total execution time for 600 64x64 matrices and 20 replications of chol_gpu: 7635.9567 ms (763.5957 ms average, 5.6058 ms variance)
-Total execution time for 600 64x64 matrices and 20 replications of gauss_batched_gpu: 3065.6679 ms (306.5668 ms average, 207.1028 ms variance)
-Total execution time for 600 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 196.6230 ms (19.6623 ms average, 0.0077 ms variance)
-Total error for 600 8x8 matrices of lu_blas_cpu: 2.05e-01 (1.71e-05 average)
-Total error for 600 8x8 matrices of lu_blas_omp_cpu: 8.59e+02 (7.16e-02 average)
-Total error for 600 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 600 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 600 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 600 8x8 matrices and 20 replications of lu_blas_cpu: 9.9021 ms (0.9902 ms average, 0.0004 ms variance)
-Total execution time for 600 8x8 matrices and 20 replications of lu_blas_omp_cpu: 5.6432 ms (0.5643 ms average, 0.9803 ms variance)
-Total execution time for 600 8x8 matrices and 20 replications of chol_gpu: 50.2786 ms (5.0279 ms average, 4.4937 ms variance)
-Total execution time for 600 8x8 matrices and 20 replications of gauss_batched_gpu: 43.0736 ms (4.3074 ms average, 0.0085 ms variance)
-Total execution time for 600 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 28.3280 ms (2.8328 ms average, 0.0019 ms variance)
-Total error for 700 128x128 matrices of lu_blas_cpu: 2.75e-01 (1.97e-05 average)
-Total error for 700 128x128 matrices of lu_blas_omp_cpu: 1.07e+03 (7.67e-02 average)
-Total error for 700 128x128 matrices of chol_gpu: 1.37e+05 (9.81e+00 average)
-Total error for 700 128x128 matrices of gauss_batched_gpu: 7.12e+07 (5.08e+03 average)
-Total error for 700 128x128 matrices of lu_cuda_batched_gpu: 1.42e+08 (1.02e+04 average)
-Total execution time for 700 128x128 matrices and 20 replications of lu_blas_cpu: 3652.8240 ms (365.2824 ms average, 0.1145 ms variance)
-Total execution time for 700 128x128 matrices and 20 replications of lu_blas_omp_cpu: 890.8761 ms (89.0876 ms average, 11.3244 ms variance)
-Total execution time for 700 128x128 matrices and 20 replications of chol_gpu: 187703.8697 ms (18770.3870 ms average, 15204.3696 ms variance)
-Total execution time for 700 128x128 matrices and 20 replications of gauss_batched_gpu: 28911.7589 ms (2891.1759 ms average, 12922.7869 ms variance)
-Total execution time for 700 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 841.0879 ms (84.1088 ms average, 0.1882 ms variance)
-Total error for 700 16x16 matrices of lu_blas_cpu: 2.32e-01 (1.66e-05 average)
-Total error for 700 16x16 matrices of lu_blas_omp_cpu: 1.04e+03 (7.44e-02 average)
-Total error for 700 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 700 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 700 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 700 16x16 matrices and 20 replications of lu_blas_cpu: 39.4272 ms (3.9427 ms average, 0.0021 ms variance)
-Total execution time for 700 16x16 matrices and 20 replications of lu_blas_omp_cpu: 23.1494 ms (2.3149 ms average, 5.1209 ms variance)
-Total execution time for 700 16x16 matrices and 20 replications of chol_gpu: 147.4903 ms (14.7490 ms average, 4.3412 ms variance)
-Total execution time for 700 16x16 matrices and 20 replications of gauss_batched_gpu: 130.9961 ms (13.0996 ms average, 0.0616 ms variance)
-Total execution time for 700 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 47.3207 ms (4.7321 ms average, 0.0097 ms variance)
-Total error for 700 32x32 matrices of lu_blas_cpu: 1.86e-01 (1.33e-05 average)
-Total error for 700 32x32 matrices of lu_blas_omp_cpu: 1.06e+03 (7.58e-02 average)
-Total error for 700 32x32 matrices of chol_gpu: 3.54e+04 (2.53e+00 average)
-Total error for 700 32x32 matrices of gauss_batched_gpu: 5.07e+06 (3.62e+02 average)
-Total error for 700 32x32 matrices of lu_cuda_batched_gpu: 1.01e+07 (7.23e+02 average)
-Total execution time for 700 32x32 matrices and 20 replications of lu_blas_cpu: 136.3520 ms (13.6352 ms average, 0.0030 ms variance)
-Total execution time for 700 32x32 matrices and 20 replications of lu_blas_omp_cpu: 39.5866 ms (3.9587 ms average, 2.6984 ms variance)
-Total execution time for 700 32x32 matrices and 20 replications of chol_gpu: 518.1633 ms (51.8163 ms average, 8.9851 ms variance)
-Total execution time for 700 32x32 matrices and 20 replications of gauss_batched_gpu: 429.6421 ms (42.9642 ms average, 1.3113 ms variance)
-Total execution time for 700 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 86.3923 ms (8.6392 ms average, 0.0202 ms variance)
-Total error for 700 64x64 matrices of lu_blas_cpu: 2.24e-01 (1.60e-05 average)
-Total error for 700 64x64 matrices of lu_blas_omp_cpu: 1.07e+03 (7.64e-02 average)
-Total error for 700 64x64 matrices of chol_gpu: 7.12e+04 (5.09e+00 average)
-Total error for 700 64x64 matrices of gauss_batched_gpu: 2.57e+07 (1.84e+03 average)
-Total error for 700 64x64 matrices of lu_cuda_batched_gpu: 5.15e+07 (3.68e+03 average)
-Total execution time for 700 64x64 matrices and 20 replications of lu_blas_cpu: 720.6431 ms (72.0643 ms average, 0.0206 ms variance)
-Total execution time for 700 64x64 matrices and 20 replications of lu_blas_omp_cpu: 182.6608 ms (18.2661 ms average, 5.2158 ms variance)
-Total execution time for 700 64x64 matrices and 20 replications of chol_gpu: 8988.3065 ms (898.8306 ms average, 4.7644 ms variance)
-Total execution time for 700 64x64 matrices and 20 replications of gauss_batched_gpu: 3351.3029 ms (335.1303 ms average, 120.8667 ms variance)
-Total execution time for 700 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 220.9515 ms (22.0951 ms average, 0.0231 ms variance)
-Total error for 700 8x8 matrices of lu_blas_cpu: 2.39e-01 (1.71e-05 average)
-Total error for 700 8x8 matrices of lu_blas_omp_cpu: 1.00e+03 (7.16e-02 average)
-Total error for 700 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 700 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 700 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 700 8x8 matrices and 20 replications of lu_blas_cpu: 11.7361 ms (1.1736 ms average, 0.0014 ms variance)
-Total execution time for 700 8x8 matrices and 20 replications of lu_blas_omp_cpu: 10.2040 ms (1.0204 ms average, 5.4529 ms variance)
-Total execution time for 700 8x8 matrices and 20 replications of chol_gpu: 62.0465 ms (6.2047 ms average, 16.2558 ms variance)
-Total execution time for 700 8x8 matrices and 20 replications of gauss_batched_gpu: 48.1575 ms (4.8158 ms average, 0.0006 ms variance)
-Total execution time for 700 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 28.1170 ms (2.8117 ms average, 0.0016 ms variance)
-Total error for 800 128x128 matrices of lu_blas_cpu: 3.14e-01 (1.96e-05 average)
-Total error for 800 128x128 matrices of lu_blas_omp_cpu: 1.23e+03 (7.66e-02 average)
-Total error for 800 128x128 matrices of chol_gpu: 1.57e+05 (9.80e+00 average)
-Total error for 800 128x128 matrices of gauss_batched_gpu: 8.12e+07 (5.08e+03 average)
-Total error for 800 128x128 matrices of lu_cuda_batched_gpu: 1.62e+08 (1.01e+04 average)
-Total execution time for 800 128x128 matrices and 20 replications of lu_blas_cpu: 4186.9847 ms (418.6985 ms average, 0.5227 ms variance)
-Total execution time for 800 128x128 matrices and 20 replications of lu_blas_omp_cpu: 1024.3106 ms (102.4311 ms average, 3.1310 ms variance)
-Total execution time for 800 128x128 matrices and 20 replications of chol_gpu: 214098.6410 ms (21409.8641 ms average, 5246.6162 ms variance)
-Total execution time for 800 128x128 matrices and 20 replications of gauss_batched_gpu: 30923.2777 ms (3092.3278 ms average, 17834.7003 ms variance)
-Total execution time for 800 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 970.3471 ms (97.0347 ms average, 1.8519 ms variance)
-Total error for 800 16x16 matrices of lu_blas_cpu: 2.65e-01 (1.66e-05 average)
-Total error for 800 16x16 matrices of lu_blas_omp_cpu: 1.19e+03 (7.44e-02 average)
-Total error for 800 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 800 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 800 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 800 16x16 matrices and 20 replications of lu_blas_cpu: 44.7695 ms (4.4770 ms average, 0.0005 ms variance)
-Total execution time for 800 16x16 matrices and 20 replications of lu_blas_omp_cpu: 14.2107 ms (1.4211 ms average, 1.0990 ms variance)
-Total execution time for 800 16x16 matrices and 20 replications of chol_gpu: 163.9246 ms (16.3925 ms average, 4.2837 ms variance)
-Total execution time for 800 16x16 matrices and 20 replications of gauss_batched_gpu: 150.1012 ms (15.0101 ms average, 0.1617 ms variance)
-Total execution time for 800 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 51.9053 ms (5.1905 ms average, 0.0111 ms variance)
-Total error for 800 32x32 matrices of lu_blas_cpu: 2.13e-01 (1.33e-05 average)
-Total error for 800 32x32 matrices of lu_blas_omp_cpu: 1.21e+03 (7.58e-02 average)
-Total error for 800 32x32 matrices of chol_gpu: 4.01e+04 (2.50e+00 average)
-Total error for 800 32x32 matrices of gauss_batched_gpu: 5.80e+06 (3.62e+02 average)
-Total error for 800 32x32 matrices of lu_cuda_batched_gpu: 1.16e+07 (7.23e+02 average)
-Total execution time for 800 32x32 matrices and 20 replications of lu_blas_cpu: 155.9580 ms (15.5958 ms average, 0.0060 ms variance)
-Total execution time for 800 32x32 matrices and 20 replications of lu_blas_omp_cpu: 43.2054 ms (4.3205 ms average, 1.2049 ms variance)
-Total execution time for 800 32x32 matrices and 20 replications of chol_gpu: 598.8934 ms (59.8893 ms average, 5.8963 ms variance)
-Total execution time for 800 32x32 matrices and 20 replications of gauss_batched_gpu: 497.3125 ms (49.7312 ms average, 1.0382 ms variance)
-Total execution time for 800 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 99.0198 ms (9.9020 ms average, 0.6169 ms variance)
-Total error for 800 64x64 matrices of lu_blas_cpu: 2.56e-01 (1.60e-05 average)
-Total error for 800 64x64 matrices of lu_blas_omp_cpu: 1.22e+03 (7.64e-02 average)
-Total error for 800 64x64 matrices of chol_gpu: 8.21e+04 (5.13e+00 average)
-Total error for 800 64x64 matrices of gauss_batched_gpu: 2.94e+07 (1.84e+03 average)
-Total error for 800 64x64 matrices of lu_cuda_batched_gpu: 5.89e+07 (3.68e+03 average)
-Total execution time for 800 64x64 matrices and 20 replications of lu_blas_cpu: 828.9892 ms (82.8989 ms average, 0.0970 ms variance)
-Total execution time for 800 64x64 matrices and 20 replications of lu_blas_omp_cpu: 206.9466 ms (20.6947 ms average, 2.2971 ms variance)
-Total execution time for 800 64x64 matrices and 20 replications of chol_gpu: 10263.7569 ms (1026.3757 ms average, 8.2525 ms variance)
-Total execution time for 800 64x64 matrices and 20 replications of gauss_batched_gpu: 3917.2602 ms (391.7260 ms average, 422.8340 ms variance)
-Total execution time for 800 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 252.8533 ms (25.2853 ms average, 0.0252 ms variance)
-Total error for 800 8x8 matrices of lu_blas_cpu: 2.73e-01 (1.71e-05 average)
-Total error for 800 8x8 matrices of lu_blas_omp_cpu: 1.15e+03 (7.16e-02 average)
-Total error for 800 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 800 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 800 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 800 8x8 matrices and 20 replications of lu_blas_cpu: 13.3456 ms (1.3346 ms average, 0.0015 ms variance)
-Total execution time for 800 8x8 matrices and 20 replications of lu_blas_omp_cpu: 22.2965 ms (2.2297 ms average, 10.2443 ms variance)
-Total execution time for 800 8x8 matrices and 20 replications of chol_gpu: 60.9519 ms (6.0952 ms average, 4.3496 ms variance)
-Total execution time for 800 8x8 matrices and 20 replications of gauss_batched_gpu: 54.0176 ms (5.4018 ms average, 0.0046 ms variance)
-Total execution time for 800 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 28.6524 ms (2.8652 ms average, 0.0027 ms variance)
-Total error for 900 128x128 matrices of lu_blas_cpu: 3.53e-01 (1.96e-05 average)
-Total error for 900 128x128 matrices of lu_blas_omp_cpu: 1.38e+03 (7.66e-02 average)
-Total error for 900 128x128 matrices of chol_gpu: 1.76e+05 (9.79e+00 average)
-Total error for 900 128x128 matrices of gauss_batched_gpu: 9.13e+07 (5.07e+03 average)
-Total error for 900 128x128 matrices of lu_cuda_batched_gpu: 1.82e+08 (1.01e+04 average)
-Total execution time for 900 128x128 matrices and 20 replications of lu_blas_cpu: 4704.9588 ms (470.4959 ms average, 0.0772 ms variance)
-Total execution time for 900 128x128 matrices and 20 replications of lu_blas_omp_cpu: 1144.7887 ms (114.4789 ms average, 13.6401 ms variance)
-Total execution time for 900 128x128 matrices and 20 replications of chol_gpu: 239356.1988 ms (23935.6199 ms average, 14089.6654 ms variance)
-Total execution time for 900 128x128 matrices and 20 replications of gauss_batched_gpu: 36216.2421 ms (3621.6242 ms average, 20012.0826 ms variance)
-Total execution time for 900 128x128 matrices and 20 replications of lu_cuda_batched_gpu: 1073.9725 ms (107.3973 ms average, 0.3209 ms variance)
-Total error for 900 16x16 matrices of lu_blas_cpu: 2.98e-01 (1.66e-05 average)
-Total error for 900 16x16 matrices of lu_blas_omp_cpu: 1.34e+03 (7.44e-02 average)
-Total error for 900 16x16 matrices of chol_gpu: nan (nan average)
-Total error for 900 16x16 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 900 16x16 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 900 16x16 matrices and 20 replications of lu_blas_cpu: 50.0136 ms (5.0014 ms average, 0.0009 ms variance)
-Total execution time for 900 16x16 matrices and 20 replications of lu_blas_omp_cpu: 25.8392 ms (2.5839 ms average, 15.5830 ms variance)
-Total execution time for 900 16x16 matrices and 20 replications of chol_gpu: 180.3955 ms (18.0395 ms average, 4.4537 ms variance)
-Total execution time for 900 16x16 matrices and 20 replications of gauss_batched_gpu: 169.5888 ms (16.9589 ms average, 0.0077 ms variance)
-Total execution time for 900 16x16 matrices and 20 replications of lu_cuda_batched_gpu: 52.1499 ms (5.2150 ms average, 0.0020 ms variance)
-Total error for 900 32x32 matrices of lu_blas_cpu: 2.40e-01 (1.33e-05 average)
-Total error for 900 32x32 matrices of lu_blas_omp_cpu: 1.36e+03 (7.58e-02 average)
-Total error for 900 32x32 matrices of chol_gpu: 4.56e+04 (2.53e+00 average)
-Total error for 900 32x32 matrices of gauss_batched_gpu: 6.52e+06 (3.62e+02 average)
-Total error for 900 32x32 matrices of lu_cuda_batched_gpu: 1.30e+07 (7.23e+02 average)
-Total execution time for 900 32x32 matrices and 20 replications of lu_blas_cpu: 180.5856 ms (18.0586 ms average, 1.7719 ms variance)
-Total execution time for 900 32x32 matrices and 20 replications of lu_blas_omp_cpu: 55.9739 ms (5.5974 ms average, 5.2390 ms variance)
-Total execution time for 900 32x32 matrices and 20 replications of chol_gpu: 651.2631 ms (65.1263 ms average, 4.4381 ms variance)
-Total execution time for 900 32x32 matrices and 20 replications of gauss_batched_gpu: 573.2443 ms (57.3244 ms average, 5.8696 ms variance)
-Total execution time for 900 32x32 matrices and 20 replications of lu_cuda_batched_gpu: 104.9181 ms (10.4918 ms average, 0.0169 ms variance)
-Total error for 900 64x64 matrices of lu_blas_cpu: 2.88e-01 (1.60e-05 average)
-Total error for 900 64x64 matrices of lu_blas_omp_cpu: 1.37e+03 (7.64e-02 average)
-Total error for 900 64x64 matrices of chol_gpu: 9.45e+04 (5.25e+00 average)
-Total error for 900 64x64 matrices of gauss_batched_gpu: 3.30e+07 (1.83e+03 average)
-Total error for 900 64x64 matrices of lu_cuda_batched_gpu: 6.62e+07 (3.68e+03 average)
-Total execution time for 900 64x64 matrices and 20 replications of lu_blas_cpu: 930.5050 ms (93.0505 ms average, 0.0133 ms variance)
-Total execution time for 900 64x64 matrices and 20 replications of lu_blas_omp_cpu: 234.1867 ms (23.4187 ms average, 2.5040 ms variance)
-Total execution time for 900 64x64 matrices and 20 replications of chol_gpu: 11502.7959 ms (1150.2796 ms average, 4.8073 ms variance)
-Total execution time for 900 64x64 matrices and 20 replications of gauss_batched_gpu: 4418.2732 ms (441.8273 ms average, 149.1720 ms variance)
-Total execution time for 900 64x64 matrices and 20 replications of lu_cuda_batched_gpu: 280.8196 ms (28.0820 ms average, 0.0382 ms variance)
-Total error for 900 8x8 matrices of lu_blas_cpu: 3.07e-01 (1.71e-05 average)
-Total error for 900 8x8 matrices of lu_blas_omp_cpu: 1.29e+03 (7.16e-02 average)
-Total error for 900 8x8 matrices of chol_gpu: nan (nan average)
-Total error for 900 8x8 matrices of gauss_batched_gpu: nan (nan average)
-Total error for 900 8x8 matrices of lu_cuda_batched_gpu: nan (nan average)
-Total execution time for 900 8x8 matrices and 20 replications of lu_blas_cpu: 14.8332 ms (1.4833 ms average, 0.0009 ms variance)
-Total execution time for 900 8x8 matrices and 20 replications of lu_blas_omp_cpu: 27.0081 ms (2.7008 ms average, 15.6911 ms variance)
-Total execution time for 900 8x8 matrices and 20 replications of chol_gpu: 65.1956 ms (6.5196 ms average, 4.4671 ms variance)
-Total execution time for 900 8x8 matrices and 20 replications of gauss_batched_gpu: 58.5864 ms (5.8586 ms average, 0.0174 ms variance)
-Total execution time for 900 8x8 matrices and 20 replications of lu_cuda_batched_gpu: 28.5952 ms (2.8595 ms average, 0.0106 ms variance)
+1000 128 20 lu_blas_cpu 5242.3376 524.2338 0.0471
+1000 128 20 lu_blas_omp_cpu 1264.8339 126.4834 4.1537
+1000 128 20 chol_gpu 43133.4203 4313.3420 5739.5305
+1000 128 20 gauss_batched_gpu 41101.8641 4110.1864 105500.3275
+1000 128 20 lu_cuda_batched_gpu 1028.8776 102.8878 0.1928
+1000 16 20 lu_blas_cpu 55.4997 5.5500 0.0013
+1000 16 20 lu_blas_omp_cpu 19.6350 1.9635 3.8892
+1000 16 20 chol_gpu 282.9002 28.2900 5.0339
+1000 16 20 gauss_batched_gpu 188.5307 18.8531 0.4055
+1000 16 20 lu_cuda_batched_gpu 53.7014 5.3701 0.0042
+1000 32 20 lu_blas_cpu 196.1556 19.6156 0.0089
+1000 32 20 lu_blas_omp_cpu 89.9874 8.9987 1.8906
+1000 32 20 chol_gpu 1036.7766 103.6777 27.7432
+1000 32 20 gauss_batched_gpu 646.8940 64.6894 8.9060
+1000 32 20 lu_cuda_batched_gpu 115.2334 11.5233 0.0271
+1000 64 20 lu_blas_cpu 1034.4939 103.4494 0.0672
+1000 64 20 lu_blas_omp_cpu 388.9324 38.8932 4.4885
+1000 64 20 chol_gpu 6236.1143 623.6114 95.2815
+1000 64 20 gauss_batched_gpu 4955.7892 495.5789 1369.9563
+1000 64 20 lu_cuda_batched_gpu 294.7259 29.4726 0.0584
+1000 8 20 lu_blas_cpu 17.0647 1.7065 0.0304
+1000 8 20 lu_blas_omp_cpu 7.3995 0.7400 1.1338
+1000 8 20 chol_gpu 102.5304 10.2530 4.5415
+1000 8 20 gauss_batched_gpu 67.2522 6.7252 0.2072
+1000 8 20 lu_cuda_batched_gpu 29.1997 2.9200 0.0008
+100 128 20 lu_blas_cpu 524.0675 52.4067 0.0203
+100 128 20 lu_blas_omp_cpu 226.1399 22.6140 10.8405
+100 128 20 chol_gpu 4778.2320 477.8232 5.8837
+100 128 20 gauss_batched_gpu 5300.6947 530.0695 0.1249
+100 128 20 lu_cuda_batched_gpu 143.7049 14.3705 0.0361
+100 16 20 lu_blas_cpu 5.3638 0.5364 0.0021
+100 16 20 lu_blas_omp_cpu 5.1292 0.5129 1.1735
+100 16 20 chol_gpu 50.7450 5.0745 4.2878
+100 16 20 gauss_batched_gpu 35.1798 3.5180 0.0024
+100 16 20 lu_cuda_batched_gpu 23.1543 2.3154 0.0155
+100 32 20 lu_blas_cpu 19.9449 1.9945 0.0009
+100 32 20 lu_blas_omp_cpu 12.5440 1.2544 4.0765
+100 32 20 chol_gpu 147.9609 14.7961 4.1837
+100 32 20 gauss_batched_gpu 92.0097 9.2010 0.0076
+100 32 20 lu_cuda_batched_gpu 28.0608 2.8061 0.0111
+100 64 20 lu_blas_cpu 102.7698 10.2770 0.0068
+100 64 20 lu_blas_omp_cpu 67.0584 6.7058 9.0354
+100 64 20 chol_gpu 757.3851 75.7385 5.6901
+100 64 20 gauss_batched_gpu 666.8241 66.6824 2.6107
+100 64 20 lu_cuda_batched_gpu 50.5005 5.0500 0.0044
+100 8 20 lu_blas_cpu 2.0414 0.2041 0.0006
+100 8 20 lu_blas_omp_cpu 17.6742 1.7674 9.8188
+100 8 20 chol_gpu 25.1758 2.5176 4.1299
+100 8 20 gauss_batched_gpu 15.8486 1.5849 0.0004
+100 8 20 lu_cuda_batched_gpu 16.4112 1.6411 0.0005
+200 128 20 lu_blas_cpu 1142.5988 114.2599 3.9901
+200 128 20 lu_blas_omp_cpu 359.6938 35.9694 8.7152
+200 128 20 chol_gpu 9389.8288 938.9829 441.7431
+200 128 20 gauss_batched_gpu 10357.2996 1035.7300 0.7036
+200 128 20 lu_cuda_batched_gpu 247.0360 24.7036 0.0199
+200 16 20 lu_blas_cpu 11.3513 1.1351 0.0011
+200 16 20 lu_blas_omp_cpu 11.9211 1.1921 7.5670
+200 16 20 chol_gpu 78.8258 7.8826 4.9366
+200 16 20 gauss_batched_gpu 54.5045 5.4504 0.0007
+200 16 20 lu_cuda_batched_gpu 32.0312 3.2031 0.0038
+200 32 20 lu_blas_cpu 39.2400 3.9240 0.0013
+200 32 20 lu_blas_omp_cpu 21.6395 2.1639 4.2245
+200 32 20 chol_gpu 250.1397 25.0140 4.4062
+200 32 20 gauss_batched_gpu 166.2474 16.6247 0.0682
+200 32 20 lu_cuda_batched_gpu 46.3209 4.6321 0.0039
+200 64 20 lu_blas_cpu 204.6792 20.4679 0.0021
+200 64 20 lu_blas_omp_cpu 65.4944 6.5494 3.3997
+200 64 20 chol_gpu 1398.5739 139.8574 21.5484
+200 64 20 gauss_batched_gpu 1288.5531 128.8553 0.0608
+200 64 20 lu_cuda_batched_gpu 86.5975 8.6597 0.0494
+200 8 20 lu_blas_cpu 6.5734 0.6573 0.1303
+200 8 20 lu_blas_omp_cpu 11.4849 1.1485 4.9657
+200 8 20 chol_gpu 38.0097 3.8010 4.1732
+200 8 20 gauss_batched_gpu 25.7947 2.5795 0.0004
+200 8 20 lu_cuda_batched_gpu 27.0807 2.7081 0.0017
+300 128 20 lu_blas_cpu 1574.4521 157.4452 0.1139
+300 128 20 lu_blas_omp_cpu 516.5632 51.6563 17.2683
+300 128 20 chol_gpu 14487.4554 1448.7455 361.2076
+300 128 20 gauss_batched_gpu 13926.9258 1392.6926 2414.1727
+300 128 20 lu_cuda_batched_gpu 343.2232 34.3223 0.2573
+300 16 20 lu_blas_cpu 16.7516 1.6752 0.0008
+300 16 20 lu_blas_omp_cpu 11.1773 1.1177 4.8064
+300 16 20 chol_gpu 103.6907 10.3691 4.3165
+300 16 20 gauss_batched_gpu 70.7467 7.0747 0.0370
+300 16 20 lu_cuda_batched_gpu 28.8516 2.8852 0.0007
+300 32 20 lu_blas_cpu 58.6719 5.8672 0.0095
+300 32 20 lu_blas_omp_cpu 18.1011 1.8101 0.7500
+300 32 20 chol_gpu 362.1145 36.2114 3.7872
+300 32 20 gauss_batched_gpu 222.0161 22.2016 0.3357
+300 32 20 lu_cuda_batched_gpu 47.6545 4.7655 0.0029
+300 64 20 lu_blas_cpu 309.6327 30.9633 0.0115
+300 64 20 lu_blas_omp_cpu 120.4361 12.0436 7.7545
+300 64 20 chol_gpu 2145.0184 214.5018 0.8443
+300 64 20 gauss_batched_gpu 1789.9881 178.9988 25.3729
+300 64 20 lu_cuda_batched_gpu 103.6324 10.3632 0.0143
+300 8 20 lu_blas_cpu 5.2439 0.5244 0.0054
+300 8 20 lu_blas_omp_cpu 4.6217 0.4622 1.1195
+300 8 20 chol_gpu 45.5803 4.5580 4.1360
+300 8 20 gauss_batched_gpu 30.4572 3.0457 0.0033
+300 8 20 lu_cuda_batched_gpu 20.3171 2.0317 0.0005
+400 128 20 lu_blas_cpu 2087.8979 208.7898 0.0425
+400 128 20 lu_blas_omp_cpu 545.6496 54.5650 1.0381
+400 128 20 chol_gpu 19474.3706 1947.4371 32.5316
+400 128 20 gauss_batched_gpu 18206.3269 1820.6327 10295.7045
+400 128 20 lu_cuda_batched_gpu 435.7678 43.5768 0.0074
+400 16 20 lu_blas_cpu 22.3251 2.2325 0.0013
+400 16 20 lu_blas_omp_cpu 9.9469 0.9947 1.7001
+400 16 20 chol_gpu 136.9535 13.6953 5.5378
+400 16 20 gauss_batched_gpu 79.9561 7.9956 0.0490
+400 16 20 lu_cuda_batched_gpu 30.0658 3.0066 0.0008
+400 32 20 lu_blas_cpu 78.1226 7.8123 0.0014
+400 32 20 lu_blas_omp_cpu 29.0921 2.9092 3.2154
+400 32 20 chol_gpu 472.8339 47.2834 4.4506
+400 32 20 gauss_batched_gpu 282.3870 28.2387 0.2506
+400 32 20 lu_cuda_batched_gpu 55.7083 5.5708 0.0073
+400 64 20 lu_blas_cpu 410.5658 41.0566 0.0132
+400 64 20 lu_blas_omp_cpu 151.0624 15.1062 7.0108
+400 64 20 chol_gpu 2826.3188 282.6319 5.9204
+400 64 20 gauss_batched_gpu 2182.1015 218.2102 290.4810
+400 64 20 lu_cuda_batched_gpu 132.9272 13.2927 0.0724
+400 8 20 lu_blas_cpu 8.1939 0.8194 0.2779
+400 8 20 lu_blas_omp_cpu 7.4917 0.7492 3.2896
+400 8 20 chol_gpu 54.0706 5.4071 4.1559
+400 8 20 gauss_batched_gpu 35.2905 3.5290 0.0139
+400 8 20 lu_cuda_batched_gpu 20.9492 2.0949 0.0041
+500 128 20 lu_blas_cpu 2612.0652 261.2065 0.2428
+500 128 20 lu_blas_omp_cpu 647.2700 64.7270 2.2791
+500 128 20 chol_gpu 21152.3252 2115.2325 751.5367
+500 128 20 gauss_batched_gpu 16907.0820 1690.7082 27880.5628
+500 128 20 lu_cuda_batched_gpu 520.6020 52.0602 0.0329
+500 16 20 lu_blas_cpu 28.1983 2.8198 0.0035
+500 16 20 lu_blas_omp_cpu 19.3098 1.9310 7.9984
+500 16 20 chol_gpu 154.1091 15.4109 5.0285
+500 16 20 gauss_batched_gpu 90.8187 9.0819 0.3739
+500 16 20 lu_cuda_batched_gpu 30.8821 3.0882 0.0016
+500 32 20 lu_blas_cpu 97.8576 9.7858 0.0027
+500 32 20 lu_blas_omp_cpu 29.0405 2.9040 1.6083
+500 32 20 chol_gpu 513.0247 51.3025 8.8317
+500 32 20 gauss_batched_gpu 268.8092 26.8809 0.4926
+500 32 20 lu_cuda_batched_gpu 63.1990 6.3199 0.0188
+500 64 20 lu_blas_cpu 516.2645 51.6264 0.0081
+500 64 20 lu_blas_omp_cpu 216.5294 21.6529 8.2113
+500 64 20 chol_gpu 3049.7310 304.9731 19.6382
+500 64 20 gauss_batched_gpu 2666.3953 266.6395 12.3043
+500 64 20 lu_cuda_batched_gpu 154.8026 15.4803 0.0293
+500 8 20 lu_blas_cpu 9.2270 0.9227 0.0006
+500 8 20 lu_blas_omp_cpu 6.5921 0.6592 1.9780
+500 8 20 chol_gpu 61.6053 6.1605 4.4326
+500 8 20 gauss_batched_gpu 39.4802 3.9480 0.0126
+500 8 20 lu_cuda_batched_gpu 20.9105 2.0911 0.0007
+600 128 20 lu_blas_cpu 3134.7349 313.4735 0.1964
+600 128 20 lu_blas_omp_cpu 789.7761 78.9776 3.5199
+600 128 20 chol_gpu 26067.7607 2606.7761 158.2195
+600 128 20 gauss_batched_gpu 24416.6237 2441.6624 42475.0051
+600 128 20 lu_cuda_batched_gpu 646.5185 64.6519 0.0945
+600 16 20 lu_blas_cpu 33.1944 3.3194 0.0010
+600 16 20 lu_blas_omp_cpu 23.0583 2.3058 9.8137
+600 16 20 chol_gpu 182.5251 18.2525 4.0853
+600 16 20 gauss_batched_gpu 120.1749 12.0175 0.0978
+600 16 20 lu_cuda_batched_gpu 45.3756 4.5376 0.0022
+600 32 20 lu_blas_cpu 117.1475 11.7148 0.0040
+600 32 20 lu_blas_omp_cpu 42.0326 4.2033 10.8963
+600 32 20 chol_gpu 631.0940 63.1094 5.4792
+600 32 20 gauss_batched_gpu 354.1849 35.4185 1.1030
+600 32 20 lu_cuda_batched_gpu 78.8621 7.8862 0.0048
+600 64 20 lu_blas_cpu 617.4296 61.7430 0.0394
+600 64 20 lu_blas_omp_cpu 196.9873 19.6987 5.3290
+600 64 20 chol_gpu 3770.2422 377.0242 7.7610
+600 64 20 gauss_batched_gpu 2811.6318 281.1632 326.3013
+600 64 20 lu_cuda_batched_gpu 190.8453 19.0845 0.0202
+600 8 20 lu_blas_cpu 9.9118 0.9912 0.0006
+600 8 20 lu_blas_omp_cpu 5.6205 0.5620 0.8672
+600 8 20 chol_gpu 68.5936 6.8594 4.3527
+600 8 20 gauss_batched_gpu 43.0873 4.3087 0.0068
+600 8 20 lu_cuda_batched_gpu 28.1977 2.8198 0.0020
+700 128 20 lu_blas_cpu 3658.3668 365.8367 0.2019
+700 128 20 lu_blas_omp_cpu 901.4148 90.1415 5.5571
+700 128 20 chol_gpu 30948.2098 3094.8210 415.4470
+700 128 20 gauss_batched_gpu 27023.4961 2702.3496 5013.2264
+700 128 20 lu_cuda_batched_gpu 736.1681 73.6168 0.0360
+700 16 20 lu_blas_cpu 38.8208 3.8821 0.0011
+700 16 20 lu_blas_omp_cpu 17.9048 1.7905 6.0791
+700 16 20 chol_gpu 204.4400 20.4440 4.8102
+700 16 20 gauss_batched_gpu 132.1315 13.2131 0.0410
+700 16 20 lu_cuda_batched_gpu 49.6720 4.9672 0.4224
+700 32 20 lu_blas_cpu 136.4727 13.6473 0.0103
+700 32 20 lu_blas_omp_cpu 67.2005 6.7201 3.3495
+700 32 20 chol_gpu 782.0476 78.2048 7.3847
+700 32 20 gauss_batched_gpu 443.2937 44.3294 0.7843
+700 32 20 lu_cuda_batched_gpu 91.8231 9.1823 0.0620
+700 64 20 lu_blas_cpu 725.8663 72.5866 0.0253
+700 64 20 lu_blas_omp_cpu 230.7967 23.0797 9.9215
+700 64 20 chol_gpu 4468.6260 446.8626 19.0459
+700 64 20 gauss_batched_gpu 3339.0604 333.9060 28.7075
+700 64 20 lu_cuda_batched_gpu 214.7626 21.4763 0.0294
+700 8 20 lu_blas_cpu 11.5548 1.1555 0.0005
+700 8 20 lu_blas_omp_cpu 55.5043 5.5504 0.8085
+700 8 20 chol_gpu 78.7572 7.8757 4.4922
+700 8 20 gauss_batched_gpu 47.9654 4.7965 0.0015
+700 8 20 lu_cuda_batched_gpu 28.4520 2.8452 0.0010
+800 128 20 lu_blas_cpu 4188.0805 418.8081 0.0669
+800 128 20 lu_blas_omp_cpu 1026.6132 102.6613 5.9618
+800 128 20 chol_gpu 36378.3983 3637.8398 1095.7855
+800 128 20 gauss_batched_gpu 31029.7145 3102.9714 9612.7935
+800 128 20 lu_cuda_batched_gpu 849.6253 84.9625 0.0897
+800 16 20 lu_blas_cpu 45.0921 4.5092 0.0210
+800 16 20 lu_blas_omp_cpu 13.5693 1.3569 0.7109
+800 16 20 chol_gpu 235.2666 23.5267 3.3163
+800 16 20 gauss_batched_gpu 147.4498 14.7450 0.0230
+800 16 20 lu_cuda_batched_gpu 50.9689 5.0969 0.0021
+800 32 20 lu_blas_cpu 156.5724 15.6572 0.0065
+800 32 20 lu_blas_omp_cpu 101.0476 10.1048 2.9199
+800 32 20 chol_gpu 904.0229 90.4023 6.0869
+800 32 20 gauss_batched_gpu 514.0047 51.4005 0.8323
+800 32 20 lu_cuda_batched_gpu 98.8519 9.8852 0.0058
+800 64 20 lu_blas_cpu 823.5725 82.3573 0.0091
+800 64 20 lu_blas_omp_cpu 248.7545 24.8754 4.0923
+800 64 20 chol_gpu 5186.0353 518.6035 10.5724
+800 64 20 gauss_batched_gpu 3783.1274 378.3127 14.1402
+800 64 20 lu_cuda_batched_gpu 246.3580 24.6358 0.0243
+800 8 20 lu_blas_cpu 13.3450 1.3345 0.0005
+800 8 20 lu_blas_omp_cpu 5.3609 0.5361 0.4461
+800 8 20 chol_gpu 88.5793 8.8579 4.1690
+800 8 20 gauss_batched_gpu 54.4472 5.4447 0.0504
+800 8 20 lu_cuda_batched_gpu 28.6566 2.8657 0.0012
+900 128 20 lu_blas_cpu 4699.4593 469.9459 0.0905
+900 128 20 lu_blas_omp_cpu 1149.8507 114.9851 1.5800
+900 128 20 chol_gpu 40056.0240 4005.6024 1345.9008
+900 128 20 gauss_batched_gpu 35108.6992 3510.8699 40995.9205
+900 128 20 lu_cuda_batched_gpu 957.3946 95.7395 15.0532
+900 16 20 lu_blas_cpu 49.9835 4.9984 0.0019
+900 16 20 lu_blas_omp_cpu 15.2760 1.5276 0.7919
+900 16 20 chol_gpu 253.5944 25.3594 3.4458
+900 16 20 gauss_batched_gpu 169.1001 16.9100 0.5207
+900 16 20 lu_cuda_batched_gpu 52.1487 5.2149 0.0062
+900 32 20 lu_blas_cpu 176.2899 17.6290 0.0024
+900 32 20 lu_blas_omp_cpu 98.4475 9.8448 2.7214
+900 32 20 chol_gpu 988.2258 98.8226 2.4209
+900 32 20 gauss_batched_gpu 581.3257 58.1326 3.9334
+900 32 20 lu_cuda_batched_gpu 108.8639 10.8864 0.0289
+900 64 20 lu_blas_cpu 925.6447 92.5645 0.0267
+900 64 20 lu_blas_omp_cpu 248.5092 24.8509 20.7215
+900 64 20 chol_gpu 5664.4329 566.4433 27.3569
+900 64 20 gauss_batched_gpu 4404.5137 440.4514 642.7001
+900 64 20 lu_cuda_batched_gpu 267.8626 26.7863 0.0119
+900 8 20 lu_blas_cpu 15.3458 1.5346 0.0007
+900 8 20 lu_blas_omp_cpu 8.0086 0.8009 1.7664
+900 8 20 chol_gpu 95.0740 9.5074 3.9275
+900 8 20 gauss_batched_gpu 59.3071 5.9307 0.0146
+900 8 20 lu_cuda_batched_gpu 29.1211 2.9121 0.0018
