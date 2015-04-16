@@ -420,8 +420,21 @@ static DataType vec_sum(Array a, const int N) {
     printf("Total error in variances calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
         numMatrices, n, n, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps);
 
+#ifndef DETAILED_LOGGING
 #define BENCH_REPORT_TIME(name) \
-    if (!csv) { \
+    if (csv) { \
+        if (numReps > 1) { \
+            printf("%d %d %d " #name " %.4f %.4f %.4f\n", \
+                numMatrices, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name)); \
+            printf("%d %d %d " #name " %.4f %.4f %.4f\n", \
+                numMatrices, n, numReps, TIMER_TOTAL(variances_##name), TIMER_MEAN(variances_##name), TIMER_VARIANCE(means_##name)); \
+        } else { \
+            printf("%d %d %d " #name " %.4f\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(means_##name)); \
+            printf("%d %d %d " #name " %.4f\n", \
+                numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name)); \
+        } \
+    } else { \
         if (numReps > 1) { \
             printf("Total execution time in means for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
                 numMatrices, n, n, numReps, TIMER_TOTAL(means_##name), TIMER_MEAN(means_##name), TIMER_VARIANCE(means_##name)); \
@@ -434,6 +447,9 @@ static DataType vec_sum(Array a, const int N) {
                 numMatrices, n, n, numReps, TIMER_TOTAL(variances_##name)); \
         } \
     }
+#else
+#define BENCH_REPORT_TIME(name)
+#endif
 
 // Print device properties
 void printDevProp(cudaDeviceProp devProp) {

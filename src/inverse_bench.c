@@ -55,8 +55,17 @@ static DataType vec_sum(const Array a, const int N) {
     printf("Total error for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
         numMatrices, N, N, total_error_##name, total_error_##name/numMatrices/numReps)
 
+#ifndef DETAILED_LOGGING
 #define BENCH_REPORT_TIME(name) \
-    if (!csv) { \
+    if (csv) { \
+        if (numReps > 1) { \
+            printf("%d %d %d " #name " %.4f %.4f %.4f\n", \
+                numMatrices, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name)); \
+        } else { \
+            printf("%d %d %d " #name " %.4f\n", \
+                numMatrices, N, N, numReps, TIMER_TOTAL(name)); \
+        } \
+    } else { \
         if (numReps > 1) { \
             printf("Total execution time for %d %dx%d matrices and %d replications of " #name ": %.4f ms (%.4f ms average, %.4f ms variance)\n", \
                 numMatrices, N, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name)); \
@@ -65,7 +74,9 @@ static DataType vec_sum(const Array a, const int N) {
                 numMatrices, N, N, numReps, TIMER_TOTAL(name)); \
         } \
     }
-
+#else
+#define BENCH_REPORT_TIME(name)
+#endif
 
 void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aInv, bool csv) {
     cublasHandle_t handle;
