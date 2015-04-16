@@ -415,10 +415,12 @@ static DataType vec_sum(Array a, const int N) {
 #define BENCH_CLEANUP(name)
 
 #define BENCH_REPORT_ERROR(name) \
-    printf("Total error in means calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, n, n, total_error_means_##name, total_error_means_##name/numMatrices/numReps); \
-    printf("Total error in variances calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, n, n, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps);
+    if (!csv) { \
+        printf("Total error in means calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
+            numMatrices, n, n, total_error_means_##name, total_error_means_##name/numMatrices/numReps); \
+        printf("Total error in variances calculation for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
+            numMatrices, n, n, total_error_variances_##name, total_error_variances_##name/numMatrices/numReps); \
+    }
 
 #ifndef DETAILED_LOGGING
 #define BENCH_REPORT_TIME(name) \

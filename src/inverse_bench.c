@@ -52,8 +52,10 @@ static DataType vec_sum(const Array a, const int N) {
     total_error_##name += vec_sum(aInv, N*N*numMatrices);
 
 #define BENCH_REPORT_ERROR(name) \
-    printf("Total error for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
-        numMatrices, N, N, total_error_##name, total_error_##name/numMatrices/numReps)
+    if (!csv) { \
+        printf("Total error for %d %dx%d matrices of " #name ": %.2e (%.2e average)\n", \
+            numMatrices, N, N, total_error_##name, total_error_##name/numMatrices/numReps); \
+    }
 
 #ifndef DETAILED_LOGGING
 #define BENCH_REPORT_TIME(name) \
