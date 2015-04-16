@@ -207,6 +207,7 @@ run-gauss-bench: gauss_bench
 		done \
 	done; \
 	cat ./results/gaussian_* > ./results/gauss-bench.txt;
+	rm ./results/gaussian_*;
 
 run-inverse-bench: inverse_bench
 	for i in 8 16 32 64 128; do \
@@ -216,6 +217,7 @@ run-inverse-bench: inverse_bench
 		done \
 	done; \
 	cat ./results/inverse_* > ./results/inverse-bench.txt;
+	rm ./results/inverse_*;
 
 cholesky_gpu.o: src/inverse_cholesky_gpu.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
