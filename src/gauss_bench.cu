@@ -147,6 +147,15 @@ static void calcluateMean(
     const size_t sizeOfMatrixD = sizeof(DataType)*n;
     const size_t sizeOfResult = sizeof(DataType);
 
+#ifdef DETAILED_LOGGING
+    TIMER_INIT(calculate_mean_gpu_mem_htod)
+    TIMER_INIT(calculate_mean_gpu_add)
+    TIMER_INIT(calculate_mean_gpu_inv)
+    TIMER_INIT(calculate_mean_gpu_mul)
+    TIMER_INIT(calculate_mean_gpu_dot)
+    TIMER_INIT(calculate_mean_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
     // Allocate pointer list
     gpuErrchk( cudaHostAlloc(&devBs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
     gpuErrchk( cudaHostAlloc(&devBInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
@@ -157,6 +166,10 @@ static void calcluateMean(
     gpuErrchk( batchedCudaMalloc(devBInvs, &pitchBInvs, sizeOfMatrixB, batchSize) );
     gpuErrchk( batchedCudaMalloc(devDs, &pitchDs, sizeOfMatrixD, batchSize) );
 
+#ifdef DETAILED_LOGGING
+    TIMER_START(calculate_mean_gpu_mem_htod)
+#endif // DETAILED_LOGGING
+
     gpuErrchk( cudaMemcpy2D(devBs[0], pitchBs, Bs, sizeOfMatrixB, sizeOfMatrixB, batchSize,
                cudaMemcpyHostToDevice) );
     gpuErrchk( cudaMemcpy2D(devBInvs[0], pitchBInvs, Cs, sizeOfMatrixC, sizeOfMatrixC, batchSize,
@@ -164,11 +177,21 @@ static void calcluateMean(
     gpuErrchk( cudaMemcpy2D(devDs[0], pitchDs, Ds, sizeOfMatrixD, sizeOfMatrixD, batchSize,
                cudaMemcpyHostToDevice) );
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_mean_gpu_mem_htod)
+    TIMER_START(calculate_mean_gpu_add)
+#endif // DETAILED_LOGGING
+
     // Calculate Madd = B + C for every matrix, store result in Bs
     batchedAddDiagonal(handle, n, devBs, devBInvs, batchSize);
     // devBs: Bs
     // devBInvs: Madd
     // devDs: Ds
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_mean_gpu_add)
+    TIMER_START(calculate_mean_gpu_inv)
+#endif // DETAILED_LOGGING
 
     // Calculate Minv = Madd^-1, store result in devBInvs
     batchedInverse(handle, n, devBs, devBInvs, batchSize);
@@ -176,11 +199,20 @@ static void calcluateMean(
     // devBInvs: Minv
     // devDs: Ds
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_mean_gpu_inv)
+    TIMER_START(calculate_mean_gpu_mul)
+#endif // DETAILED_LOGGING
+
     // Calculate Mmul = Minv * Ds, store result in Cs
     batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, 1, n, &ELEMENT_ONE, devBInvs, devDs, &ELEMENT_ZERO, devBs, batchSize);
     // devBs: Mmul
     // devBInvs: Minv
     // devDs: Ds
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_mean_gpu_mul)
+#endif // DETAILED_LOGGING
 
     // Load As into GPU memory overwriting devDs.
     gpuErrchk( cudaMemcpy2D(devDs[0], pitchDs, As, sizeOfMatrixA, sizeOfMatrixA, batchSize,
@@ -189,15 +221,35 @@ static void calcluateMean(
     // devBInvs: Minv
     // devDs: As
 
+#ifdef DETAILED_LOGGING
+    TIMER_START(calculate_mean_gpu_dot)
+#endif // DETAILED_LOGGING
+
     // Calculate Mmean = AT * Mmul, store result in Bs
     batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, 1, 1, n, &ELEMENT_ONE, devBs, devDs, &ELEMENT_ZERO, devBInvs, batchSize);
     // devBs: Mmul
     // devBInvs: Mmean
     // devDs: As
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_mean_gpu_dot)
+    TIMER_START(calculate_mean_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
     // Fetch result from GPU and free used memory.
     gpuErrchk( cudaMemcpy2D(Means, sizeOfResult, devBInvs[0], pitchBInvs, sizeOfResult, batchSize,
                cudaMemcpyDeviceToHost) );
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_mean_gpu_mem_dtoh)
+
+    TIMER_LOG(calculate_mean_gpu_mem_htod, batchSize, n)
+    TIMER_LOG(calculate_mean_gpu_add, batchSize, n)
+    TIMER_LOG(calculate_mean_gpu_inv, batchSize, n)
+    TIMER_LOG(calculate_mean_gpu_mul, batchSize, n)
+    TIMER_LOG(calculate_mean_gpu_dot, batchSize, n)
+    TIMER_LOG(calculate_mean_gpu_mem_dtoh, batchSize, n)
+#endif // DETAILED_LOGGING
 
     gpuErrchk( cudaFree(devBs[0]) );
     gpuErrchk( cudaFree(devBInvs[0]) );
@@ -238,6 +290,15 @@ static void calcluateVariance(
     const size_t sizeOfMatrixC = sizeof(DataType)*n;
     const size_t sizeOfMatrixE = sizeof(DataType);
 
+#ifdef DETAILED_LOGGING
+    TIMER_INIT(calculate_variance_gpu_mem_htod)
+    TIMER_INIT(calculate_variance_gpu_add)
+    TIMER_INIT(calculate_variance_gpu_inv)
+    TIMER_INIT(calculate_variance_gpu_mul)
+    TIMER_INIT(calculate_variance_gpu_dot)
+    TIMER_INIT(calculate_variance_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
     gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
     gpuErrchk( cudaHostAlloc((void**)&devBs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
     gpuErrchk( cudaHostAlloc((void**)&devBInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
@@ -247,6 +308,10 @@ static void calcluateVariance(
     gpuErrchk( batchedCudaMalloc(devBs, &pitchBs, sizeOfMatrixB, batchSize) );
     gpuErrchk( batchedCudaMalloc(devBInvs, &pitchBInvs, sizeOfMatrixB, batchSize) );
 
+#ifdef DETAILED_LOGGING
+    TIMER_START(calculate_variance_gpu_mem_htod)
+#endif // DETAILED_LOGGING
+
     gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, sizeOfMatrixA, sizeOfMatrixA, batchSize,
                cudaMemcpyHostToDevice) );
     gpuErrchk( cudaMemcpy2D(devBs[0], pitchBs, Bs, sizeOfMatrixB, sizeOfMatrixB, batchSize,
@@ -254,11 +319,21 @@ static void calcluateVariance(
     gpuErrchk( cudaMemcpy2D(devBInvs[0], pitchBInvs, Cs, sizeOfMatrixC, sizeOfMatrixC, batchSize,
                cudaMemcpyHostToDevice) );
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_variance_gpu_mem_htod)
+    TIMER_START(calculate_variance_gpu_add)
+#endif // DETAILED_LOGGING
+
     // Calculate Madd = B + C for every matrix, store result in devBs
     batchedAddDiagonal(handle, n, devBs, devBInvs, batchSize);
     // devAs: As
     // devBs: Bs
     // devBInvs: Madd
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_variance_gpu_add)
+    TIMER_START(calculate_variance_gpu_inv)
+#endif // DETAILED_LOGGING
 
     // Calculate Minv = Madd^-1, store result in devBInvs
     batchedInverse(handle, n, devBs, devBInvs, batchSize);
@@ -266,15 +341,28 @@ static void calcluateVariance(
     // devBs: Madd
     // devBInvs: Minv
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_variance_gpu_inv)
+    TIMER_START(calculate_variance_gpu_mul)
+#endif // DETAILED_LOGGING
+
     // Calculate Mmul = Minv * A, store result in devBs
     batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, 1, n, &ELEMENT_ONE, devBInvs, devAs, &ELEMENT_ZERO, devBs, batchSize);
     // devAs: As
     // devBs: Mmul
     // devBInvs: Minv
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_variance_gpu_mul)
+#endif // DETAILED_LOGGING
+
     // Load Es to the GPU overwriting devBInvs
     gpuErrchk( cudaMemcpy2D(devBInvs[0], pitchBInvs, Es, sizeOfMatrixE, sizeOfMatrixE, batchSize,
                cudaMemcpyHostToDevice) );
+
+#ifdef DETAILED_LOGGING
+    TIMER_START(calculate_variance_gpu_dot)
+#endif // DETAILED_LOGGING
 
     const DataType ELEMENT_MINUS_ONE = DataType(-1);
     // Calculate Mmul2 = AT * Mmul, store result in Bs
@@ -283,9 +371,25 @@ static void calcluateVariance(
     // devBs: Mmul2
     // devBInvs: Mmul
 
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_variance_gpu_dot)
+    TIMER_START(calculate_variance_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
     // Fetch result from GPU and free used memory.
     gpuErrchk( cudaMemcpy2D(Variances, sizeOfMatrixE, devBInvs[0], pitchBInvs, sizeOfMatrixE, batchSize,
                cudaMemcpyDeviceToHost) );
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(calculate_variance_gpu_mem_dtoh)
+
+    TIMER_LOG(calculate_variance_gpu_mem_htod, batchSize, n)
+    TIMER_LOG(calculate_variance_gpu_add, batchSize, n)
+    TIMER_LOG(calculate_variance_gpu_inv, batchSize, n)
+    TIMER_LOG(calculate_variance_gpu_mul, batchSize, n)
+    TIMER_LOG(calculate_variance_gpu_dot, batchSize, n)
+    TIMER_LOG(calculate_variance_gpu_mem_dtoh, batchSize, n)
+#endif // DETAILED_LOGGING
 
     gpuErrchk( cudaFree((void*)devAs[0]) );
     gpuErrchk( cudaFree((void*)devBs[0]) );
