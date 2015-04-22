@@ -8,7 +8,6 @@
 #include "../../include/types.h"
 #include "../../include/helper_cpu.h"
 #include "../../include/helper_gpu.h"
-#include "../../include/timer.h"
 #include "../../include/inverse_cpu.h"
 #include "../../include/inverse_gpu.h"
 
@@ -25,7 +24,7 @@ void pivotRow(Array *a, Array *a_inv, int n, int col) {
 			if (a[blockIdx.x][(col * n) + col + i] != 0)
 				break;
 		}
-
+	
 		if (i == (n - col)) {
 			//Handle Error: Matrix is not invertible
 			// Do something, maybe quit the code
@@ -34,7 +33,7 @@ void pivotRow(Array *a, Array *a_inv, int n, int col) {
 		}
 	}
 	__syncthreads();
-
+	
 	float temp1 = a[blockIdx.x][threadIdx.x * n + col];
         a[blockIdx.x][threadIdx.x * n + col] = a[blockIdx.x][threadIdx.x * n + row];
         a[blockIdx.x][threadIdx.x * n + row] = temp1;
@@ -45,34 +44,32 @@ void pivotRow(Array *a, Array *a_inv, int n, int col) {
 }
 
 __global__
-void normalizeRow(Array *a, Array *a_inv, int n, int row) {
-	__shared__ DataType scalar;
-
-	if(threadIdx.x == 0)
-		scalar = 1 / a[blockIdx.x][row * n + row];
-	__syncthreads();
-
-	a[blockIdx.x][threadIdx.x * n + row] *= scalar;
-	a_inv[blockIdx.x][threadIdx.x * n + row] *= scalar;
-}
-
-__global__
 void transform_matrix(Array *a, Array *a_inv, int n, int row) {
 	extern __shared__ DataType shared[];
+	__shared__ float scalar;
 
 	DataType *scalars = &shared[0];
 	DataType *currRowA = &shared[n];
 	DataType *currRowI = &shared[2 * n];
+	
+	 if(threadIdx.x == 0)
+                scalar = 1 / a[blockIdx.x][row * n + row];
+        __syncthreads();
 
 	// store the scalars corresponding to the column 'row'
 	scalars[threadIdx.x] = a[blockIdx.x][row * n + threadIdx.x];
-	currRowA[threadIdx.x] = a[blockIdx.x][threadIdx.x * n + row];
-	currRowI[threadIdx.x] = a_inv[blockIdx.x][threadIdx.x * n + row];
+	currRowA[threadIdx.x] = a[blockIdx.x][threadIdx.x * n + row] * scalar;
+	currRowI[threadIdx.x] = a_inv[blockIdx.x][threadIdx.x * n + row] * scalar;
 	__syncthreads();
 
 	// no need to transform 'row'th row
-	if(threadIdx.x == row)
+	if(threadIdx.x == row) {
+		for(int i = 0; i < n; i++) {
+                        a[blockIdx.x][i * n + threadIdx.x] = currRowA[i];
+                        a_inv[blockIdx.x][i * n + threadIdx.x] = currRowI[i];
+                }
 		return;
+	}
 
 	// Each thread transforms row
 	for(int i = 0; i < n; i++) {
@@ -85,9 +82,6 @@ void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize
 	for(int i = 0; i < n; i++) {
 		// Pivot the matrix
 		pivotRow<<<batchSize, n>>>(a, a_inv, n, i);
-
-		// Make column entry to be one
-		normalizeRow<<<batchSize, n>>>(a, a_inv, n, i);
 
 		// number of threads equals number of rows
 		transform_matrix<<<batchSize, n, 3*n*sizeof(DataType)>>>(a, a_inv, n, i);
@@ -111,12 +105,6 @@ extern "C" void inverse_gauss_batched_gpu(
 
 	const size_t ArraySize = sizeof(DataType) * n * n;
 
-#ifdef DETAILED_LOGGING
-    TIMER_INIT(inverse_gauss_batched_gpu_mem_htod)
-    TIMER_INIT(inverse_gauss_batched_gpu_ker)
-    TIMER_INIT(inverse_gauss_batched_gpu_mem_dtoh)
-#endif // DETAILED_LOGGING
-
 	gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 	gpuErrchk( cudaHostAlloc((void**)&devAInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 
@@ -131,19 +119,10 @@ extern "C" void inverse_gauss_batched_gpu(
     	}
 	}
 
-#ifdef DETAILED_LOGGING
-    TIMER_START(inverse_gauss_batched_gpu_mem_htod)
-#endif // DETAILED_LOGGING
-
 	gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
 				cudaMemcpyHostToDevice) );
 	gpuErrchk( cudaMemcpy2D(devAInvs[0], pitchAInvs, aInvs, ArraySize, ArraySize, batchSize,
 				cudaMemcpyHostToDevice) );
-
-#ifdef DETAILED_LOGGING
-    TIMER_STOP(inverse_gauss_batched_gpu_mem_htod)
-    TIMER_START(inverse_gauss_batched_gpu_ker)
-#endif // DETAILED_LOGGING
 
 	// Calculate Minv = Madd^-1, store result in Bs
 	invert(handle, n, devAs, devAInvs, batchSize);
@@ -151,25 +130,8 @@ extern "C" void inverse_gauss_batched_gpu(
 	// devAs: Minv
 	// devAInvs: Madd
 
-#ifdef DETAILED_LOGGING
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-
-    TIMER_STOP(inverse_gauss_batched_gpu_ker)
-    TIMER_START(inverse_gauss_batched_gpu_mem_dtoh)
-#endif // DETAILED_LOGGING
-
 	gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
 				cudaMemcpyDeviceToHost) );
-
-#ifdef DETAILED_LOGGING
-    TIMER_STOP(inverse_gauss_batched_gpu_mem_dtoh)
-
-    TIMER_LOG(inverse_gauss_batched_gpu_mem_htod, batchSize, n)
-    TIMER_LOG(inverse_gauss_batched_gpu_ker, batchSize, n)
-    TIMER_LOG(inverse_gauss_batched_gpu_mem_dtoh, batchSize, n)
-#endif // DETAILED_LOGGING
-
 	gpuErrchk( cudaFree((void*)devAs[0]) );
 	gpuErrchk( cudaFree((void*)devAInvs[0]) );
 	gpuErrchk( cudaFreeHost((void*)devAs) );
