@@ -111,12 +111,12 @@ static void batchedMul(
 }
 
 // Calculates the mean of the matrix set {A, B, C, D}.
-// Mean = A^{T} * (B+C)^{-1} * D
+// Mean = A*(B+C)^{-1}*D
 // As       batchSize x n x 1
 // Bs       batchSize x n x n
-// Cs       batchSize x n x 1 diagonal
+// Cs       batchSize x n x 1
 // Ds       batchSize x n x 1
-// Means    batchSize x 1 x 1
+// Means    batchSize x n x 1
 // Means is assumed to be already allocated.
 // Total memory requirement without optimization
 // batchSize x n x (2n+3)
@@ -128,27 +128,6 @@ static void batchedMul(
 // --> 256x256: 527'360 bytes/calculation   => 6108 calculations can live on the GPU
 // --> 512x512: 2'103'296 bytes/calculation => 1531 calculations can live on the GPU
 // 2n because of workspace required
-static void calcluateMeanDev(
-    cublasHandle_t handle,
-    int n,
-    Array devAs[],
-    Array devBs[],
-    Array devCs[],
-    Array devDs[],
-    Array devMeans[],
-    int batchSize) {
-
-
-}
-
-// Calculates the mean of the matrix set {A, B, C, D}.
-// Mean = A*(B+C)^{-1}*D
-// As       batchSize x n x 1
-// Bs       batchSize x n x n
-// Cs       batchSize x n x 1
-// Ds       batchSize x n x 1
-// Means    batchSize x n x 1
-// Means is assumed to be already allocated.
 static void calcluateMean(
     cublasHandle_t handle,
     int n,
@@ -505,11 +484,6 @@ int main(int argc, char const *argv[]) {
         // printDeviceInfo();
     }
 
-    // cublasHandle_t handle;
-
-    // cublasErrchk( cublasCreate(&handle) );
-    // gpuErrchk( cudaHostAlloc(&means, sizeof(DataType)*numMatrices, cudaHostAllocDefault) ); \
-
     readTest(argv[1], &numMatrices, &n, &_a, &_b, &_c, &_d, &_e, &_means, &_variances);
     replicateMatrices(&_a, n, 1, numMatrices, numDuplicates);
     replicateMatrices(&_b, n, n, numMatrices, numDuplicates);
@@ -537,7 +511,10 @@ int main(int argc, char const *argv[]) {
     ensure(variances_out, "Could not allocate memory for calculated variances");
 
     BENCH_VAR(cpu)
+    BENCH_VAR(gpu)
 
+    // CPU Benchmark //
+    ///////////////////
     for (rep = 0; rep < numReps; ++rep) {
         BENCH_SETUP()
         TIMER_START(means_cpu)
@@ -571,7 +548,37 @@ int main(int argc, char const *argv[]) {
         BENCH_CLEANUP()
     }
 
+    // GPU Benchmark //
+    ///////////////////
+    cublasHandle_t handle;
+    cublasErrchk( cublasCreate(&handle) );
+
+    for (rep = 0; rep < numReps; ++rep) {
+        BENCH_SETUP()
+        TIMER_START(means_gpu)
+        calcluateMean(handle, n, a, b, c, d, means_out, numMatrices);
+        TIMER_STOP(means_gpu)
+        TIMER_ACC(means_gpu)
+#ifdef DETAILED_LOGGING
+        TIMER_LOG(means_gpu, numMatrices, n)
+#endif // DETAILED_LOGGING
+        BENCH_ERROR_MEAN(gpu)
+        BENCH_CLEANUP()
+
+        BENCH_SETUP()
+        TIMER_START(variances_gpu)
+        calcluateVariance(handle, n, a, b, c, e, variances_out, numMatrices);
+        TIMER_STOP(variances_gpu)
+        TIMER_ACC(variances_gpu)
+#ifdef DETAILED_LOGGING
+        TIMER_LOG(variances_gpu, numMatrices, n)
+#endif // DETAILED_LOGGING
+        BENCH_ERROR_VARIANCE(gpu)
+        BENCH_CLEANUP()
+    }
+
     BENCH_REPORT_TIME(cpu)
+    BENCH_REPORT_TIME(gpu)
 
     // gpuErrchk( cudaPeekAtLastError() );
     // gpuErrchk( cudaDeviceSynchronize() );
