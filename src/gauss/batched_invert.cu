@@ -44,32 +44,34 @@ void pivotRow(Array *a, Array *a_inv, int n, int col) {
 }
 
 __global__
+void normalizeRow(Array *a, Array *a_inv, int n, int row) {
+	__shared__ DataType scalar;
+
+	if(threadIdx.x == 0)
+		scalar = 1 / a[blockIdx.x][row * n + row];
+	__syncthreads();
+
+	a[blockIdx.x][threadIdx.x * n + row] *= scalar;
+	a_inv[blockIdx.x][threadIdx.x * n + row] *= scalar;
+}
+
+__global__
 void transform_matrix(Array *a, Array *a_inv, int n, int row) {
 	extern __shared__ DataType shared[];
-	__shared__ float scalar;
 
 	DataType *scalars = &shared[0];
 	DataType *currRowA = &shared[n];
 	DataType *currRowI = &shared[2 * n];
-	
-	 if(threadIdx.x == 0)
-                scalar = 1 / a[blockIdx.x][row * n + row];
-        __syncthreads();
 
 	// store the scalars corresponding to the column 'row'
 	scalars[threadIdx.x] = a[blockIdx.x][row * n + threadIdx.x];
-	currRowA[threadIdx.x] = a[blockIdx.x][threadIdx.x * n + row] * scalar;
-	currRowI[threadIdx.x] = a_inv[blockIdx.x][threadIdx.x * n + row] * scalar;
+	currRowA[threadIdx.x] = a[blockIdx.x][threadIdx.x * n + row];
+	currRowI[threadIdx.x] = a_inv[blockIdx.x][threadIdx.x * n + row];
 	__syncthreads();
 
 	// no need to transform 'row'th row
-	if(threadIdx.x == row) {
-		for(int i = 0; i < n; i++) {
-                        a[blockIdx.x][i * n + threadIdx.x] = currRowA[i];
-                        a_inv[blockIdx.x][i * n + threadIdx.x] = currRowI[i];
-                }
+	if(threadIdx.x == row)
 		return;
-	}
 
 	// Each thread transforms row
 	for(int i = 0; i < n; i++) {
@@ -82,6 +84,9 @@ void invert(cublasHandle_t &handle, int n, Array *a, Array *a_inv, int batchSize
 	for(int i = 0; i < n; i++) {
 		// Pivot the matrix
 		pivotRow<<<batchSize, n>>>(a, a_inv, n, i);
+
+		// Make column entry to be one
+		normalizeRow<<<batchSize, n>>>(a, a_inv, n, i);
 
 		// number of threads equals number of rows
 		transform_matrix<<<batchSize, n, 3*n*sizeof(DataType)>>>(a, a_inv, n, i);

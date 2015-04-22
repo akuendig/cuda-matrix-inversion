@@ -1,200 +1,200 @@
-1000 128 20 means_cpu 2.095526e+03 1.047763e+02 3.246667e+01 1.267121e-01
-1000 128 20 variances_cpu 2.101435e+03 1.050718e+02 3.246667e+01 7.000557e-01
-1000 128 20 means_gpu 2.129944e+03 1.064972e+02 2.877734e+00 1.267120e-01
-1000 128 20 variances_gpu 2.139931e+03 1.069965e+02 2.877734e+00 3.255548e-01
-1000 16 20 means_cpu 8.623234e+01 4.311617e+00 5.629309e+00 1.244989e-01
-1000 16 20 variances_cpu 9.254661e+01 4.627331e+00 5.629309e+00 7.304982e-01
-1000 16 20 means_gpu 1.371935e+02 6.859675e+00 2.137601e+00 1.244989e-01
-1000 16 20 variances_gpu 1.306618e+02 6.533090e+00 2.137601e+00 3.584367e-01
-1000 32 20 means_cpu 8.218077e+01 4.109039e+00 7.065918e-01 1.259846e-01
-1000 32 20 variances_cpu 8.443232e+01 4.221616e+00 7.065918e-01 7.110594e-01
-1000 32 20 means_gpu 2.541179e+02 1.270589e+01 2.230179e+00 1.259846e-01
-1000 32 20 variances_gpu 2.500359e+02 1.250180e+01 2.230179e+00 3.403700e-01
-1000 64 20 means_cpu 4.884500e+02 2.442250e+01 6.051602e+00 1.244580e-01
-1000 64 20 variances_cpu 4.735741e+02 2.367871e+01 6.051602e+00 7.201793e-01
-1000 64 20 means_gpu 6.337976e+02 3.168988e+01 1.988416e+00 1.244580e-01
-1000 64 20 variances_gpu 6.260248e+02 3.130124e+01 1.988416e+00 3.517549e-01
-1000 8 20 means_cpu 4.729351e+01 2.364676e+00 8.024959e+00 1.192346e-01
-1000 8 20 variances_cpu 3.226583e+01 1.613292e+00 8.024959e+00 6.679478e-01
-1000 8 20 means_gpu 8.746259e+01 4.373129e+00 2.199250e+00 1.192346e-01
-1000 8 20 variances_gpu 8.170927e+01 4.085464e+00 2.199250e+00 3.190801e-01
-100 128 20 means_cpu 2.652022e+02 1.326011e+01 1.847280e+00 1.267121e-01
-100 128 20 variances_cpu 2.836014e+02 1.418007e+01 1.847280e+00 7.000555e-01
-100 128 20 means_gpu 3.051177e+02 1.525589e+01 2.141055e+00 1.267121e-01
-100 128 20 variances_gpu 2.984694e+02 1.492347e+01 2.141055e+00 3.255548e-01
-100 16 20 means_cpu 1.065543e+02 5.327713e+00 1.175486e+00 1.244990e-01
-100 16 20 variances_cpu 1.178280e+02 5.891402e+00 1.175486e+00 7.304981e-01
-100 16 20 means_gpu 5.690214e+01 2.845107e+00 2.194512e+00 1.244990e-01
-100 16 20 variances_gpu 5.080025e+01 2.540012e+00 2.194512e+00 3.584368e-01
-100 32 20 means_cpu 6.105469e+01 3.052735e+00 6.502408e+00 1.259846e-01
-100 32 20 variances_cpu 7.581691e+01 3.790845e+00 6.502408e+00 7.110595e-01
-100 32 20 means_gpu 6.803317e+01 3.401658e+00 2.213105e+00 1.259846e-01
-100 32 20 variances_gpu 6.217404e+01 3.108702e+00 2.213105e+00 3.403701e-01
-100 64 20 means_cpu 1.390402e+02 6.952008e+00 3.475054e+00 1.244580e-01
-100 64 20 variances_cpu 1.258466e+02 6.292329e+00 3.475054e+00 7.201794e-01
-100 64 20 means_gpu 1.155993e+02 5.779963e+00 2.295519e+00 1.244580e-01
-100 64 20 variances_gpu 1.091176e+02 5.455882e+00 2.295519e+00 3.517548e-01
-100 8 20 means_cpu 1.347958e+01 6.739789e-01 3.084311e+00 1.192346e-01
-100 8 20 variances_cpu 9.987097e+00 4.993549e-01 3.084311e+00 6.679477e-01
-100 8 20 means_gpu 4.282032e+01 2.141016e+00 2.195034e+00 1.192346e-01
-100 8 20 variances_gpu 3.589926e+01 1.794963e+00 2.195034e+00 3.190801e-01
-200 128 20 means_cpu 4.592779e+02 2.296389e+01 2.611394e+00 1.267121e-01
-200 128 20 variances_cpu 4.584285e+02 2.292142e+01 2.611394e+00 7.000555e-01
-200 128 20 means_gpu 5.296616e+02 2.648308e+01 2.035695e+00 1.267121e-01
-200 128 20 variances_gpu 5.228234e+02 2.614117e+01 2.035695e+00 3.255548e-01
-200 16 20 means_cpu 1.097203e+02 5.486015e+00 4.116291e+00 1.244990e-01
-200 16 20 variances_cpu 1.048091e+02 5.240453e+00 4.116291e+00 7.304981e-01
-200 16 20 means_gpu 7.642599e+01 3.821299e+00 2.199779e+00 1.244990e-01
-200 16 20 variances_gpu 6.992977e+01 3.496489e+00 2.199779e+00 3.584369e-01
-200 32 20 means_cpu 8.121430e+01 4.060715e+00 7.677393e+00 1.259846e-01
-200 32 20 variances_cpu 7.365357e+01 3.682679e+00 7.677393e+00 7.110594e-01
-200 32 20 means_gpu 1.199537e+02 5.997686e+00 2.159102e+00 1.259846e-01
-200 32 20 variances_gpu 1.142240e+02 5.711198e+00 2.159102e+00 3.403701e-01
-200 64 20 means_cpu 1.950212e+02 9.751058e+00 4.682975e+00 1.244580e-01
-200 64 20 variances_cpu 1.841192e+02 9.205958e+00 4.682975e+00 7.201794e-01
-200 64 20 means_gpu 2.026066e+02 1.013033e+01 2.610523e+00 1.244580e-01
-200 64 20 variances_gpu 1.957270e+02 9.786349e+00 2.610523e+00 3.517548e-01
-200 8 20 means_cpu 9.177285e+00 4.588642e-01 2.535545e+00 1.192346e-01
-200 8 20 variances_cpu 5.373309e+00 2.686654e-01 2.535545e+00 6.679477e-01
-200 8 20 means_gpu 6.594246e+01 3.297123e+00 2.356754e+00 1.192346e-01
-200 8 20 variances_gpu 5.952803e+01 2.976402e+00 2.356754e+00 3.190801e-01
-300 128 20 means_cpu 6.073066e+02 3.036533e+01 1.109632e+01 1.267121e-01
-300 128 20 variances_cpu 6.573211e+02 3.286605e+01 1.109632e+01 7.000555e-01
-300 128 20 means_gpu 7.147382e+02 3.573691e+01 2.021954e+00 1.267121e-01
-300 128 20 variances_gpu 7.110693e+02 3.555346e+01 2.021954e+00 3.255548e-01
-300 16 20 means_cpu 1.448340e+01 7.241702e-01 2.431070e+00 1.244990e-01
-300 16 20 variances_cpu 1.317765e+01 6.588826e-01 2.431070e+00 7.304981e-01
-300 16 20 means_gpu 7.774222e+01 3.887111e+00 2.211000e+00 1.244989e-01
-300 16 20 variances_gpu 6.941169e+01 3.470584e+00 2.211000e+00 3.584369e-01
-300 32 20 means_cpu 6.194901e+01 3.097451e+00 5.838855e+00 1.259845e-01
-300 32 20 variances_cpu 6.421270e+01 3.210635e+00 5.838855e+00 7.110594e-01
-300 32 20 means_gpu 1.210781e+02 6.053905e+00 2.348755e+00 1.259845e-01
-300 32 20 variances_gpu 1.136006e+02 5.680031e+00 2.348755e+00 3.403701e-01
-300 64 20 means_cpu 1.739549e+02 8.697744e+00 5.183679e+00 1.244580e-01
-300 64 20 variances_cpu 1.716918e+02 8.584590e+00 5.183679e+00 7.201792e-01
-300 64 20 means_gpu 2.255025e+02 1.127512e+01 2.284021e+00 1.244580e-01
-300 64 20 variances_gpu 2.185612e+02 1.092806e+01 2.284021e+00 3.517548e-01
-300 8 20 means_cpu 1.955465e+01 9.777326e-01 4.026426e+00 1.192346e-01
-300 8 20 variances_cpu 1.835520e+01 9.177599e-01 4.026426e+00 6.679477e-01
-300 8 20 means_gpu 5.199893e+01 2.599947e+00 2.319840e+00 1.192346e-01
-300 8 20 variances_gpu 4.481596e+01 2.240798e+00 2.319840e+00 3.190801e-01
-400 128 20 means_cpu 8.130309e+02 4.065155e+01 3.610780e+00 1.267121e-01
-400 128 20 variances_cpu 8.778147e+02 4.389074e+01 3.610780e+00 7.000556e-01
-400 128 20 means_gpu 9.199382e+02 4.599691e+01 3.695241e+00 1.267121e-01
-400 128 20 variances_gpu 9.138120e+02 4.569060e+01 3.695241e+00 3.255548e-01
-400 16 20 means_cpu 3.823273e+01 1.911636e+00 4.479279e+00 1.244989e-01
-400 16 20 variances_cpu 3.409540e+01 1.704770e+00 4.479279e+00 7.304981e-01
-400 16 20 means_gpu 8.085546e+01 4.042773e+00 2.156644e+00 1.244989e-01
-400 16 20 variances_gpu 7.262117e+01 3.631059e+00 2.156644e+00 3.584369e-01
-400 32 20 means_cpu 1.251876e+02 6.259378e+00 4.572739e+00 1.259846e-01
-400 32 20 variances_cpu 1.243462e+02 6.217309e+00 4.572739e+00 7.110594e-01
-400 32 20 means_gpu 1.431843e+02 7.159213e+00 2.728254e+00 1.259846e-01
-400 32 20 variances_gpu 1.357481e+02 6.787403e+00 2.728254e+00 3.403701e-01
-400 64 20 means_cpu 1.833529e+02 9.167646e+00 2.733744e+00 1.244580e-01
-400 64 20 variances_cpu 1.985333e+02 9.926667e+00 2.733744e+00 7.201793e-01
-400 64 20 means_gpu 2.890194e+02 1.445097e+01 2.329827e+00 1.244580e-01
-400 64 20 variances_gpu 2.816614e+02 1.408307e+01 2.329827e+00 3.517548e-01
-400 8 20 means_cpu 2.963296e+01 1.481648e+00 5.625771e+00 1.192346e-01
-400 8 20 variances_cpu 2.679817e+01 1.339908e+00 5.625771e+00 6.679478e-01
-400 8 20 means_gpu 5.680638e+01 2.840319e+00 3.032885e+00 1.192346e-01
-400 8 20 variances_gpu 4.954115e+01 2.477057e+00 3.032885e+00 3.190801e-01
-500 128 20 means_cpu 1.024501e+03 5.122506e+01 1.298306e+01 1.267121e-01
-500 128 20 variances_cpu 1.050124e+03 5.250620e+01 1.298306e+01 7.000557e-01
-500 128 20 means_gpu 1.088762e+03 5.443810e+01 6.209193e+00 1.267121e-01
-500 128 20 variances_gpu 1.083018e+03 5.415088e+01 6.209193e+00 3.255548e-01
-500 16 20 means_cpu 5.035885e+01 2.517942e+00 6.597409e+00 1.244989e-01
-500 16 20 variances_cpu 4.196323e+01 2.098161e+00 6.597409e+00 7.304982e-01
-500 16 20 means_gpu 8.282178e+01 4.141089e+00 2.178011e+00 1.244989e-01
-500 16 20 variances_gpu 7.650778e+01 3.825389e+00 2.178011e+00 3.584369e-01
-500 32 20 means_cpu 1.107579e+02 5.537897e+00 6.141935e+00 1.259846e-01
-500 32 20 variances_cpu 9.945699e+01 4.972849e+00 6.141935e+00 7.110595e-01
-500 32 20 means_gpu 1.504806e+02 7.524029e+00 2.119780e+00 1.259846e-01
-500 32 20 variances_gpu 1.448120e+02 7.240600e+00 2.119780e+00 3.403701e-01
-500 64 20 means_cpu 3.037386e+02 1.518693e+01 5.551073e+00 1.244580e-01
-500 64 20 variances_cpu 3.092363e+02 1.546182e+01 5.551073e+00 7.201793e-01
-500 64 20 means_gpu 3.362671e+02 1.681335e+01 2.141473e+00 1.244580e-01
-500 64 20 variances_gpu 3.312798e+02 1.656399e+01 2.141473e+00 3.517548e-01
-500 8 20 means_cpu 1.009672e+02 5.048359e+00 4.250741e+00 1.192346e-01
-500 8 20 variances_cpu 9.732823e+01 4.866411e+00 4.250741e+00 6.679478e-01
-500 8 20 means_gpu 5.533616e+01 2.766808e+00 2.173507e+00 1.192346e-01
-500 8 20 variances_gpu 4.899212e+01 2.449606e+00 2.173507e+00 3.190801e-01
-600 128 20 means_cpu 1.176520e+03 5.882602e+01 7.893801e+00 1.267121e-01
-600 128 20 variances_cpu 1.173997e+03 5.869987e+01 7.893801e+00 7.000556e-01
-600 128 20 means_gpu 1.338183e+03 6.690916e+01 3.102752e+00 1.267121e-01
-600 128 20 variances_gpu 1.338903e+03 6.694515e+01 3.102752e+00 3.255548e-01
-600 16 20 means_cpu 1.857862e+01 9.289312e-01 1.999470e+00 1.244989e-01
-600 16 20 variances_cpu 1.507231e+01 7.536153e-01 1.999470e+00 7.304982e-01
-600 16 20 means_gpu 1.103432e+02 5.517158e+00 2.182920e+00 1.244989e-01
-600 16 20 variances_gpu 1.031240e+02 5.156201e+00 2.182920e+00 3.584368e-01
-600 32 20 means_cpu 7.486727e+01 3.743364e+00 4.852137e+00 1.259846e-01
-600 32 20 variances_cpu 7.564125e+01 3.782063e+00 4.852137e+00 7.110596e-01
-600 32 20 means_gpu 1.873018e+02 9.365088e+00 2.768869e+00 1.259846e-01
-600 32 20 variances_gpu 1.792317e+02 8.961587e+00 2.768869e+00 3.403701e-01
-600 64 20 means_cpu 2.713596e+02 1.356798e+01 3.169373e+00 1.244580e-01
-600 64 20 variances_cpu 2.829430e+02 1.414715e+01 3.169373e+00 7.201794e-01
-600 64 20 means_gpu 4.110281e+02 2.055141e+01 2.159528e+00 1.244580e-01
-600 64 20 variances_gpu 4.040314e+02 2.020157e+01 2.159528e+00 3.517548e-01
-600 8 20 means_cpu 5.398528e+01 2.699264e+00 7.866988e+00 1.192346e-01
-600 8 20 variances_cpu 4.138362e+01 2.069181e+00 7.866988e+00 6.679478e-01
-600 8 20 means_gpu 7.200392e+01 3.600196e+00 2.267818e+00 1.192346e-01
-600 8 20 variances_gpu 6.472373e+01 3.236187e+00 2.267818e+00 3.190801e-01
-700 128 20 means_cpu 1.382420e+03 6.912101e+01 2.441258e+01 1.267121e-01
-700 128 20 variances_cpu 1.418231e+03 7.091155e+01 2.441258e+01 7.000556e-01
-700 128 20 means_gpu 1.533319e+03 7.666595e+01 3.410614e+00 1.267121e-01
-700 128 20 variances_gpu 1.523782e+03 7.618912e+01 3.410614e+00 3.255548e-01
-700 16 20 means_cpu 4.151890e+01 2.075945e+00 4.799827e+00 1.244989e-01
-700 16 20 variances_cpu 3.738569e+01 1.869285e+00 4.799827e+00 7.304982e-01
-700 16 20 means_gpu 1.187466e+02 5.937330e+00 2.131754e+00 1.244989e-01
-700 16 20 variances_gpu 1.111601e+02 5.558004e+00 2.131754e+00 3.584368e-01
-700 32 20 means_cpu 6.165958e+01 3.082979e+00 2.555875e+00 1.259846e-01
-700 32 20 variances_cpu 6.132219e+01 3.066109e+00 2.555875e+00 7.110597e-01
-700 32 20 means_gpu 2.097651e+02 1.048825e+01 2.331592e+00 1.259846e-01
-700 32 20 variances_gpu 1.998613e+02 9.993065e+00 2.331592e+00 3.403701e-01
-700 64 20 means_cpu 3.734962e+02 1.867481e+01 6.353079e+00 1.244580e-01
-700 64 20 variances_cpu 3.722213e+02 1.861106e+01 6.353079e+00 7.201794e-01
-700 64 20 means_gpu 4.695954e+02 2.347977e+01 2.332788e+00 1.244580e-01
-700 64 20 variances_gpu 4.661457e+02 2.330729e+01 2.332788e+00 3.517548e-01
-700 8 20 means_cpu 4.881571e+01 2.440785e+00 8.562966e+00 1.192346e-01
-700 8 20 variances_cpu 4.474940e+01 2.237470e+00 8.562966e+00 6.679477e-01
-700 8 20 means_gpu 8.140442e+01 4.070221e+00 2.254682e+00 1.192346e-01
-700 8 20 variances_gpu 7.495876e+01 3.747938e+00 2.254682e+00 3.190801e-01
-800 128 20 means_cpu 1.637179e+03 8.185897e+01 1.568587e+01 1.267121e-01
-800 128 20 variances_cpu 1.649859e+03 8.249293e+01 1.568587e+01 7.000556e-01
-800 128 20 means_gpu 1.779637e+03 8.898184e+01 2.501636e+00 1.267121e-01
-800 128 20 variances_gpu 1.774848e+03 8.874242e+01 2.501636e+00 3.255548e-01
-800 16 20 means_cpu 6.102906e+01 3.051453e+00 6.465989e+00 1.244989e-01
-800 16 20 variances_cpu 5.859802e+01 2.929901e+00 6.465989e+00 7.304982e-01
-800 16 20 means_gpu 1.346647e+02 6.733234e+00 2.069849e+00 1.244989e-01
-800 16 20 variances_gpu 1.249977e+02 6.249884e+00 2.069849e+00 3.584368e-01
-800 32 20 means_cpu 1.413331e+02 7.066653e+00 5.742317e+00 1.259846e-01
-800 32 20 variances_cpu 1.269213e+02 6.346065e+00 5.742317e+00 7.110596e-01
-800 32 20 means_gpu 2.311015e+02 1.155507e+01 2.633011e+00 1.259846e-01
-800 32 20 variances_gpu 2.213542e+02 1.106771e+01 2.633011e+00 3.403701e-01
-800 64 20 means_cpu 3.610285e+02 1.805142e+01 5.521090e+00 1.244580e-01
-800 64 20 variances_cpu 3.590959e+02 1.795480e+01 5.521090e+00 7.201794e-01
-800 64 20 means_gpu 5.357067e+02 2.678533e+01 2.039602e+00 1.244580e-01
-800 64 20 variances_gpu 5.274055e+02 2.637027e+01 2.039602e+00 3.517548e-01
-800 8 20 means_cpu 5.601509e+01 2.800754e+00 7.121299e+00 1.192346e-01
-800 8 20 variances_cpu 5.166998e+01 2.583499e+00 7.121299e+00 6.679477e-01
-800 8 20 means_gpu 8.266778e+01 4.133389e+00 2.308755e+00 1.192346e-01
-800 8 20 variances_gpu 7.665067e+01 3.832533e+00 2.308755e+00 3.190801e-01
-900 128 20 means_cpu 1.808366e+03 9.041829e+01 2.691102e+01 1.267121e-01
-900 128 20 variances_cpu 1.842664e+03 9.213319e+01 2.691102e+01 7.000556e-01
-900 128 20 means_gpu 1.976870e+03 9.884351e+01 4.330308e+00 1.267121e-01
-900 128 20 variances_gpu 1.969349e+03 9.846746e+01 4.330308e+00 3.255548e-01
-900 16 20 means_cpu 1.088539e+02 5.442696e+00 3.687970e+00 1.244989e-01
-900 16 20 variances_cpu 1.179877e+02 5.899385e+00 3.687970e+00 7.304982e-01
-900 16 20 means_gpu 1.453705e+02 7.268526e+00 3.465400e+00 1.244989e-01
-900 16 20 variances_gpu 1.357332e+02 6.786659e+00 3.465400e+00 3.584368e-01
-900 32 20 means_cpu 1.525447e+02 7.627234e+00 6.756476e+00 1.259846e-01
-900 32 20 variances_cpu 1.446891e+02 7.234453e+00 6.756476e+00 7.110596e-01
-900 32 20 means_gpu 2.421575e+02 1.210787e+01 2.361600e+00 1.259846e-01
-900 32 20 variances_gpu 2.339139e+02 1.169569e+01 2.361600e+00 3.403700e-01
-900 64 20 means_cpu 3.984225e+02 1.992112e+01 5.332382e+00 1.244580e-01
-900 64 20 variances_cpu 3.968685e+02 1.984342e+01 5.332382e+00 7.201793e-01
-900 64 20 means_gpu 5.920547e+02 2.960273e+01 2.417889e+00 1.244580e-01
-900 64 20 variances_gpu 5.816277e+02 2.908139e+01 2.417889e+00 3.517548e-01
-900 8 20 means_cpu 6.689280e+01 3.344640e+00 6.837975e+00 1.192346e-01
-900 8 20 variances_cpu 6.067650e+01 3.033825e+00 6.837975e+00 6.679477e-01
-900 8 20 means_gpu 8.556228e+01 4.278114e+00 2.289454e+00 1.192346e-01
-900 8 20 variances_gpu 7.826372e+01 3.913186e+00 2.289454e+00 3.190801e-01
+Total error in means calculation for 1000 128x128 matrices of cpu: 2.53e+03 (1.27e-01 average)
+Total error in variances calculation for 1000 128x128 matrices of cpu: 1.40e+04 (7.00e-01 average)
+Total execution time in means for 1000 128x128 matrices and 20 replications of cpu: 1790.9072 ms (89.5454 ms average, 9.0165 ms variance)
+Total execution time in variances for 1000 128x128 matrices and 20 replications of cpu: 1780.5908 ms (89.0295 ms average, 9.0165 ms variance)
+Total error in means calculation for 1000 16x16 matrices of cpu: 2.49e+03 (1.24e-01 average)
+Total error in variances calculation for 1000 16x16 matrices of cpu: 1.46e+04 (7.30e-01 average)
+Total execution time in means for 1000 16x16 matrices and 20 replications of cpu: 23.4658 ms (1.1733 ms average, 0.7710 ms variance)
+Total execution time in variances for 1000 16x16 matrices and 20 replications of cpu: 19.5317 ms (0.9766 ms average, 0.7710 ms variance)
+Total error in means calculation for 1000 32x32 matrices of cpu: 2.52e+03 (1.26e-01 average)
+Total error in variances calculation for 1000 32x32 matrices of cpu: 1.42e+04 (7.11e-01 average)
+Total execution time in means for 1000 32x32 matrices and 20 replications of cpu: 92.4504 ms (4.6225 ms average, 2.3705 ms variance)
+Total execution time in variances for 1000 32x32 matrices and 20 replications of cpu: 87.6377 ms (4.3819 ms average, 2.3705 ms variance)
+Total error in means calculation for 1000 64x64 matrices of cpu: 2.49e+03 (1.24e-01 average)
+Total error in variances calculation for 1000 64x64 matrices of cpu: 1.44e+04 (7.20e-01 average)
+Total execution time in means for 1000 64x64 matrices and 20 replications of cpu: 410.1790 ms (20.5090 ms average, 1.8054 ms variance)
+Total execution time in variances for 1000 64x64 matrices and 20 replications of cpu: 398.3330 ms (19.9166 ms average, 1.8054 ms variance)
+Total error in means calculation for 1000 8x8 matrices of cpu: 2.38e+03 (1.19e-01 average)
+Total error in variances calculation for 1000 8x8 matrices of cpu: 1.34e+04 (6.68e-01 average)
+Total execution time in means for 1000 8x8 matrices and 20 replications of cpu: 18.5839 ms (0.9292 ms average, 3.7089 ms variance)
+Total execution time in variances for 1000 8x8 matrices and 20 replications of cpu: 13.4637 ms (0.6732 ms average, 3.7089 ms variance)
+Total error in means calculation for 100 128x128 matrices of cpu: 2.53e+02 (1.27e-01 average)
+Total error in variances calculation for 100 128x128 matrices of cpu: 1.40e+03 (7.00e-01 average)
+Total execution time in means for 100 128x128 matrices and 20 replications of cpu: 229.0629 ms (11.4531 ms average, 0.9143 ms variance)
+Total execution time in variances for 100 128x128 matrices and 20 replications of cpu: 229.5715 ms (11.4786 ms average, 0.9143 ms variance)
+Total error in means calculation for 100 16x16 matrices of cpu: 2.49e+02 (1.24e-01 average)
+Total error in variances calculation for 100 16x16 matrices of cpu: 1.46e+03 (7.30e-01 average)
+Total execution time in means for 100 16x16 matrices and 20 replications of cpu: 14.9801 ms (0.7490 ms average, 3.6916 ms variance)
+Total execution time in variances for 100 16x16 matrices and 20 replications of cpu: 10.0196 ms (0.5010 ms average, 3.6916 ms variance)
+Total error in means calculation for 100 32x32 matrices of cpu: 2.52e+02 (1.26e-01 average)
+Total error in variances calculation for 100 32x32 matrices of cpu: 1.42e+03 (7.11e-01 average)
+Total execution time in means for 100 32x32 matrices and 20 replications of cpu: 13.9936 ms (0.6997 ms average, 0.6469 ms variance)
+Total execution time in variances for 100 32x32 matrices and 20 replications of cpu: 10.3004 ms (0.5150 ms average, 0.6469 ms variance)
+Total error in means calculation for 100 64x64 matrices of cpu: 2.49e+02 (1.24e-01 average)
+Total error in variances calculation for 100 64x64 matrices of cpu: 1.44e+03 (7.20e-01 average)
+Total execution time in means for 100 64x64 matrices and 20 replications of cpu: 51.7774 ms (2.5889 ms average, 0.5955 ms variance)
+Total execution time in variances for 100 64x64 matrices and 20 replications of cpu: 48.8045 ms (2.4402 ms average, 0.5955 ms variance)
+Total error in means calculation for 100 8x8 matrices of cpu: 2.38e+02 (1.19e-01 average)
+Total error in variances calculation for 100 8x8 matrices of cpu: 1.34e+03 (6.68e-01 average)
+Total execution time in means for 100 8x8 matrices and 20 replications of cpu: 7.7630 ms (0.3881 ms average, 2.1635 ms variance)
+Total execution time in variances for 100 8x8 matrices and 20 replications of cpu: 1.1837 ms (0.0592 ms average, 2.1635 ms variance)
+Total error in means calculation for 200 128x128 matrices of cpu: 5.07e+02 (1.27e-01 average)
+Total error in variances calculation for 200 128x128 matrices of cpu: 2.80e+03 (7.00e-01 average)
+Total execution time in means for 200 128x128 matrices and 20 replications of cpu: 414.6077 ms (20.7304 ms average, 1.3979 ms variance)
+Total execution time in variances for 200 128x128 matrices and 20 replications of cpu: 457.2747 ms (22.8637 ms average, 1.3979 ms variance)
+Total error in means calculation for 200 16x16 matrices of cpu: 4.98e+02 (1.24e-01 average)
+Total error in variances calculation for 200 16x16 matrices of cpu: 2.92e+03 (7.30e-01 average)
+Total execution time in means for 200 16x16 matrices and 20 replications of cpu: 11.6981 ms (0.5849 ms average, 1.6287 ms variance)
+Total execution time in variances for 200 16x16 matrices and 20 replications of cpu: 8.8711 ms (0.4436 ms average, 1.6287 ms variance)
+Total error in means calculation for 200 32x32 matrices of cpu: 5.04e+02 (1.26e-01 average)
+Total error in variances calculation for 200 32x32 matrices of cpu: 2.84e+03 (7.11e-01 average)
+Total execution time in means for 200 32x32 matrices and 20 replications of cpu: 25.1015 ms (1.2551 ms average, 0.6688 ms variance)
+Total execution time in variances for 200 32x32 matrices and 20 replications of cpu: 35.4539 ms (1.7727 ms average, 0.6688 ms variance)
+Total error in means calculation for 200 64x64 matrices of cpu: 4.98e+02 (1.24e-01 average)
+Total error in variances calculation for 200 64x64 matrices of cpu: 2.88e+03 (7.20e-01 average)
+Total execution time in means for 200 64x64 matrices and 20 replications of cpu: 97.9341 ms (4.8967 ms average, 0.4480 ms variance)
+Total execution time in variances for 200 64x64 matrices and 20 replications of cpu: 103.2228 ms (5.1611 ms average, 0.4480 ms variance)
+Total error in means calculation for 200 8x8 matrices of cpu: 4.77e+02 (1.19e-01 average)
+Total error in variances calculation for 200 8x8 matrices of cpu: 2.67e+03 (6.68e-01 average)
+Total execution time in means for 200 8x8 matrices and 20 replications of cpu: 2.9718 ms (0.1486 ms average, 0.0241 ms variance)
+Total execution time in variances for 200 8x8 matrices and 20 replications of cpu: 2.3016 ms (0.1151 ms average, 0.0241 ms variance)
+Total error in means calculation for 300 128x128 matrices of cpu: 7.60e+02 (1.27e-01 average)
+Total error in variances calculation for 300 128x128 matrices of cpu: 4.20e+03 (7.00e-01 average)
+Total execution time in means for 300 128x128 matrices and 20 replications of cpu: 570.0950 ms (28.5047 ms average, 1.5743 ms variance)
+Total execution time in variances for 300 128x128 matrices and 20 replications of cpu: 631.6784 ms (31.5839 ms average, 1.5743 ms variance)
+Total error in means calculation for 300 16x16 matrices of cpu: 7.47e+02 (1.24e-01 average)
+Total error in variances calculation for 300 16x16 matrices of cpu: 4.38e+03 (7.30e-01 average)
+Total execution time in means for 300 16x16 matrices and 20 replications of cpu: 10.7009 ms (0.5350 ms average, 0.9724 ms variance)
+Total execution time in variances for 300 16x16 matrices and 20 replications of cpu: 7.2950 ms (0.3647 ms average, 0.9724 ms variance)
+Total error in means calculation for 300 32x32 matrices of cpu: 7.56e+02 (1.26e-01 average)
+Total error in variances calculation for 300 32x32 matrices of cpu: 4.27e+03 (7.11e-01 average)
+Total execution time in means for 300 32x32 matrices and 20 replications of cpu: 33.7681 ms (1.6884 ms average, 1.1589 ms variance)
+Total execution time in variances for 300 32x32 matrices and 20 replications of cpu: 33.6187 ms (1.6809 ms average, 1.1589 ms variance)
+Total error in means calculation for 300 64x64 matrices of cpu: 7.47e+02 (1.24e-01 average)
+Total error in variances calculation for 300 64x64 matrices of cpu: 4.32e+03 (7.20e-01 average)
+Total execution time in means for 300 64x64 matrices and 20 replications of cpu: 142.8786 ms (7.1439 ms average, 3.5928 ms variance)
+Total execution time in variances for 300 64x64 matrices and 20 replications of cpu: 157.1207 ms (7.8560 ms average, 3.5928 ms variance)
+Total error in means calculation for 300 8x8 matrices of cpu: 7.15e+02 (1.19e-01 average)
+Total error in variances calculation for 300 8x8 matrices of cpu: 4.01e+03 (6.68e-01 average)
+Total execution time in means for 300 8x8 matrices and 20 replications of cpu: 4.5909 ms (0.2295 ms average, 0.1380 ms variance)
+Total execution time in variances for 300 8x8 matrices and 20 replications of cpu: 3.4449 ms (0.1722 ms average, 0.1380 ms variance)
+Total error in means calculation for 400 128x128 matrices of cpu: 1.01e+03 (1.27e-01 average)
+Total error in variances calculation for 400 128x128 matrices of cpu: 5.60e+03 (7.00e-01 average)
+Total execution time in means for 400 128x128 matrices and 20 replications of cpu: 773.1101 ms (38.6555 ms average, 2.1199 ms variance)
+Total execution time in variances for 400 128x128 matrices and 20 replications of cpu: 816.0912 ms (40.8046 ms average, 2.1199 ms variance)
+Total error in means calculation for 400 16x16 matrices of cpu: 9.96e+02 (1.24e-01 average)
+Total error in variances calculation for 400 16x16 matrices of cpu: 5.84e+03 (7.30e-01 average)
+Total execution time in means for 400 16x16 matrices and 20 replications of cpu: 23.8750 ms (1.1938 ms average, 2.9727 ms variance)
+Total execution time in variances for 400 16x16 matrices and 20 replications of cpu: 25.8348 ms (1.2917 ms average, 2.9727 ms variance)
+Total error in means calculation for 400 32x32 matrices of cpu: 1.01e+03 (1.26e-01 average)
+Total error in variances calculation for 400 32x32 matrices of cpu: 5.69e+03 (7.11e-01 average)
+Total execution time in means for 400 32x32 matrices and 20 replications of cpu: 43.3934 ms (2.1697 ms average, 4.0895 ms variance)
+Total execution time in variances for 400 32x32 matrices and 20 replications of cpu: 40.6169 ms (2.0308 ms average, 4.0895 ms variance)
+Total error in means calculation for 400 64x64 matrices of cpu: 9.96e+02 (1.24e-01 average)
+Total error in variances calculation for 400 64x64 matrices of cpu: 5.76e+03 (7.20e-01 average)
+Total execution time in means for 400 64x64 matrices and 20 replications of cpu: 178.4181 ms (8.9209 ms average, 1.1072 ms variance)
+Total execution time in variances for 400 64x64 matrices and 20 replications of cpu: 199.2713 ms (9.9636 ms average, 1.1072 ms variance)
+Total error in means calculation for 400 8x8 matrices of cpu: 9.54e+02 (1.19e-01 average)
+Total error in variances calculation for 400 8x8 matrices of cpu: 5.34e+03 (6.68e-01 average)
+Total execution time in means for 400 8x8 matrices and 20 replications of cpu: 14.8042 ms (0.7402 ms average, 5.6024 ms variance)
+Total execution time in variances for 400 8x8 matrices and 20 replications of cpu: 4.7553 ms (0.2378 ms average, 5.6024 ms variance)
+Total error in means calculation for 500 128x128 matrices of cpu: 1.27e+03 (1.27e-01 average)
+Total error in variances calculation for 500 128x128 matrices of cpu: 7.00e+03 (7.00e-01 average)
+Total execution time in means for 500 128x128 matrices and 20 replications of cpu: 915.2404 ms (45.7620 ms average, 4.9854 ms variance)
+Total execution time in variances for 500 128x128 matrices and 20 replications of cpu: 909.0873 ms (45.4544 ms average, 4.9854 ms variance)
+Total error in means calculation for 500 16x16 matrices of cpu: 1.24e+03 (1.24e-01 average)
+Total error in variances calculation for 500 16x16 matrices of cpu: 7.30e+03 (7.30e-01 average)
+Total execution time in means for 500 16x16 matrices and 20 replications of cpu: 18.6126 ms (0.9306 ms average, 3.3936 ms variance)
+Total execution time in variances for 500 16x16 matrices and 20 replications of cpu: 10.5726 ms (0.5286 ms average, 3.3936 ms variance)
+Total error in means calculation for 500 32x32 matrices of cpu: 1.26e+03 (1.26e-01 average)
+Total error in variances calculation for 500 32x32 matrices of cpu: 7.11e+03 (7.11e-01 average)
+Total execution time in means for 500 32x32 matrices and 20 replications of cpu: 44.2594 ms (2.2130 ms average, 0.8256 ms variance)
+Total execution time in variances for 500 32x32 matrices and 20 replications of cpu: 39.7407 ms (1.9870 ms average, 0.8256 ms variance)
+Total error in means calculation for 500 64x64 matrices of cpu: 1.24e+03 (1.24e-01 average)
+Total error in variances calculation for 500 64x64 matrices of cpu: 7.20e+03 (7.20e-01 average)
+Total execution time in means for 500 64x64 matrices and 20 replications of cpu: 199.0894 ms (9.9545 ms average, 0.5588 ms variance)
+Total execution time in variances for 500 64x64 matrices and 20 replications of cpu: 209.8109 ms (10.4905 ms average, 0.5588 ms variance)
+Total error in means calculation for 500 8x8 matrices of cpu: 1.19e+03 (1.19e-01 average)
+Total error in variances calculation for 500 8x8 matrices of cpu: 6.68e+03 (6.68e-01 average)
+Total execution time in means for 500 8x8 matrices and 20 replications of cpu: 5.9473 ms (0.2974 ms average, 0.1695 ms variance)
+Total execution time in variances for 500 8x8 matrices and 20 replications of cpu: 4.0917 ms (0.2046 ms average, 0.1695 ms variance)
+Total error in means calculation for 600 128x128 matrices of cpu: 1.52e+03 (1.27e-01 average)
+Total error in variances calculation for 600 128x128 matrices of cpu: 8.40e+03 (7.00e-01 average)
+Total execution time in means for 600 128x128 matrices and 20 replications of cpu: 1101.4968 ms (55.0748 ms average, 2.8499 ms variance)
+Total execution time in variances for 600 128x128 matrices and 20 replications of cpu: 1117.7383 ms (55.8869 ms average, 2.8499 ms variance)
+Total error in means calculation for 600 16x16 matrices of cpu: 1.49e+03 (1.24e-01 average)
+Total error in variances calculation for 600 16x16 matrices of cpu: 8.77e+03 (7.30e-01 average)
+Total execution time in means for 600 16x16 matrices and 20 replications of cpu: 18.8534 ms (0.9427 ms average, 2.2475 ms variance)
+Total execution time in variances for 600 16x16 matrices and 20 replications of cpu: 16.7062 ms (0.8353 ms average, 2.2475 ms variance)
+Total error in means calculation for 600 32x32 matrices of cpu: 1.51e+03 (1.26e-01 average)
+Total error in variances calculation for 600 32x32 matrices of cpu: 8.53e+03 (7.11e-01 average)
+Total execution time in means for 600 32x32 matrices and 20 replications of cpu: 56.1630 ms (2.8082 ms average, 1.5494 ms variance)
+Total execution time in variances for 600 32x32 matrices and 20 replications of cpu: 53.3786 ms (2.6689 ms average, 1.5494 ms variance)
+Total error in means calculation for 600 64x64 matrices of cpu: 1.49e+03 (1.24e-01 average)
+Total error in variances calculation for 600 64x64 matrices of cpu: 8.64e+03 (7.20e-01 average)
+Total execution time in means for 600 64x64 matrices and 20 replications of cpu: 249.0354 ms (12.4518 ms average, 1.0559 ms variance)
+Total execution time in variances for 600 64x64 matrices and 20 replications of cpu: 249.9499 ms (12.4975 ms average, 1.0559 ms variance)
+Total error in means calculation for 600 8x8 matrices of cpu: 1.43e+03 (1.19e-01 average)
+Total error in variances calculation for 600 8x8 matrices of cpu: 8.02e+03 (6.68e-01 average)
+Total execution time in means for 600 8x8 matrices and 20 replications of cpu: 10.9554 ms (0.5478 ms average, 1.3744 ms variance)
+Total execution time in variances for 600 8x8 matrices and 20 replications of cpu: 5.6208 ms (0.2810 ms average, 1.3744 ms variance)
+Total error in means calculation for 700 128x128 matrices of cpu: 1.77e+03 (1.27e-01 average)
+Total error in variances calculation for 700 128x128 matrices of cpu: 9.80e+03 (7.00e-01 average)
+Total execution time in means for 700 128x128 matrices and 20 replications of cpu: 1266.6767 ms (63.3338 ms average, 4.2111 ms variance)
+Total execution time in variances for 700 128x128 matrices and 20 replications of cpu: 1308.8997 ms (65.4450 ms average, 4.2111 ms variance)
+Total error in means calculation for 700 16x16 matrices of cpu: 1.74e+03 (1.24e-01 average)
+Total error in variances calculation for 700 16x16 matrices of cpu: 1.02e+04 (7.30e-01 average)
+Total execution time in means for 700 16x16 matrices and 20 replications of cpu: 29.7703 ms (1.4885 ms average, 3.7760 ms variance)
+Total execution time in variances for 700 16x16 matrices and 20 replications of cpu: 26.5779 ms (1.3289 ms average, 3.7760 ms variance)
+Total error in means calculation for 700 32x32 matrices of cpu: 1.76e+03 (1.26e-01 average)
+Total error in variances calculation for 700 32x32 matrices of cpu: 9.95e+03 (7.11e-01 average)
+Total execution time in means for 700 32x32 matrices and 20 replications of cpu: 58.0306 ms (2.9015 ms average, 0.6258 ms variance)
+Total execution time in variances for 700 32x32 matrices and 20 replications of cpu: 59.9374 ms (2.9969 ms average, 0.6258 ms variance)
+Total error in means calculation for 700 64x64 matrices of cpu: 1.74e+03 (1.24e-01 average)
+Total error in variances calculation for 700 64x64 matrices of cpu: 1.01e+04 (7.20e-01 average)
+Total execution time in means for 700 64x64 matrices and 20 replications of cpu: 287.2366 ms (14.3618 ms average, 2.3932 ms variance)
+Total execution time in variances for 700 64x64 matrices and 20 replications of cpu: 292.9628 ms (14.6481 ms average, 2.3932 ms variance)
+Total error in means calculation for 700 8x8 matrices of cpu: 1.67e+03 (1.19e-01 average)
+Total error in variances calculation for 700 8x8 matrices of cpu: 9.35e+03 (6.68e-01 average)
+Total execution time in means for 700 8x8 matrices and 20 replications of cpu: 10.2297 ms (0.5115 ms average, 1.0471 ms variance)
+Total execution time in variances for 700 8x8 matrices and 20 replications of cpu: 6.0825 ms (0.3041 ms average, 1.0471 ms variance)
+Total error in means calculation for 800 128x128 matrices of cpu: 2.03e+03 (1.27e-01 average)
+Total error in variances calculation for 800 128x128 matrices of cpu: 1.12e+04 (7.00e-01 average)
+Total execution time in means for 800 128x128 matrices and 20 replications of cpu: 1440.7942 ms (72.0397 ms average, 2.3705 ms variance)
+Total execution time in variances for 800 128x128 matrices and 20 replications of cpu: 1485.7556 ms (74.2878 ms average, 2.3705 ms variance)
+Total error in means calculation for 800 16x16 matrices of cpu: 1.99e+03 (1.24e-01 average)
+Total error in variances calculation for 800 16x16 matrices of cpu: 1.17e+04 (7.30e-01 average)
+Total execution time in means for 800 16x16 matrices and 20 replications of cpu: 19.7760 ms (0.9888 ms average, 0.5505 ms variance)
+Total execution time in variances for 800 16x16 matrices and 20 replications of cpu: 21.5418 ms (1.0771 ms average, 0.5505 ms variance)
+Total error in means calculation for 800 32x32 matrices of cpu: 2.02e+03 (1.26e-01 average)
+Total error in variances calculation for 800 32x32 matrices of cpu: 1.14e+04 (7.11e-01 average)
+Total execution time in means for 800 32x32 matrices and 20 replications of cpu: 68.9983 ms (3.4499 ms average, 0.8781 ms variance)
+Total execution time in variances for 800 32x32 matrices and 20 replications of cpu: 72.2141 ms (3.6107 ms average, 0.8781 ms variance)
+Total error in means calculation for 800 64x64 matrices of cpu: 1.99e+03 (1.24e-01 average)
+Total error in variances calculation for 800 64x64 matrices of cpu: 1.15e+04 (7.20e-01 average)
+Total execution time in means for 800 64x64 matrices and 20 replications of cpu: 325.3229 ms (16.2661 ms average, 1.2951 ms variance)
+Total execution time in variances for 800 64x64 matrices and 20 replications of cpu: 341.1858 ms (17.0593 ms average, 1.2951 ms variance)
+Total error in means calculation for 800 8x8 matrices of cpu: 1.91e+03 (1.19e-01 average)
+Total error in variances calculation for 800 8x8 matrices of cpu: 1.07e+04 (6.68e-01 average)
+Total execution time in means for 800 8x8 matrices and 20 replications of cpu: 14.9004 ms (0.7450 ms average, 2.5936 ms variance)
+Total execution time in variances for 800 8x8 matrices and 20 replications of cpu: 11.3652 ms (0.5683 ms average, 2.5936 ms variance)
+Total error in means calculation for 900 128x128 matrices of cpu: 2.28e+03 (1.27e-01 average)
+Total error in variances calculation for 900 128x128 matrices of cpu: 1.26e+04 (7.00e-01 average)
+Total execution time in means for 900 128x128 matrices and 20 replications of cpu: 1596.0745 ms (79.8037 ms average, 2.5001 ms variance)
+Total execution time in variances for 900 128x128 matrices and 20 replications of cpu: 1633.2763 ms (81.6638 ms average, 2.5001 ms variance)
+Total error in means calculation for 900 16x16 matrices of cpu: 2.24e+03 (1.24e-01 average)
+Total error in variances calculation for 900 16x16 matrices of cpu: 1.31e+04 (7.30e-01 average)
+Total execution time in means for 900 16x16 matrices and 20 replications of cpu: 23.4470 ms (1.1724 ms average, 1.1852 ms variance)
+Total execution time in variances for 900 16x16 matrices and 20 replications of cpu: 18.7554 ms (0.9378 ms average, 1.1852 ms variance)
+Total error in means calculation for 900 32x32 matrices of cpu: 2.27e+03 (1.26e-01 average)
+Total error in variances calculation for 900 32x32 matrices of cpu: 1.28e+04 (7.11e-01 average)
+Total execution time in means for 900 32x32 matrices and 20 replications of cpu: 75.5157 ms (3.7758 ms average, 1.1340 ms variance)
+Total execution time in variances for 900 32x32 matrices and 20 replications of cpu: 69.7749 ms (3.4887 ms average, 1.1340 ms variance)
+Total error in means calculation for 900 64x64 matrices of cpu: 2.24e+03 (1.24e-01 average)
+Total error in variances calculation for 900 64x64 matrices of cpu: 1.30e+04 (7.20e-01 average)
+Total execution time in means for 900 64x64 matrices and 20 replications of cpu: 358.1669 ms (17.9083 ms average, 1.3459 ms variance)
+Total execution time in variances for 900 64x64 matrices and 20 replications of cpu: 361.1590 ms (18.0579 ms average, 1.3459 ms variance)
+Total error in means calculation for 900 8x8 matrices of cpu: 2.15e+03 (1.19e-01 average)
+Total error in variances calculation for 900 8x8 matrices of cpu: 1.20e+04 (6.68e-01 average)
+Total execution time in means for 900 8x8 matrices and 20 replications of cpu: 15.6636 ms (0.7832 ms average, 1.5530 ms variance)
+Total execution time in variances for 900 8x8 matrices and 20 replications of cpu: 11.5554 ms (0.5778 ms average, 1.5530 ms variance)

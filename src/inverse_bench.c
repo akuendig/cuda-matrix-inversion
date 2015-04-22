@@ -103,7 +103,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
         }
         TIMER_STOP(lu_blas_cpu)
 #ifdef DETAILED_LOGGING
-        TIMER_LOG(lu_blas_cpu, numMatrices, N)
+        TIMER_LOG(lu_blas_cpu, numMatrices, n)
 #endif // DETAILED_LOGGING
         TIMER_ACC(lu_blas_cpu)
     }
@@ -121,7 +121,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
         inverse_lu_blas_omp(inv, N, numMatrices);
         TIMER_STOP(lu_blas_omp_cpu)
 #ifdef DETAILED_LOGGING
-        TIMER_LOG(lu_blas_omp_cpu, numMatrices, N)
+        TIMER_LOG(lu_blas_omp_cpu, numMatrices, n)
 #endif // DETAILED_LOGGING
         TIMER_ACC(lu_blas_omp_cpu)
     }
@@ -144,7 +144,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
         inverse_cholesky_batched_gpu(handle, N, a, inv, numMatrices);
         TIMER_STOP(chol_gpu)
 #ifdef DETAILED_LOGGING
-        TIMER_LOG(chol_gpu, numMatrices, N)
+        TIMER_LOG(chol_gpu, numMatrices, n)
 #endif // DETAILED_LOGGING
         TIMER_ACC(chol_gpu)
 
@@ -191,7 +191,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
         inverse_gauss_batched_gpu(handle, N, workspace, inv, numMatrices);
         TIMER_STOP(gauss_batched_gpu)
 #ifdef DETAILED_LOGGING
-        TIMER_LOG(gauss_batched_gpu, numMatrices, N)
+        TIMER_LOG(gauss_batched_gpu, numMatrices, n)
 #endif // DETAILED_LOGGING
         TIMER_ACC(gauss_batched_gpu)
 
@@ -214,7 +214,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
         inverse_lu_cuda_batched_gpu(handle, N, workspace, inv, numMatrices);
         TIMER_STOP(lu_cuda_batched_gpu)
 #ifdef DETAILED_LOGGING
-        TIMER_LOG(lu_cuda_batched_gpu, numMatrices, N)
+        TIMER_LOG(lu_cuda_batched_gpu, numMatrices, n)
 #endif // DETAILED_LOGGING
         TIMER_ACC(lu_cuda_batched_gpu)
 
