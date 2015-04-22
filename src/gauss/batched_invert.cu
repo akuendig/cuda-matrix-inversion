@@ -24,7 +24,7 @@ void pivotRow(Array *a, Array *a_inv, int n, int col) {
 			if (a[blockIdx.x][(col * n) + col + i] != 0)
 				break;
 		}
-	
+
 		if (i == (n - col)) {
 			//Handle Error: Matrix is not invertible
 			// Do something, maybe quit the code
@@ -33,7 +33,7 @@ void pivotRow(Array *a, Array *a_inv, int n, int col) {
 		}
 	}
 	__syncthreads();
-	
+
 	float temp1 = a[blockIdx.x][threadIdx.x * n + col];
         a[blockIdx.x][threadIdx.x * n + col] = a[blockIdx.x][threadIdx.x * n + row];
         a[blockIdx.x][threadIdx.x * n + row] = temp1;
@@ -110,6 +110,12 @@ extern "C" void inverse_gauss_batched_gpu(
 
 	const size_t ArraySize = sizeof(DataType) * n * n;
 
+#ifdef DETAILED_LOGGING
+    TIMER_INIT(inverse_gauss_batched_gpu_mem_htod)
+    TIMER_INIT(inverse_gauss_batched_gpu_ker)
+    TIMER_INIT(inverse_gauss_batched_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
 	gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 	gpuErrchk( cudaHostAlloc((void**)&devAInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 
@@ -124,10 +130,19 @@ extern "C" void inverse_gauss_batched_gpu(
     	}
 	}
 
+#ifdef DETAILED_LOGGING
+    TIMER_START(inverse_gauss_batched_gpu_mem_htod)
+#endif // DETAILED_LOGGING
+
 	gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, ArraySize, ArraySize, batchSize,
 				cudaMemcpyHostToDevice) );
 	gpuErrchk( cudaMemcpy2D(devAInvs[0], pitchAInvs, aInvs, ArraySize, ArraySize, batchSize,
 				cudaMemcpyHostToDevice) );
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(inverse_gauss_batched_gpu_mem_htod)
+    TIMER_START(inverse_gauss_batched_gpu_ker)
+#endif // DETAILED_LOGGING
 
 	// Calculate Minv = Madd^-1, store result in Bs
 	invert(handle, n, devAs, devAInvs, batchSize);
@@ -135,8 +150,25 @@ extern "C" void inverse_gauss_batched_gpu(
 	// devAs: Minv
 	// devAInvs: Madd
 
+#ifdef DETAILED_LOGGING
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+
+    TIMER_STOP(inverse_gauss_batched_gpu_ker)
+    TIMER_START(inverse_gauss_batched_gpu_mem_dtoh)
+#endif // DETAILED_LOGGING
+
 	gpuErrchk( cudaMemcpy2D(aInvs, ArraySize, devAInvs[0], pitchAInvs, ArraySize, batchSize,
 				cudaMemcpyDeviceToHost) );
+
+#ifdef DETAILED_LOGGING
+    TIMER_STOP(inverse_gauss_batched_gpu_mem_dtoh)
+
+    TIMER_LOG(inverse_gauss_batched_gpu_mem_htod, batchSize, n)
+    TIMER_LOG(inverse_gauss_batched_gpu_ker, batchSize, n)
+    TIMER_LOG(inverse_gauss_batched_gpu_mem_dtoh, batchSize, n)
+#endif // DETAILED_LOGGING
+
 	gpuErrchk( cudaFree((void*)devAs[0]) );
 	gpuErrchk( cudaFree((void*)devAInvs[0]) );
 	gpuErrchk( cudaFreeHost((void*)devAs) );
