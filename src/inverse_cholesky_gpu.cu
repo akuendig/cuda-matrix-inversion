@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <errno.h>
 
+#include <cuda.h>
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
 
@@ -34,7 +35,7 @@
 #endif
 
 void current_utc_time(struct timespec *ts) {
- 
+
 #ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
   clock_serv_t cclock;
   mach_timespec_t mts;
@@ -46,7 +47,7 @@ void current_utc_time(struct timespec *ts) {
 #else
   clock_gettime(CLOCK_REALTIME, ts);
 #endif
- 
+
 }
 
 /// STRIDE
@@ -91,10 +92,10 @@ void decompose_cholesky_stride_kernel_device(Array *aInv, int N, int ops) {
 }
 
 
-extern "C" 
+extern "C"
 void decompose_cholesky_stride_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     int ops = N; //MAX(N * N / MIN(N * N, MAX_THREADS_PER_BLOCK), N);
-    int threads = N;
+    // int threads = N;
     decompose_cholesky_stride_kernel_device<<< batchSize, N, MMDIM(N)>>>(devAInvs, N, ops);
 }
 
@@ -132,7 +133,7 @@ void inverse_upper_stride_kernel_device(Array *aInv, int N, int ops) {
     }
 }
 
-extern "C" 
+extern "C"
 void inverse_upper_stride_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     int ops = N; //MAX(N * N / MIN(N * N, MAX_THREADS_PER_BLOCK), N);
     int threads = N;
@@ -170,21 +171,21 @@ void multiply_upper_stride_kernel_device(Array *aInv, int N, int ops) {
     }
 }
 
-extern "C" 
+extern "C"
 void multiply_upper_stride_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     int ops = N; //MAX(N * N / MIN(N * N, MAX_THREADS_PER_BLOCK), N);
     int threads = N;
     multiply_upper_stride_kernel_device<<< batchSize, threads>>>(devAInvs, N, ops);
 }
 
-extern "C" 
+extern "C"
 void inverse_cholesky_stride_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     decompose_cholesky_stride_batched_device(handle, N, devAs, devAInvs, batchSize);
     inverse_upper_stride_batched_device(handle, N, devAs, devAInvs, batchSize);
     multiply_upper_stride_batched_device(handle, N, devAs, devAInvs, batchSize);
 }
 
-extern "C" 
+extern "C"
 void inverse_cholesky_stride_batched_gpu(cublasHandle_t handle, int n, Array As, Array aInvs, int batchSize) {
 
     Array *devAs;
@@ -286,7 +287,7 @@ __global__
 void inverse_upper_kernel_device(Array *a, Array *aInv, int N, int k) {
     int i = threadIdx.x;
 
-    aInv[blockIdx.x][MATIDX(k, i, N)] = 0 - a[blockIdx.x][MATIDX(k, i, N)] *  aInv[blockIdx.x][MATIDX(i, i, N)] / a[blockIdx.x][MATIDX(k, k, N)]; 
+    aInv[blockIdx.x][MATIDX(k, i, N)] = 0 - a[blockIdx.x][MATIDX(k, i, N)] *  aInv[blockIdx.x][MATIDX(i, i, N)] / a[blockIdx.x][MATIDX(k, k, N)];
     //printf("I[%d][%d] = -[%d][%d] * [%d][%d] / [%d][%d]\n",k,i,k,i,i,i,k,k);
     for (int j = i + 1; j < k; j++) {
         aInv[blockIdx.x][MATIDX(k, i, N)] -= a[blockIdx.x][MATIDX(k, j, N)] * aInv[blockIdx.x][MATIDX(j, i, N)] / a[blockIdx.x][MATIDX(k, k, N)];
@@ -318,7 +319,7 @@ void intialize_array(Array *a, int N) {
 }
 
 
-extern "C" 
+extern "C"
 void inverse_cholesky_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     Array *devATmp;
     size_t pitchATmp;
@@ -330,7 +331,7 @@ void inverse_cholesky_batched_device(cublasHandle_t handle, int N, Array *devAs,
     intialize_array<<<batchSize, N>>>(devAInvs, N);
 
     for (int k = 0; k < N; k++) { // loop through each k
-        
+
         // computing diagonal elements
         pivot_cholesky_kernel_device<<<batchSize, N - k>>>(devAs, N, k);
         //gpuErrchk( cudaPeekAtLastError() );
@@ -347,15 +348,15 @@ void inverse_cholesky_batched_device(cublasHandle_t handle, int N, Array *devAs,
         multiply_upper_kernel_device<<<batchSize, k + 1>>>(devATmp, devAInvs, N, k);
         //gpuErrchk( cudaPeekAtLastError() );
     }
-    
+
     gpuErrchk( cudaFree((void*)devATmp[0]) );
     gpuErrchk( cudaFreeHost((void*)devATmp) );
 }
 
-extern "C" 
+extern "C"
 void decompose_cholesky_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     for (int k = 0; k < N; k++) { // loop through each k
-        
+
         // computing diagonal elements
         pivot_cholesky_kernel_device<<<batchSize, (N - k)>>>(devAs, N, k);
         gpuErrchk( cudaPeekAtLastError() );
@@ -367,7 +368,7 @@ void decompose_cholesky_batched_device(cublasHandle_t handle, int N, Array *devA
     }
 }
 
-extern "C" 
+extern "C"
 void lu_inverse_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     Array *devATmp;
     size_t pitchATmp;
@@ -378,7 +379,7 @@ void lu_inverse_batched_device(cublasHandle_t handle, int N, Array *devAs, Array
     // Set to zeroes
     intialize_array<<<batchSize, N>>>(devAInvs, N);
 
-    for (int k = 0; k < N; k++) { // loop through each k    
+    for (int k = 0; k < N; k++) { // loop through each k
         // invert the upper
         inverse_upper_kernel_device<<<batchSize, k + 1>>>(devAs, devATmp, N, k);
         //gpuErrchk( cudaPeekAtLastError() );
@@ -386,13 +387,13 @@ void lu_inverse_batched_device(cublasHandle_t handle, int N, Array *devAs, Array
         multiply_upper_kernel_device<<<batchSize, k + 1>>>(devATmp, devAInvs, N, k);
         //gpuErrchk( cudaPeekAtLastError() );
     }
-    
+
     gpuErrchk( cudaFree((void*)devATmp[0]) );
     gpuErrchk( cudaFreeHost((void*)devATmp) );
 }
 
 
-extern "C" 
+extern "C"
 void inverse_cholesky_batched_gpu(cublasHandle_t handle, int n, Array As, Array aInvs, int batchSize) {
 
     Array *devAs;
@@ -490,7 +491,7 @@ void decompose_cholesky_mm_kernel_device(Array *a, int N) {
         }
 
         __syncthreads(); // all diagonal elemnents need to be computed
-        
+
         int i = threadIdx.x + k + 1;
 
         if (i < N) {
@@ -501,7 +502,7 @@ void decompose_cholesky_mm_kernel_device(Array *a, int N) {
         }
     }
 
-    if (threadIdx.x == N - 1) {
+    if (threadIdx.x == 0) {
         // copy from shared to global
         for (int i = 0; i < N; i++) {
             for (int j = 0; j <= i; j++) {
@@ -603,8 +604,7 @@ void multiply_lower_mm_kernel_device(Array *a, Array *aInv, int N) {
 }
 
 
-
-extern "C" 
+extern "C"
 void inverse_cholesky_mm_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
 
     decompose_cholesky_mm_kernel_device<<< batchSize, N, MMDIM(N) * sizeof(DataType)>>>(devAs, N);
@@ -612,7 +612,7 @@ void inverse_cholesky_mm_batched_device(cublasHandle_t handle, int N, Array *dev
     multiply_lower_mm_kernel_device<<< batchSize, N, MMDIM(N) * sizeof(DataType)>>>(devAs, devAInvs, N);
 }
 
-extern "C" 
+extern "C"
 void decompose_cholesky_mm_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     decompose_cholesky_mm_kernel_device<<< batchSize, N, MMDIM(N) * sizeof(DataType)>>>(devAs, N);
     //for (int k = 0; k < N; k++) { // loop through each k
@@ -623,7 +623,7 @@ void decompose_cholesky_mm_batched_device(cublasHandle_t handle, int N, Array *d
     //}
 }
 
-extern "C" 
+extern "C"
 void inverse_cholesky_mm_batched_gpu(cublasHandle_t handle, int n, Array As, Array aInvs, int batchSize) {
 
     Array *devAs;
@@ -689,13 +689,13 @@ void inverse_cholesky_mm_batched_gpu(cublasHandle_t handle, int n, Array As, Arr
 }
 
 
-extern "C" 
+extern "C"
 void inverse_cholesky_mm2_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize) {
     decompose_cholesky_mm_kernel_device<<< batchSize, N, MMDIM(N) * sizeof(DataType)>>>(devAs, N);
     lu_inverse_batched_device(handle, N, devAs, devAInvs, batchSize);
 }
 
-extern "C" 
+extern "C"
 void inverse_cholesky_mm2_batched_gpu(
         cublasHandle_t handle,
         int n,
@@ -784,7 +784,7 @@ extern "C" void inverse_chol_gpu(Array a, int n) {
 
 
 
-int main(int argc, char const *argv[]) {
+int main2(int argc, char const *argv[]) {
     cublasHandle_t handle;
     const char *directory = "tests/inverse_100_64x64";
     //const char *directory = "tests/simpleMean";
@@ -850,13 +850,13 @@ int main(int argc, char const *argv[]) {
 
 
     // inverse new cholesky
-    //gpuErrchk( cudaMemcpy(a_dev, ainv, matrixSize, cudaMemcpyHostToDevice) );    
+    //gpuErrchk( cudaMemcpy(a_dev, ainv, matrixSize, cudaMemcpyHostToDevice) );
 
     current_utc_time(&timer_start);
     inverseLowerGPU(a_dev, n);
     current_utc_time(&timer_end);
     printf("Substitution: %fms\n", (double) (timer_end.tv_nsec - timer_start.tv_nsec) / 1000);
-    
+
     current_utc_time(&timer_start);
     multiplyLowerGPU(a_dev, n);
     current_utc_time(&timer_end);
@@ -871,12 +871,12 @@ int main(int argc, char const *argv[]) {
     */
 
     double error = 0;
-    
+
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             error += ainv[i * n + j] - atest[i * n + j];
         }
-    }   
+    }
 
     printf("Error: %f\n", error);
     //printf("%fms\n", (double) (timer_end.tv_nsec - timer_start.tv_nsec) / 1000);
