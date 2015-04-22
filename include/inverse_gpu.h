@@ -27,6 +27,8 @@ void decompose_cholesky_mm_batched_device(cublasHandle_t handle, int N, Array *d
 void inverse_cholesky_batched_gpu(cublasHandle_t handle, int n, Array As, Array aInvs, int batchSize);
 void inverse_cholesky_mm_batched_gpu(cublasHandle_t handle, int n, Array As, Array aInvs, int batchSize);
 
+void inverse_cholesky_mm2_batched_device(cublasHandle_t handle, int N, Array *devAs, Array *devAInvs, int batchSize);
+void inverse_cholesky_mm2_batched_gpu(cublasHandle_t handle, int n, Array As, Array aInvs, int batchSize);
 
 #ifdef __cplusplus
 }
