@@ -189,6 +189,7 @@ static void calcluateMean(
     // devDs: Ds
 
 #ifdef DETAILED_LOGGING
+    gpuErrchk( cudaDeviceSynchronize() );
     TIMER_STOP(calculate_mean_gpu_add)
     TIMER_START(calculate_mean_gpu_inv)
 #endif // DETAILED_LOGGING
@@ -200,6 +201,7 @@ static void calcluateMean(
     // devDs: Ds
 
 #ifdef DETAILED_LOGGING
+    gpuErrchk( cudaDeviceSynchronize() );
     TIMER_STOP(calculate_mean_gpu_inv)
     TIMER_START(calculate_mean_gpu_mul)
 #endif // DETAILED_LOGGING
@@ -211,6 +213,7 @@ static void calcluateMean(
     // devDs: Ds
 
 #ifdef DETAILED_LOGGING
+    gpuErrchk( cudaDeviceSynchronize() );
     TIMER_STOP(calculate_mean_gpu_mul)
 #endif // DETAILED_LOGGING
 
@@ -232,6 +235,7 @@ static void calcluateMean(
     // devDs: As
 
 #ifdef DETAILED_LOGGING
+    gpuErrchk( cudaDeviceSynchronize() );
     TIMER_STOP(calculate_mean_gpu_dot)
     TIMER_START(calculate_mean_gpu_mem_dtoh)
 #endif // DETAILED_LOGGING
@@ -331,6 +335,7 @@ static void calcluateVariance(
     // devBInvs: Madd
 
 #ifdef DETAILED_LOGGING
+    gpuErrchk( cudaDeviceSynchronize() );
     TIMER_STOP(calculate_variance_gpu_add)
     TIMER_START(calculate_variance_gpu_inv)
 #endif // DETAILED_LOGGING
@@ -342,6 +347,7 @@ static void calcluateVariance(
     // devBInvs: Minv
 
 #ifdef DETAILED_LOGGING
+    gpuErrchk( cudaDeviceSynchronize() );
     TIMER_STOP(calculate_variance_gpu_inv)
     TIMER_START(calculate_variance_gpu_mul)
 #endif // DETAILED_LOGGING
@@ -353,6 +359,7 @@ static void calcluateVariance(
     // devBInvs: Minv
 
 #ifdef DETAILED_LOGGING
+    gpuErrchk( cudaDeviceSynchronize() );
     TIMER_STOP(calculate_variance_gpu_mul)
 #endif // DETAILED_LOGGING
 
@@ -372,6 +379,7 @@ static void calcluateVariance(
     // devBInvs: Mmul
 
 #ifdef DETAILED_LOGGING
+    gpuErrchk( cudaDeviceSynchronize() );
     TIMER_STOP(calculate_variance_gpu_dot)
     TIMER_START(calculate_variance_gpu_mem_dtoh)
 #endif // DETAILED_LOGGING
