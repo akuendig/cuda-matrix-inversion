@@ -100,8 +100,8 @@ static void batchedMul(
         transa, transb,
         m, n, k,
         alpha, const_cast<const float**>(devLeft), m,
-        const_cast<const float**>(devRight), n,
-        beta, devResult, k,
+        const_cast<const float**>(devRight), k,
+        beta, devResult, m,
         batchSize)
     );
 }
@@ -154,7 +154,7 @@ static void calcluateMean(
 
     // Allocate and copy Bs, Cs and Ds to the GPU
     gpuErrchk( batchedCudaMalloc(devBs, &pitchBs, sizeOfMatrixB, batchSize) );
-    gpuErrchk( batchedCudaMalloc(devBInvs, &pitchBInvs, sizeOfMatrixC, batchSize) );
+    gpuErrchk( batchedCudaMalloc(devBInvs, &pitchBInvs, sizeOfMatrixB, batchSize) );
     gpuErrchk( batchedCudaMalloc(devDs, &pitchDs, sizeOfMatrixD, batchSize) );
 
     gpuErrchk( cudaMemcpy2D(devBs[0], pitchBs, Bs, sizeOfMatrixB, sizeOfMatrixB, batchSize,
@@ -190,13 +190,13 @@ static void calcluateMean(
     // devDs: As
 
     // Calculate Mmean = AT * Mmul, store result in Bs
-    batchedMul(handle, CUBLAS_OP_T, CUBLAS_OP_N, 1, 1, n, &ELEMENT_ONE, devBs, devDs, &ELEMENT_ZERO, devBInvs, batchSize);
+    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, 1, 1, n, &ELEMENT_ONE, devBs, devDs, &ELEMENT_ZERO, devBInvs, batchSize);
     // devBs: Mmul
     // devBInvs: Mmean
     // devDs: As
 
     // Fetch result from GPU and free used memory.
-    gpuErrchk( cudaMemcpy2D(Means, sizeOfResult, devBInvs, pitchBInvs, sizeOfResult, batchSize,
+    gpuErrchk( cudaMemcpy2D(Means, sizeOfResult, devBInvs[0], pitchBInvs, sizeOfResult, batchSize,
                cudaMemcpyDeviceToHost) );
 
     gpuErrchk( cudaFree(devBs[0]) );
@@ -245,7 +245,7 @@ static void calcluateVariance(
     // Allocate and copy Bs, Cs and As to the GPU
     gpuErrchk( batchedCudaMalloc(devAs, &pitchAs, sizeOfMatrixA, batchSize) );
     gpuErrchk( batchedCudaMalloc(devBs, &pitchBs, sizeOfMatrixB, batchSize) );
-    gpuErrchk( batchedCudaMalloc(devBInvs, &pitchBInvs, sizeOfMatrixC, batchSize) );
+    gpuErrchk( batchedCudaMalloc(devBInvs, &pitchBInvs, sizeOfMatrixB, batchSize) );
 
     gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, sizeOfMatrixA, sizeOfMatrixA, batchSize,
                cudaMemcpyHostToDevice) );
@@ -278,7 +278,7 @@ static void calcluateVariance(
 
     const DataType ELEMENT_MINUS_ONE = DataType(-1);
     // Calculate Mmul2 = AT * Mmul, store result in Bs
-    batchedMul(handle, CUBLAS_OP_T, CUBLAS_OP_N, 1, 1, n, &ELEMENT_MINUS_ONE, devAs, devBs, &ELEMENT_ONE, devBInvs, batchSize);
+    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, 1, 1, n, &ELEMENT_MINUS_ONE, devAs, devBs, &ELEMENT_ONE, devBInvs, batchSize);
     // devAs: As
     // devBs: Mmul2
     // devBInvs: Mmul
