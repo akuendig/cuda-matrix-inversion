@@ -4,10 +4,10 @@ To build in debug mode ```make dbg=1```
 
 To run ```./gauss_bench TEST_FOLDER NUM_REPLICATIONS [-d]```
 
-make clean inverse_bench gauss_bench log=0 solve=0 dbg=0
+make clean inverse_bench gauss_bench log=1 solve=0 dbg=0
 export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
-BENCH_REPS=20 BENCH_MAX_DUPS=10 BENCH_NUM_THREADS=8 make run-inverse-bench
-BENCH_REPS=20 BENCH_MAX_DUPS=10 BENCH_NUM_THREADS=8 make run-gauss-bench
+BENCH_REPS=20 BENCH_NUM_THREADS=8 make run-inverse-bench
+BENCH_REPS=20 BENCH_NUM_THREADS=8 make run-gauss-bench
 
 ### Notes on execution
 

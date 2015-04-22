@@ -28,7 +28,6 @@ extern "C" {
 #include "../include/inverse_gpu.h"
 
 #define MAX_MATRIX_BYTE_READ 67108864
-#define BENCH_REPS 10
 
 // b -= a
 static void vec_diff(const Array a, Array b, const int N) {
@@ -85,6 +84,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
     BENCH_VAR(lu_blas_cpu)
     BENCH_VAR(lu_blas_omp_cpu)
     BENCH_VAR(chol_gpu)
+    BENCH_VAR(chol_mm2_gpu)
     BENCH_VAR(gauss_batched_gpu)
     BENCH_VAR(lu_cuda_batched_gpu)
 
@@ -92,7 +92,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
     ////////////////
     BENCH_SETUP(lu_blas_cpu)
 
-    for (rep = 0; rep < BENCH_REPS; ++rep) {
+    for (rep = 0; rep < numReps; ++rep) {
         cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
 
         TIMER_START(lu_blas_cpu)
@@ -114,7 +114,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
     ////////////////
     BENCH_SETUP(lu_blas_omp_cpu)
 
-    for (rep = 0; rep < BENCH_REPS; ++rep) {
+    for (rep = 0; rep < numReps; ++rep) {
         cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
 
         TIMER_START(lu_blas_omp_cpu)
@@ -137,7 +137,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
     BENCH_SETUP(chol_gpu)
 
     // Compute inverses
-    for (rep = 0; rep < BENCH_REPS; ++rep) {
+    for (rep = 0; rep < numReps; ++rep) {
         cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
 
         TIMER_START(chol_gpu)
@@ -155,12 +155,36 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
     // calculate error
     BENCH_CLEANUP(chol_gpu)
 
+    // GPU Benchmark 2
+    //////////////////
+    // Build benchmark data
+    BENCH_SETUP(chol_mm2_gpu)
+
+    // Compute inverses
+    for (rep = 0; rep < numReps; ++rep) {
+        cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
+
+        TIMER_START(chol_mm2_gpu)
+        inverse_cholesky_mm2_batched_gpu(handle, N, a, inv, numMatrices);
+        TIMER_STOP(chol_mm2_gpu)
+#ifdef DETAILED_LOGGING
+        TIMER_LOG(chol_mm2_gpu, numMatrices, N)
+#endif // DETAILED_LOGGING
+        TIMER_ACC(chol_mm2_gpu)
+
+        gpuErrchk( cudaPeekAtLastError() );
+        gpuErrchk( cudaDeviceSynchronize() );
+    }
+
+    // calculate error
+    BENCH_CLEANUP(chol_mm2_gpu)
+
     // GPU Benchmark 3
     //////////////////
     // Build benchmark data
     BENCH_SETUP(gauss_batched_gpu)
 
-    for (rep = 0; rep < BENCH_REPS; ++rep) {
+    for (rep = 0; rep < numReps; ++rep) {
         cblas_scopy(numMatrices*N*N, a, 1, workspace, 1);
 
         TIMER_START(gauss_batched_gpu)
@@ -183,7 +207,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
     // Build benchmark data
     BENCH_SETUP(lu_cuda_batched_gpu)
 
-    for (rep = 0; rep < BENCH_REPS; ++rep) {
+    for (rep = 0; rep < numReps; ++rep) {
         cblas_scopy(numMatrices*N*N, a, 1, workspace, 1);
 
         TIMER_START(lu_cuda_batched_gpu)
@@ -203,6 +227,7 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aI
     BENCH_REPORT(lu_blas_cpu);
     BENCH_REPORT(lu_blas_omp_cpu);
     BENCH_REPORT(chol_gpu);
+    BENCH_REPORT(chol_mm2_gpu);
     BENCH_REPORT(gauss_batched_gpu);
     BENCH_REPORT(lu_cuda_batched_gpu);
 
