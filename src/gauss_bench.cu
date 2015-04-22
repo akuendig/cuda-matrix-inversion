@@ -35,25 +35,21 @@ static const DataType ELEMENT_ONE = DataType(1);
 // - Some memory access in the kernels will be missaligned which can hamper performance (needs profiling)
 //      > Seems like this can be avoided with cudaMallocPitch and cudaMemcpy2D
 
-__global__ void add(const DataType alpha, const Array devLeft[], Array devRight[], int batchSize, int n)
+__global__ void addDiagonal(Array devLeft[], Array devRight[], int batchSize, int n)
 {
-    for(int i = 0; i < n; i++)
-    {
-        devRight[blockIdx.x][threadIdx.x*n+i] =
-            alpha*devRight[blockIdx.x][threadIdx.x*n+i] +
-            devLeft[blockIdx.x][threadIdx.x*n+i];
-    }
+    devLeft[blockIdx.x][threadIdx.x*n + threadIdx.x] =
+        devLeft[blockIdx.x][threadIdx.x*n + threadIdx.x] +
+        devRight[blockIdx.x][threadIdx.x];
 }  /* add */
 
 // Adds all matrices in devLeft to their corresponding matrix in devRight.
 // The data inside devRight is modified, devLeft is left untouched.
 // Both devLeft and devRight are expected to be already allocated on the GPU.
-// defRight += devLeft
-static void batchedAdd(
+// devLeft += devRight
+static void batchedAddDiagonal(
     cublasHandle_t handle,
     int n,
-    const DataType *alpha,
-    const Array devLeft[],
+    Array devLeft[],
     Array devRight[],
     int batchSize) {
     // TODO: implement addition. Can also be done on the CPU but then we
@@ -61,7 +57,7 @@ static void batchedAdd(
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-axpy
     // SEE: http://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-geam
 
-    add<<<batchSize, n>>> (*alpha, devLeft, devRight, batchSize, n);
+    addDiagonal<<<batchSize, n>>> (devLeft, devRight, batchSize, n);
 }
 
 // Inverts all matrices in devMatrices and stores the result in devInvMatrices.
@@ -140,74 +136,75 @@ static void calcluateMean(
 
     Array *devBs;
     size_t pitchBs;
-    Array *devCs;
-    size_t pitchCs;
+    Array *devBInvs;
+    size_t pitchBInvs;
     Array *devDs;
     size_t pitchDs;
 
     const size_t sizeOfMatrixA = sizeof(DataType)*n;
     const size_t sizeOfMatrixB = sizeof(DataType)*n*n;
-    const size_t sizeOfMatrixC = sizeof(DataType)*n*n;
+    const size_t sizeOfMatrixC = sizeof(DataType)*n;
     const size_t sizeOfMatrixD = sizeof(DataType)*n;
     const size_t sizeOfResult = sizeof(DataType);
 
+    // Allocate pointer list
     gpuErrchk( cudaHostAlloc(&devBs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
-    gpuErrchk( cudaHostAlloc(&devCs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
+    gpuErrchk( cudaHostAlloc(&devBInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
     gpuErrchk( cudaHostAlloc(&devDs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 
     // Allocate and copy Bs, Cs and Ds to the GPU
     gpuErrchk( batchedCudaMalloc(devBs, &pitchBs, sizeOfMatrixB, batchSize) );
-    gpuErrchk( batchedCudaMalloc(devCs, &pitchCs, sizeOfMatrixC, batchSize) );
+    gpuErrchk( batchedCudaMalloc(devBInvs, &pitchBInvs, sizeOfMatrixC, batchSize) );
     gpuErrchk( batchedCudaMalloc(devDs, &pitchDs, sizeOfMatrixD, batchSize) );
 
     gpuErrchk( cudaMemcpy2D(devBs[0], pitchBs, Bs, sizeOfMatrixB, sizeOfMatrixB, batchSize,
                cudaMemcpyHostToDevice) );
-    gpuErrchk( cudaMemcpy2D(devCs[0], pitchCs, Cs, sizeOfMatrixC, sizeOfMatrixC, batchSize,
+    gpuErrchk( cudaMemcpy2D(devBInvs[0], pitchBInvs, Cs, sizeOfMatrixC, sizeOfMatrixC, batchSize,
                cudaMemcpyHostToDevice) );
     gpuErrchk( cudaMemcpy2D(devDs[0], pitchDs, Ds, sizeOfMatrixD, sizeOfMatrixD, batchSize,
                cudaMemcpyHostToDevice) );
 
-    // Calculate Madd = B + C for every matrix, store result in Cs
-    batchedAdd(handle, n, &ELEMENT_ONE, devBs, devCs, batchSize);
+    // Calculate Madd = B + C for every matrix, store result in Bs
+    batchedAddDiagonal(handle, n, devBs, devBInvs, batchSize);
     // devBs: Bs
-    // devCs: Madd
+    // devBInvs: Madd
     // devDs: Ds
 
-    // Calculate Minv = Madd^-1, store result in Bs
-    batchedInverse(handle, n, devCs, devBs, batchSize);
-    // devBs: Minv
-    // devCs: Madd
+    // Calculate Minv = Madd^-1, store result in devBInvs
+    batchedInverse(handle, n, devBs, devBInvs, batchSize);
+    // devBs: Madd
+    // devBInvs: Minv
     // devDs: Ds
 
     // Calculate Mmul = Minv * Ds, store result in Cs
-    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, 1, &ELEMENT_ONE, devBs, devDs, &ELEMENT_ZERO, devCs, batchSize);
-    // devBs: Minv
-    // devCs: Mmul
+    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, 1, &ELEMENT_ONE, devBInvs, devDs, &ELEMENT_ZERO, devBs, batchSize);
+    // devBs: Mmul
+    // devBInvs: Minv
     // devDs: Ds
 
     // Load As into GPU memory overwriting devDs.
     gpuErrchk( cudaMemcpy2D(devDs[0], pitchDs, As, sizeOfMatrixA, sizeOfMatrixA, batchSize,
                cudaMemcpyHostToDevice) );
-    // devBs: Minv
-    // devCs: Mmul
+    // devBs: Mmul
+    // devBInvs: Minv
     // devDs: As
 
-    // Calculate Mmean = AT * Mmul + (whatever is in Bs), store result in Bs
-    batchedMul(handle, CUBLAS_OP_T, CUBLAS_OP_N, 1, n, n, &ELEMENT_ONE, devCs, devDs, &ELEMENT_ZERO, devBs, batchSize);
-    // devBs: Mmean
-    // devCs: Mmul
+    // Calculate Mmean = AT * Mmul, store result in Bs
+    batchedMul(handle, CUBLAS_OP_T, CUBLAS_OP_N, 1, 1, n, &ELEMENT_ONE, devBs, devDs, &ELEMENT_ZERO, devBInvs, batchSize);
+    // devBs: Mmul
+    // devBInvs: Mmean
     // devDs: As
 
     // Fetch result from GPU and free used memory.
-    gpuErrchk( cudaMemcpy2D(Means, sizeOfResult, devBs, pitchBs, sizeOfResult, batchSize,
+    gpuErrchk( cudaMemcpy2D(Means, sizeOfResult, devBInvs, pitchBInvs, sizeOfResult, batchSize,
                cudaMemcpyDeviceToHost) );
 
     gpuErrchk( cudaFree(devBs[0]) );
-    gpuErrchk( cudaFree(devCs[0]) );
+    gpuErrchk( cudaFree(devBInvs[0]) );
     gpuErrchk( cudaFree(devDs[0]) );
 
     gpuErrchk( cudaFreeHost((void*)devBs) );
-    gpuErrchk( cudaFreeHost((void*)devCs) );
+    gpuErrchk( cudaFreeHost((void*)devBInvs) );
     gpuErrchk( cudaFreeHost((void*)devDs) );
 }
 
@@ -233,72 +230,70 @@ static void calcluateVariance(
     size_t pitchAs;
     Array *devBs;
     size_t pitchBs;
-    Array *devCs;
-    size_t pitchCs;
+    Array *devBInvs;
+    size_t pitchBInvs;
 
     const size_t sizeOfMatrixA = sizeof(DataType)*n;
     const size_t sizeOfMatrixB = sizeof(DataType)*n*n;
-    const size_t sizeOfMatrixC = sizeof(DataType)*n*n;
+    const size_t sizeOfMatrixC = sizeof(DataType)*n;
     const size_t sizeOfMatrixE = sizeof(DataType);
 
     gpuErrchk( cudaHostAlloc((void**)&devAs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
     gpuErrchk( cudaHostAlloc((void**)&devBs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
-    gpuErrchk( cudaHostAlloc((void**)&devCs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
+    gpuErrchk( cudaHostAlloc((void**)&devBInvs, sizeof(Array)*batchSize, cudaHostAllocDefault) );
 
     // Allocate and copy Bs, Cs and As to the GPU
     gpuErrchk( batchedCudaMalloc(devAs, &pitchAs, sizeOfMatrixA, batchSize) );
     gpuErrchk( batchedCudaMalloc(devBs, &pitchBs, sizeOfMatrixB, batchSize) );
-    gpuErrchk( batchedCudaMalloc(devCs, &pitchCs, sizeOfMatrixC, batchSize) );
+    gpuErrchk( batchedCudaMalloc(devBInvs, &pitchBInvs, sizeOfMatrixC, batchSize) );
 
     gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, As, sizeOfMatrixA, sizeOfMatrixA, batchSize,
                cudaMemcpyHostToDevice) );
     gpuErrchk( cudaMemcpy2D(devBs[0], pitchBs, Bs, sizeOfMatrixB, sizeOfMatrixB, batchSize,
                cudaMemcpyHostToDevice) );
-    gpuErrchk( cudaMemcpy2D(devCs[0], pitchCs, Cs, sizeOfMatrixC, sizeOfMatrixC, batchSize,
+    gpuErrchk( cudaMemcpy2D(devBInvs[0], pitchBInvs, Cs, sizeOfMatrixC, sizeOfMatrixC, batchSize,
                cudaMemcpyHostToDevice) );
 
-    // Calculate Madd = B + C for every matrix, store result in Cs
-    batchedAdd(handle, n, &ELEMENT_ONE, devBs, devCs, batchSize);
+    // Calculate Madd = B + C for every matrix, store result in devBs
+    batchedAddDiagonal(handle, n, devBs, devBInvs, batchSize);
     // devAs: As
     // devBs: Bs
-    // devCs: Madd
+    // devBInvs: Madd
 
-    // Calculate Minv = Madd^-1, store result in Bs
-    batchedInverse(handle, n, devCs, devBs, batchSize);
+    // Calculate Minv = Madd^-1, store result in devBInvs
+    batchedInverse(handle, n, devBs, devBInvs, batchSize);
     // devAs: As
-    // devBs: Minv
-    // devCs: Madd
+    // devBs: Madd
+    // devBInvs: Minv
 
-    // Calculate Mmul = Minv * A + (whatever is in Cs), store result in Cs
-    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, 1, &ELEMENT_ONE, devBs, devAs, &ELEMENT_ZERO, devCs, batchSize);
+    // Calculate Mmul = Minv * A, store result in devBs
+    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, 1, &ELEMENT_ONE, devBInvs, devAs, &ELEMENT_ZERO, devBs, batchSize);
     // devAs: As
-    // devBs: Minv
-    // devCs: Mmul
+    // devBs: Mmul
+    // devBInvs: Minv
 
-    // Calculate Mmul2 = AT * Mmul + (whatever is in Bs), store result in Bs
-    batchedMul(handle, CUBLAS_OP_T, CUBLAS_OP_N, 1, n, n, &ELEMENT_ONE, devCs, devAs, &ELEMENT_ZERO, devBs, batchSize);
-    // devAs: As
-    // devBs: Mmul2
-    // devCs: Mmul
-
-    // Load Es to the GPU overwriting As
-    gpuErrchk( cudaMemcpy2D(devAs[0], pitchAs, Es, sizeOfMatrixE, sizeOfMatrixE, batchSize,
+    // Load Es to the GPU overwriting devBInvs
+    gpuErrchk( cudaMemcpy2D(devBInvs[0], pitchBInvs, Es, sizeOfMatrixE, sizeOfMatrixE, batchSize,
                cudaMemcpyHostToDevice) );
 
-    const DataType minusOne = DataType(-1);
-    batchedAdd(handle, n, &minusOne, devBs, devAs, batchSize);
+    const DataType ELEMENT_MINUS_ONE = DataType(-1);
+    // Calculate Mmul2 = AT * Mmul, store result in Bs
+    batchedMul(handle, CUBLAS_OP_T, CUBLAS_OP_N, 1, 1, n, &ELEMENT_MINUS_ONE, devAs, devBs, &ELEMENT_ONE, devBInvs, batchSize);
+    // devAs: As
+    // devBs: Mmul2
+    // devBInvs: Mmul
 
     // Fetch result from GPU and free used memory.
-    gpuErrchk( cudaMemcpy2D(Variances, sizeOfMatrixE, devAs[0], pitchAs, sizeOfMatrixE, batchSize,
+    gpuErrchk( cudaMemcpy2D(Variances, sizeOfMatrixE, devBInvs[0], pitchBInvs, sizeOfMatrixE, batchSize,
                cudaMemcpyDeviceToHost) );
 
     gpuErrchk( cudaFree((void*)devAs[0]) );
     gpuErrchk( cudaFree((void*)devBs[0]) );
-    gpuErrchk( cudaFree((void*)devCs[0]) );
+    gpuErrchk( cudaFree((void*)devBInvs[0]) );
 
     gpuErrchk( cudaFreeHost((void*)devAs) );
     gpuErrchk( cudaFreeHost((void*)devBs) );
-    gpuErrchk( cudaFreeHost((void*)devCs) );
+    gpuErrchk( cudaFreeHost((void*)devBInvs) );
 }
 
 static void readTest(const char *directory, int *numMatrices, int *n,
