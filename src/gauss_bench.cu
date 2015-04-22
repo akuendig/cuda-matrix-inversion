@@ -177,7 +177,7 @@ static void calcluateMean(
     // devDs: Ds
 
     // Calculate Mmul = Minv * Ds, store result in Cs
-    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, 1, &ELEMENT_ONE, devBInvs, devDs, &ELEMENT_ZERO, devBs, batchSize);
+    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, 1, n, &ELEMENT_ONE, devBInvs, devDs, &ELEMENT_ZERO, devBs, batchSize);
     // devBs: Mmul
     // devBInvs: Minv
     // devDs: Ds
@@ -267,7 +267,7 @@ static void calcluateVariance(
     // devBInvs: Minv
 
     // Calculate Mmul = Minv * A, store result in devBs
-    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, 1, &ELEMENT_ONE, devBInvs, devAs, &ELEMENT_ZERO, devBs, batchSize);
+    batchedMul(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, 1, n, &ELEMENT_ONE, devBInvs, devAs, &ELEMENT_ZERO, devBs, batchSize);
     // devAs: As
     // devBs: Mmul
     // devBInvs: Minv
