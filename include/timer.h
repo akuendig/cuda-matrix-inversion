@@ -111,7 +111,7 @@ static double timer_to_ms(struct timeval tv) {
     timer_M2_##name = timer_M2_##name + timer_delta_##name*(TIMER_ELAPSED(name) - timer_mean_##name); /* M2 = M2 + delta*(time-mean) */
 
 #define TIMER_ELAPSED_NS(name) \
-    (ts.tv_sec*TIMER_BILLION + ts.tv_nsec)
+    (timer_time_##name.tv_sec*TIMER_BILLION + timer_time_##name.tv_nsec)
 
 #define TIMER_ELAPSED(name) \
     timer_to_ms(timer_time_##name)
