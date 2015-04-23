@@ -48,7 +48,7 @@ static DataType vec_sum(const Array a, const int N) {
 
 #define BENCH_CLEANUP(name) \
     vec_diff(aInv, inv, N*N*numMatrices); \
-    total_error_##name += vec_sum(aInv, N*N*numMatrices);
+    total_error_##name += vec_sum(inv, N*N*numMatrices);
 
 #ifndef DETAILED_LOGGING
 #define BENCH_REPORT(name) \
