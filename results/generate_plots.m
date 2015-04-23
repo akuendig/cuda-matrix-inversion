@@ -1,9 +1,18 @@
 gaussbench = dataset('File', 'gauss-bench.txt', 'Delimiter', ',', 'VarNames', {'timer', 'numMatrices', 'numDimensions', 'timeMS', 'timeNS'}, 'ReadVarNames', false);
-inversebench = dataset('File', 'inverse-bench.txt', 'Delimiter', ',', 'VarNames', {'timer', 'numMatrices', 'numDimensions', 'timeMS', 'timeNS'}, 'ReadVarNames', false);
 
 gauss_stat = grpstats(gaussbench, {'timer', 'numMatrices', 'numDimensions'}, {'mean', 'std'}, 'DataVars', {'timeNS'});
 gauss_stat_timer = dataset2cell(gauss_stat(:, 'timer'));
 gauss_stat_timer = gauss_stat_timer(2:end, 2);
+
+lines = {
+    ':'
+    '-.'
+    '--'
+    '-'
+    '-+'
+};
+
+mkdir('plots');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Plot the different parts that make  up MEAN computation %%
@@ -23,8 +32,8 @@ mean_perf_vars = {
 mean_ds = gauss_stat(ismember(gauss_stat_timer, mean_perf_vars), :);
 
 %for i=[1 2 4 8 16]
-for i=[16]
-    ds = mean_ds(mean_ds.numMatrices == i*100, :);
+for dup=[16]
+    ds = mean_ds(mean_ds.numMatrices == dup*100, :);
     ds = [
         double(ds(ds.numDimensions == 8, 'mean_timeNS'))'
         double(ds(ds.numDimensions == 16, 'mean_timeNS'))'
@@ -42,9 +51,10 @@ for i=[16]
     xlabel('matrix dimension');
     ylabel('Runtime in milliseconds (ms)');
     legend(...
-        'Transfer H->D', 'Addidion', 'Inversion',...
+        'Transfer H->D', 'Addition', 'Inversion',...
         'Multiplication', 'Dot Product', 'Transfer D->H',...
         'Location', 'NorthWest');
+    export_fig(sprintf('plots/partial_mean_%d.pdf', dup));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,8 +73,8 @@ variance_perf_vars = {
 variance_ds = gauss_stat(ismember(gauss_stat_timer, variance_perf_vars), :);
 
 %for i=[1 2 4 8 16]
-for i=[16]
-    ds = variance_ds(variance_ds.numMatrices == i*100, :);
+for dup=[16]
+    ds = variance_ds(variance_ds.numMatrices == dup*100, :);
     ds = [
         double(ds(ds.numDimensions == 8, 'mean_timeNS'))'
         double(ds(ds.numDimensions == 16, 'mean_timeNS'))'
@@ -81,9 +91,10 @@ for i=[16]
     set(gca,'XTickLabel',{'8', '16', '32', '64', '128'});
     ylabel('Runtime in milliseconds (ms)');
     legend(...
-        'Transfer H->D', 'Addidion', 'Inversion',...
+        'Transfer H->D', 'Addition', 'Inversion',...
         'Multiplication', 'Dot Product', 'Transfer D->H',...
         'Location', 'NorthWest');
+    export_fig(sprintf('plots/partial_variance_%d.pdf', dup));
 end
 
 
@@ -91,8 +102,9 @@ end
 %% Plot the total runtime of the CPU and GPU computation %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for dim=[8 32 128]
-    figure
+for dim=[16 128]
+    figure;
+    i = 1;
     
     for j={'means_cpu', 'variances_cpu', 'means_gpu', 'variances_gpu'}
         ds = gauss_stat(strcmp(gauss_stat.timer, j) & gauss_stat.numDimensions == dim, :);
@@ -100,8 +112,9 @@ for dim=[8 32 128]
         means = double(ds(:, 'mean_timeNS')) / 1000000;
         sem = double(ds(:, 'std_timeNS')) / 1000000 ./ sqrt(double(ds(:, 'GroupCount')));
 
-        errorbar([1 2 4 8 16]*100, means, sem.*tinv(0.995, double(ds(:, 'GroupCount')) - 1));
+        errorbar([1 2 4 8 16]*100, means, sem.*tinv(0.995, double(ds(:, 'GroupCount')) - 1), cell2mat(lines(i)));
         hold on
+        i = i + 1;
     end
 
     grid on
@@ -109,6 +122,41 @@ for dim=[8 32 128]
     xlabel(sprintf('Number of %dx%d matrices', dim, dim));
     ylabel('Runtime in milliseconds (ms)');
     hold off
+    export_fig(sprintf('plots/gauss_parallel_%dx%d.pdf', dim, dim));
+end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Plot the gaussian runtime for 1 thread %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+gaussbench = dataset('File', 'gauss-bench-single.txt', 'Delimiter', ',', 'VarNames', {'timer', 'numMatrices', 'numDimensions', 'timeMS', 'timeNS'}, 'ReadVarNames', false);
+
+gauss_stat = grpstats(gaussbench, {'timer', 'numMatrices', 'numDimensions'}, {'mean', 'std'}, 'DataVars', {'timeNS'});
+gauss_stat_timer = dataset2cell(gauss_stat(:, 'timer'));
+gauss_stat_timer = gauss_stat_timer(2:end, 2);
+
+for dim=[16 128]
+    figure;
+    i = 1;
+    
+    for j={'means_cpu', 'variances_cpu', 'means_gpu', 'variances_gpu'}
+        ds = gauss_stat(strcmp(gauss_stat.timer, j) & gauss_stat.numDimensions == dim, :);
+
+        means = double(ds(:, 'mean_timeNS')) / 1000000;
+        sem = double(ds(:, 'std_timeNS')) / 1000000 ./ sqrt(double(ds(:, 'GroupCount')));
+
+        errorbar([1 2 4 8 16]*100, means, sem.*tinv(0.995, double(ds(:, 'GroupCount')) - 1), cell2mat(lines(i)));
+        hold on
+        i = i + 1;
+    end
+
+    grid on
+    legend('Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Mean on CPU', 'Location', 'NorthWest');
+    xlabel(sprintf('Number of %dx%d matrices', dim, dim));
+    ylabel('Runtime in milliseconds (ms)');
+    hold off
+    export_fig(sprintf('plots/gauss_single_%dx%d.pdf', dim, dim));
 end
 
 
@@ -116,60 +164,54 @@ end
 %% Plot the inversion runtime %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for dim=[8 32 128]
-    figure
-    
-    for j={'means_cpu', 'variances_cpu', 'means_gpu', 'variances_gpu'}
-        ds = gauss_stat(strcmp(gauss_stat.timer, j) & gauss_stat.numDimensions == dim, :);
-
-        means = double(ds(:, 'mean_timeNS')) / 1000000;
-        sem = double(ds(:, 'std_timeNS')) / 1000000 ./ sqrt(double(ds(:, 'GroupCount')));
-
-        errorbar([1 2 4 8 16]*100, means, sem.*tinv(0.995, double(ds(:, 'GroupCount')) - 1));
-        hold on
-    end
-
-    grid on
-    legend('Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Mean on CPU', 'Location', 'NorthWest');
-    xlabel(sprintf('Number of %dx%d matrices', dim, dim));
-    ylabel('Runtime in milliseconds (ms)');
-    hold off
-end
-
+inversebench = dataset('File', 'inverse-bench.txt', 'Delimiter', ',', 'VarNames', {'timer', 'numMatrices', 'numDimensions', 'timeMS', 'timeNS'}, 'ReadVarNames', false);
 inv_stat = grpstats(inversebench, {'timer', 'numMatrices', 'numDimensions'}, {'mean', 'std'}, 'DataVars', {'timeNS'});
 
 for dim=[8 32 128]
-    figure
-
-    for j={'lu_blas_cpu', 'lu_blas_omp_cpu', 'chol_gpu', 'chol_mm2_gpu', 'gauss_batched_gpu', 'lu_cuda_batched_gpu'}
+    figure;
+    i = 1;
+    
+    for j={'lu_blas_cpu', 'lu_blas_omp_cpu', 'chol_gpu', 'gauss_batched_gpu', 'lu_cuda_batched_gpu'}
         ds = inv_stat(strcmp(inv_stat.timer, j) & inv_stat.numDimensions == dim, :);
 
         means = double(ds(:, 'mean_timeNS')) / 1000000;
         sem = double(ds(:, 'std_timeNS')) / 1000000 ./ sqrt(double(ds(:, 'GroupCount')));
 
-        errorbar([1 2 4 8 16]*100, means, sem.*tinv(0.995, double(ds(:, 'GroupCount')) - 1));
+        errorbar([1 2 4 8 16]*100, means, sem.*tinv(0.995, double(ds(:, 'GroupCount')) - 1), cell2mat(lines(i)));
         hold on
+        i = i + 1;
     end
 
     grid on
     legend(...
-        'LU Inversion on CPU', 'LU Inverson on CPU 8 threads',...
-        'Cholesky Inversion on GPU', 'Cholesky Inversion on GPU v2',...
-        'Gauss-Jordan Inversion on GPU', 'Cholesky Inversion using cuBLAS',...
+        'Cholesky Decomposition on CPU', 'Cholesky Decomposition on CPU 8 threads',...
+        'Cholesky Decomposition on GPU',... 'Cholesky Decomposition on GPU v2',
+        'Gauss-Jordan Inversion on GPU', 'LU factorization using cuBLAS',...
         'Location', 'NorthWest');
     xlabel(sprintf('Number of %dx%d matrices', dim, dim));
     ylabel('Runtime in milliseconds (ms)');
     hold off
+    export_fig(sprintf('plots/inversion_%dx%d.pdf', dim, dim));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Plot the partial inversion runtime %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+algo_names = {
+    'Cholesky Decomposition'
+    'Cholesky Decomposition v2'
+    'Gauss-Jordan Inversion'
+    'LU factorization using cuBLAS'
+};
+    
+
 %for i=[1 2 4 8 16]
-for i=[16]
-    for j={'cholesky_mm2_batched_gpu', 'decompose_cholesky_batched_gpu', 'inverse_gauss_batched_gpu', 'inverse_lu_cuda_batched_gpu', }
-        ds = inv_stat(inv_stat.numMatrices == i*100, :);
+for dup=[16]
+    i = 1;
+    
+    for j={'decompose_cholesky_batched_gpu', 'cholesky_mm2_batched_gpu', 'inverse_gauss_batched_gpu', 'inverse_lu_cuda_batched_gpu', }
+        ds = inv_stat(inv_stat.numMatrices == dup*100, :);
         htod = ds(strcmp(ds.timer, sprintf('%s_mem_htod', cell2mat(j))), :);
         ker = ds(strcmp(ds.timer, sprintf('%s_ker', cell2mat(j))), :);
         dtoh = ds(strcmp(ds.timer, sprintf('%s_mem_dtoh', cell2mat(j))), :);
@@ -191,7 +233,9 @@ for i=[16]
         xlabel('Matrix dimension');
         ylabel('Runtime in milliseconds (ms)');
         legend(...
-            'Transfer H->D', sprintf('Inversion using %s', strrep(cell2mat(j), '_', '\_')), 'Transfer D->H',...
+            'Transfer H->D', cell2mat(algo_names(i)), 'Transfer D->H',...
             'Location', 'NorthWest');
+        export_fig(sprintf('plots/partial_inversion_%s.pdf', cell2mat(j)));
+        i = i + 1;
     end
 end
