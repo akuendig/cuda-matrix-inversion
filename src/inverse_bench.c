@@ -47,7 +47,7 @@ static DataType vec_sum(const Array a, const int N) {
 #define BENCH_SETUP(name)
 
 #define BENCH_CLEANUP(name) \
-    vec_diff(inv, aInv, N*N*numMatrices); \
+    vec_diff(aInv, inv, N*N*numMatrices); \
     total_error_##name += vec_sum(aInv, N*N*numMatrices);
 
 #ifndef DETAILED_LOGGING
@@ -73,7 +73,7 @@ static DataType vec_sum(const Array a, const int N) {
 #define BENCH_REPORT(name)
 #endif
 
-void bench_parallel(int numMatrices, int numReps, int N, const Array a, Array aInv, bool csv) {
+void bench_parallel(int numMatrices, int numReps, int N, const Array a, const Array aInv, bool csv) {
     cublasHandle_t handle;
 
     Array inv = (Array)malloc(numMatrices*N*N*sizeof(DataType));
