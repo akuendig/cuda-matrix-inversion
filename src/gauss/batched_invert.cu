@@ -8,6 +8,7 @@
 #include "../../include/types.h"
 #include "../../include/helper_cpu.h"
 #include "../../include/helper_gpu.h"
+#include "../../include/timer.h"
 #include "../../include/inverse_cpu.h"
 #include "../../include/inverse_gpu.h"
 
