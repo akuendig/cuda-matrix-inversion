@@ -55,18 +55,18 @@ static DataType vec_sum(const Array a, const int N) {
     if (csv) { \
         if (numReps > 1) { \
             printf("%d %d %d " #name " %e %e %e %e\n", \
-                numMatrices, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name), total_error_##name/numMatrices/numReps); \
+                numMatrices, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name), total_error_##name/numMatrices); \
         } else { \
             printf("%d %d %d " #name " %e %e\n", \
-                numMatrices, N, numReps, TIMER_TOTAL(name), total_error_##name/numMatrices/numReps); \
+                numMatrices, N, numReps, TIMER_TOTAL(name), total_error_##name/numMatrices); \
         } \
     } else { \
         if (numReps > 1) { \
             printf(#name " - %d %dx%d matrices, replicated %d times, runtime %.4f ms (%.4f ms average, %.4f ms variance), average error %.4e\n", \
-                numMatrices, N, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name), total_error_##name/numMatrices/numReps); \
+                numMatrices, N, N, numReps, TIMER_TOTAL(name), TIMER_MEAN(name), TIMER_VARIANCE(name), total_error_##name/numMatrices); \
         } else { \
             printf(#name " - %d %dx%d matrices, replicated %d times, runtime %.4f ms, average error %.4e\n", \
-                numMatrices, N, N, numReps, TIMER_TOTAL(name), total_error_##name/numMatrices/numReps); \
+                numMatrices, N, N, numReps, TIMER_TOTAL(name), total_error_##name/numMatrices); \
         } \
     }
 #else

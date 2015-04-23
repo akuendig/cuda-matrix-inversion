@@ -1,3 +1,49 @@
+gausserror = dataset('File', 'gauss-bench-errors.txt', 'Delimiter', ' ', 'VarNames', {'numMatrices', 'numDimensions', 'numDup', 'timer', 'timeMS', 'err'}, 'ReadVarNames', false);
+
+for dup=[16]
+    ds = gausserror(gausserror.numMatrices == dup*100, :);
+    ds = [
+        %double(ds(ds.numDimensions == 8, 'err'))'
+        %double(ds(ds.numDimensions == 16, 'err'))'
+        %double(ds(ds.numDimensions == 32, 'err'))'
+        %double(ds(ds.numDimensions == 64, 'err'))'
+        double(ds(ds.numDimensions == 128, 'err'))
+    ];
+
+    figure;
+    % bar([8 16 32 64 128], ds, 'stacked');
+    bar(ds);
+    grid on
+    set(gca,'XTickLabel',{'Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Variance on GPU'});
+    ylabel('Average error per matrix');
+    export_fig(sprintf('plots/gauss-errors_%d.pdf', dup));
+end
+
+inverseerror = dataset('File', 'inverse-bench-errors.txt', 'Delimiter', ' ', 'VarNames', {'numMatrices', 'numDimensions', 'numDup', 'timer', 'timeMS', 'err'}, 'ReadVarNames', false);
+
+for dup=[16]
+    ds = inverseerror(inverseerror.numMatrices == dup*100, :);
+    ds = ds(strcmp(ds.timer, 'chol_mm2_gpu') == 0, :);
+    ds = [
+        %double(ds(ds.numDimensions == 8, 'err'))'
+        %double(ds(ds.numDimensions == 16, 'err'))'
+        %double(ds(ds.numDimensions == 32, 'err'))'
+        %double(ds(ds.numDimensions == 64, 'err'))'
+        double(ds(ds.numDimensions == 128, 'err'))'
+    ];
+
+    figure;
+    % bar([8 16 32 64 128], ds, 'stacked');
+    bar(ds);
+    grid on
+    set(gca,'XTickLabel',{...
+        'Cholesky Decomposition on CPU', 'Cholesky Decomposition on CPU 8 threads',...
+        'Cholesky Decomposition on GPU',... 'Cholesky Decomposition on GPU v2',
+        'Gauss-Jordan Inversion on GPU', 'LU factorization using cuBLAS'});
+    ylabel('Average error per matrix');
+    export_fig(sprintf('plots/gauss-errors_%d.pdf', dup));
+end
+
 gaussbench = dataset('File', 'gauss-bench.txt', 'Delimiter', ',', 'VarNames', {'timer', 'numMatrices', 'numDimensions', 'timeMS', 'timeNS'}, 'ReadVarNames', false);
 
 gauss_stat = grpstats(gaussbench, {'timer', 'numMatrices', 'numDimensions'}, {'mean', 'std'}, 'DataVars', {'timeNS'});
@@ -118,7 +164,7 @@ for dim=[16 128]
     end
 
     grid on
-    legend('Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Mean on CPU', 'Location', 'NorthWest');
+    legend('Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Variance on GPU', 'Location', 'NorthWest');
     xlabel(sprintf('Number of %dx%d matrices', dim, dim));
     ylabel('Runtime in milliseconds (ms)');
     hold off
@@ -152,7 +198,7 @@ for dim=[16 128]
     end
 
     grid on
-    legend('Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Mean on CPU', 'Location', 'NorthWest');
+    legend('Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Variance on GPU', 'Location', 'NorthWest');
     xlabel(sprintf('Number of %dx%d matrices', dim, dim));
     ylabel('Runtime in milliseconds (ms)');
     hold off
