@@ -1,49 +1,3 @@
-gausserror = dataset('File', 'gauss-bench-errors.txt', 'Delimiter', ' ', 'VarNames', {'numMatrices', 'numDimensions', 'numDup', 'timer', 'timeMS', 'err'}, 'ReadVarNames', false);
-
-for dup=[16]
-    ds = gausserror(gausserror.numMatrices == dup*100, :);
-    ds = [
-        %double(ds(ds.numDimensions == 8, 'err'))'
-        %double(ds(ds.numDimensions == 16, 'err'))'
-        %double(ds(ds.numDimensions == 32, 'err'))'
-        %double(ds(ds.numDimensions == 64, 'err'))'
-        double(ds(ds.numDimensions == 128, 'err'))
-    ];
-
-    figure;
-    % bar([8 16 32 64 128], ds, 'stacked');
-    bar(ds);
-    grid on
-    set(gca,'XTickLabel',{'Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Variance on GPU'});
-    ylabel('Average error per matrix');
-    export_fig(sprintf('plots/gauss-errors_%d.pdf', dup));
-end
-
-inverseerror = dataset('File', 'inverse-bench-errors.txt', 'Delimiter', ' ', 'VarNames', {'numMatrices', 'numDimensions', 'numDup', 'timer', 'timeMS', 'err'}, 'ReadVarNames', false);
-
-for dup=[16]
-    ds = inverseerror(inverseerror.numMatrices == dup*100, :);
-    ds = ds(strcmp(ds.timer, 'chol_mm2_gpu') == 0, :);
-    ds = [
-        %double(ds(ds.numDimensions == 8, 'err'))'
-        %double(ds(ds.numDimensions == 16, 'err'))'
-        %double(ds(ds.numDimensions == 32, 'err'))'
-        %double(ds(ds.numDimensions == 64, 'err'))'
-        double(ds(ds.numDimensions == 128, 'err'))'
-    ];
-
-    figure;
-    % bar([8 16 32 64 128], ds, 'stacked');
-    bar(ds);
-    grid on
-    set(gca,'XTickLabel',{...
-        'Cholesky Decomposition on CPU', 'Cholesky Decomposition on CPU 8 threads',...
-        'Cholesky Decomposition on GPU',... 'Cholesky Decomposition on GPU v2',
-        'Gauss-Jordan Inversion on GPU', 'LU factorization using cuBLAS'});
-    ylabel('Average error per matrix');
-    export_fig(sprintf('plots/gauss-errors_%d.pdf', dup));
-end
-
 gaussbench = dataset('File', 'gauss-bench.txt', 'Delimiter', ',', 'VarNames', {'timer', 'numMatrices', 'numDimensions', 'timeMS', 'timeNS'}, 'ReadVarNames', false);
 
 gauss_stat = grpstats(gaussbench, {'timer', 'numMatrices', 'numDimensions'}, {'mean', 'std'}, 'DataVars', {'timeNS'});
@@ -56,6 +10,7 @@ lines = {
     '--'
     '-'
     '-+'
+    '-x'
 };
 
 mkdir('plots');
@@ -135,6 +90,7 @@ for dup=[16]
     bar(ds, 'stacked');
     grid on
     set(gca,'XTickLabel',{'8', '16', '32', '64', '128'});
+    xlabel('matrix dimension');
     ylabel('Runtime in milliseconds (ms)');
     legend(...
         'Transfer H->D', 'Addition', 'Inversion',...
@@ -217,7 +173,7 @@ for dim=[8 32 128]
     figure;
     i = 1;
     
-    for j={'lu_blas_cpu', 'lu_blas_omp_cpu', 'chol_gpu', 'gauss_batched_gpu', 'lu_cuda_batched_gpu'}
+    for j={'lu_blas_cpu', 'lu_blas_omp_cpu', 'chol_gpu', 'chol_mm2_gpu', 'gauss_batched_gpu', 'lu_cuda_batched_gpu'}
         ds = inv_stat(strcmp(inv_stat.timer, j) & inv_stat.numDimensions == dim, :);
 
         means = double(ds(:, 'mean_timeNS')) / 1000000;
@@ -231,7 +187,7 @@ for dim=[8 32 128]
     grid on
     legend(...
         'Cholesky Decomposition on CPU', 'Cholesky Decomposition on CPU 8 threads',...
-        'Cholesky Decomposition on GPU',... 'Cholesky Decomposition on GPU v2',
+        'Cholesky Decomposition on GPU', 'Cholesky Decomposition on GPU v2',...
         'Gauss-Jordan Inversion on GPU', 'LU factorization using cuBLAS',...
         'Location', 'NorthWest');
     xlabel(sprintf('Number of %dx%d matrices', dim, dim));
@@ -284,4 +240,48 @@ for dup=[16]
         export_fig(sprintf('plots/partial_inversion_%s.pdf', cell2mat(j)));
         i = i + 1;
     end
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Plot error of gaussian benchmark %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+gausserror = dataset('File', 'gauss-bench-errors.txt', 'Delimiter', ' ', 'VarNames', {'numMatrices', 'numDimensions', 'numDup', 'timer', 'timeMS', 'err'}, 'ReadVarNames', false);
+
+for dup=[16]
+    ds = gausserror(gausserror.numMatrices == dup*100, :);
+    ds = [
+        %double(ds(ds.numDimensions == 8, 'err'))'
+        %double(ds(ds.numDimensions == 16, 'err'))'
+        %double(ds(ds.numDimensions == 32, 'err'))'
+        %double(ds(ds.numDimensions == 64, 'err'))'
+        double(ds(ds.numDimensions == 128, 'err'))
+    ];
+
+    figure;
+    % bar([8 16 32 64 128], ds, 'stacked');
+    bar(ds);
+    grid on
+    set(gca,'XTickLabel',{'Mean on CPU', 'Variance on CPU', 'Mean on GPU', 'Variance on GPU'});
+    ylabel('Average error per matrix');
+    export_fig(sprintf('plots/gauss-errors_%d.pdf', dup));
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Plot error of inversion benchmark %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+inverseerror = dataset('File', 'inverse-bench-errors.txt', 'Delimiter', ' ', 'VarNames', {'numMatrices', 'numDimensions', 'numDup', 'timer', 'timeMS', 'err'}, 'ReadVarNames', false);
+
+for dup=[16]
+    ds = inverseerror(inverseerror.numMatrices == dup*100, :);
+    ds = ds(strcmp(ds.timer, 'chol_mm2_gpu') == 0, :);
+    ds = ds(ds.numDimensions == 128, :);
+    ds = [
+        double(ds(strcmp(ds.timer, 'chol_gpu'), 'err')) double(ds(strcmp(ds.timer, 'lu_cuda_batched_gpu'), 'err'))
+    ];
+
+    sprintf('Mean error for cholesky decomposition: %f', ds(1))
+    sprintf('Mean error for gauss-jordan: %f', ds(2))
 end
