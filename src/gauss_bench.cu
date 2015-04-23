@@ -491,11 +491,11 @@ static DataType vec_sum(Array a, const int N) {
     cblas_scopy(numMatrices, _e, 1, e, 1);
 
 #define BENCH_ERROR_MEAN(name) \
-    vec_diff(means_out, _means, numMatrices); \
+    vec_diff(_means, means_out, numMatrices); \
     total_error_means_##name += vec_sum(means_out, numMatrices);
 
 #define BENCH_ERROR_VARIANCE(name) \
-    vec_diff(variances_out, _variances, numMatrices); \
+    vec_diff(_variances, variances_out, numMatrices); \
     total_error_variances_##name += vec_sum(variances_out, numMatrices);
 
 #define BENCH_CLEANUP(name)
