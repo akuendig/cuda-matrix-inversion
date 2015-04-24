@@ -83,9 +83,9 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, const Ar
 
     BENCH_VAR(lu_blas_cpu)
     BENCH_VAR(lu_blas_omp_cpu)
-    BENCH_VAR(chol_gpu)
-    BENCH_VAR(chol_mm2_gpu)
-    BENCH_VAR(gauss_batched_gpu)
+    // BENCH_VAR(chol_gpu)
+    // BENCH_VAR(chol_mm2_gpu)
+    // BENCH_VAR(gauss_batched_gpu)
     BENCH_VAR(lu_cuda_batched_gpu)
 
     // CPU Benchmark 1
@@ -131,76 +131,76 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, const Ar
     // Create handle after CPU benchmarks to allow testing on non-nvidia host
     cublasErrchk( cublasCreate(&handle) );
 
-    // GPU Benchmark 1
-    //////////////////
-    // Build benchmark data
-    BENCH_SETUP(chol_gpu)
+//    // GPU Benchmark 1
+//    // ////////////////
+//    // Build benchmark data
+//     BENCH_SETUP(chol_gpu)
 
-    // Compute inverses
-    for (rep = 0; rep < numReps; ++rep) {
-        cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
+//     // Compute inverses
+//     for (rep = 0; rep < numReps; ++rep) {
+//         cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
 
-        TIMER_START(chol_gpu)
-        inverse_cholesky_batched_gpu(handle, N, a, inv, numMatrices);
-        TIMER_STOP(chol_gpu)
-#ifdef DETAILED_LOGGING
-        TIMER_LOG(chol_gpu, numMatrices, N)
-#endif // DETAILED_LOGGING
-        TIMER_ACC(chol_gpu)
+//         TIMER_START(chol_gpu)
+//         inverse_cholesky_batched_gpu(handle, N, a, inv, numMatrices);
+//         TIMER_STOP(chol_gpu)
+// #ifdef DETAILED_LOGGING
+//         TIMER_LOG(chol_gpu, numMatrices, N)
+// #endif // DETAILED_LOGGING
+//         TIMER_ACC(chol_gpu)
 
-        gpuErrchk( cudaPeekAtLastError() );
-        gpuErrchk( cudaDeviceSynchronize() );
-    }
+//         gpuErrchk( cudaPeekAtLastError() );
+//         gpuErrchk( cudaDeviceSynchronize() );
+//     }
 
-    // calculate error
-    BENCH_CLEANUP(chol_gpu)
+//     // calculate error
+//     BENCH_CLEANUP(chol_gpu)
 
-    // GPU Benchmark 2
-    //////////////////
-    // Build benchmark data
-    BENCH_SETUP(chol_mm2_gpu)
+//     // GPU Benchmark 2
+//     //////////////////
+//     // Build benchmark data
+//     BENCH_SETUP(chol_mm2_gpu)
 
-    // Compute inverses
-    for (rep = 0; rep < numReps; ++rep) {
-        cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
+//     // Compute inverses
+//     for (rep = 0; rep < numReps; ++rep) {
+//         cblas_scopy(numMatrices*N*N, a, 1, inv, 1);
 
-        TIMER_START(chol_mm2_gpu)
-        inverse_cholesky_mm2_batched_gpu(handle, N, a, inv, numMatrices);
-        TIMER_STOP(chol_mm2_gpu)
-#ifdef DETAILED_LOGGING
-        TIMER_LOG(chol_mm2_gpu, numMatrices, N)
-#endif // DETAILED_LOGGING
-        TIMER_ACC(chol_mm2_gpu)
+//         TIMER_START(chol_mm2_gpu)
+//         inverse_cholesky_mm2_batched_gpu(handle, N, a, inv, numMatrices);
+//         TIMER_STOP(chol_mm2_gpu)
+// #ifdef DETAILED_LOGGING
+//         TIMER_LOG(chol_mm2_gpu, numMatrices, N)
+// #endif // DETAILED_LOGGING
+//         TIMER_ACC(chol_mm2_gpu)
 
-        gpuErrchk( cudaPeekAtLastError() );
-        gpuErrchk( cudaDeviceSynchronize() );
-    }
+//         gpuErrchk( cudaPeekAtLastError() );
+//         gpuErrchk( cudaDeviceSynchronize() );
+//     }
 
-    // calculate error
-    BENCH_CLEANUP(chol_mm2_gpu)
+//     // calculate error
+//     BENCH_CLEANUP(chol_mm2_gpu)
 
-    // GPU Benchmark 3
-    //////////////////
-    // Build benchmark data
-    BENCH_SETUP(gauss_batched_gpu)
+//     // GPU Benchmark 3
+//     //////////////////
+//     // Build benchmark data
+//     BENCH_SETUP(gauss_batched_gpu)
 
-    for (rep = 0; rep < numReps; ++rep) {
-        cblas_scopy(numMatrices*N*N, a, 1, workspace, 1);
+//     for (rep = 0; rep < numReps; ++rep) {
+//         cblas_scopy(numMatrices*N*N, a, 1, workspace, 1);
 
-        TIMER_START(gauss_batched_gpu)
-        inverse_gauss_batched_gpu(handle, N, workspace, inv, numMatrices);
-        TIMER_STOP(gauss_batched_gpu)
-#ifdef DETAILED_LOGGING
-        TIMER_LOG(gauss_batched_gpu, numMatrices, N)
-#endif // DETAILED_LOGGING
-        TIMER_ACC(gauss_batched_gpu)
+//         TIMER_START(gauss_batched_gpu)
+//         inverse_gauss_batched_gpu(handle, N, workspace, inv, numMatrices);
+//         TIMER_STOP(gauss_batched_gpu)
+// #ifdef DETAILED_LOGGING
+//         TIMER_LOG(gauss_batched_gpu, numMatrices, N)
+// #endif // DETAILED_LOGGING
+//         TIMER_ACC(gauss_batched_gpu)
 
-        gpuErrchk( cudaPeekAtLastError() );
-        gpuErrchk( cudaDeviceSynchronize() );
-    }
+//         gpuErrchk( cudaPeekAtLastError() );
+//         gpuErrchk( cudaDeviceSynchronize() );
+//     }
 
-    // calculate error
-    BENCH_CLEANUP(gauss_batched_gpu)
+//     // calculate error
+//     BENCH_CLEANUP(gauss_batched_gpu)
 
     // GPU Benchmark 4
     //////////////////
@@ -226,9 +226,9 @@ void bench_parallel(int numMatrices, int numReps, int N, const Array a, const Ar
 
     BENCH_REPORT(lu_blas_cpu);
     BENCH_REPORT(lu_blas_omp_cpu);
-    BENCH_REPORT(chol_gpu);
-    BENCH_REPORT(chol_mm2_gpu);
-    BENCH_REPORT(gauss_batched_gpu);
+    // BENCH_REPORT(chol_gpu);
+    // BENCH_REPORT(chol_mm2_gpu);
+    // BENCH_REPORT(gauss_batched_gpu);
     BENCH_REPORT(lu_cuda_batched_gpu);
 
     cublasErrchk( cublasDestroy(handle) );

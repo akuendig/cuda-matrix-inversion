@@ -200,7 +200,7 @@ gauss_bench: gauss_bench.o gauss_cpu.o inverse_cpu.o cholesky_gpu.o inverse_gaus
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 run-gauss-bench: gauss_bench
-	for i in 8 16 32 64 128; do \
+	for i in 8 16 32 64 128 256 512; do \
 		for j in 1 2 4 8 16; do \
 			echo "Running OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./gauss_bench ./tests/gaussian_100_$$((i))x$$((i)) $(BENCH_REPS) $$j -csv"; \
 			OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./gauss_bench ./tests/gaussian_100_$$((i))x$$((i)) $(BENCH_REPS) $$j -csv > ./results/gaussian_$$((j*100))_$$((i))x$$((i)); \
@@ -210,7 +210,7 @@ run-gauss-bench: gauss_bench
 	rm ./results/gaussian_*;
 
 run-inverse-bench: inverse_bench
-	for i in 8 16 32 64 128; do \
+	for i in 8 16 32 64 128 256 512; do \
 		for j in 1 2 4 8 16; do \
 			echo "Running OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./inverse_bench ./tests/inverse_100_$$((i))x$$((i)) $(BENCH_REPS) $$j -csv"; \
 			OMP_NUM_THREADS=$(BENCH_NUM_THREADS) ./inverse_bench ./tests/inverse_100_$$((i))x$$((i)) $(BENCH_REPS) $$j -csv > ./results/inverse_$$((j*100))_$$((i))x$$((i)); \
