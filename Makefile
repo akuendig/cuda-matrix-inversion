@@ -132,7 +132,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 INCLUDES  :=
-LIBRARIES := -lcublas -lcublas_device -lcudadevrt -llapack -lblas -lgomp
+LIBRARIES := -lcublas -lcublas_device -lcudadevrt -llapack -lcblas -lgomp
 
 ifneq ($(DARWIN),)
   INCLUDES +=  -I/usr/local/opt/openblas/include -I/usr/local/opt/lapack/include

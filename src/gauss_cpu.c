@@ -5,7 +5,7 @@
 #include <omp.h>
 
 #include <cblas.h>
-#include <lapacke.h>
+#include <clapack.h>
 
 #include "../include/types.h"
 #include "../include/helper_cpu.h"

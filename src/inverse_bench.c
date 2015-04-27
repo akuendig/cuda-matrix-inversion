@@ -14,7 +14,7 @@ extern "C" {
 #endif // __cplusplus
 
 #include <cblas.h>
-#include <lapacke.h>
+#include <clapack.h>
 
 #ifdef __cplusplus
 }

@@ -6,8 +6,17 @@
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 #include <cblas.h>
-#include <lapacke.h>
+#include <clapack.h>
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
 
 #include "../include/types.h"
 #include "../include/helper_cpu.h"
